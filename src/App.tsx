@@ -5,6 +5,7 @@ import { ParticleSystem } from './components/ParticleSystem';
 import { LogicStorageDisplay } from './components/LogicStorageDisplay';
 import { BenchmarkLeaderboard } from './components/BenchmarkLeaderboard';
 import { SystemStatus } from './core/MachineGodCore';
+import { MachineGodCore } from './core/MachineGodCore';
 import { Terminal, Monitor, Activity, Settings, Brain, Users, Zap, Archive, Database, BarChart2 } from 'lucide-react';
 
 type TabType = 'terminal' | 'dashboard' | 'meta-logic' | 'ariel' | 'warp' | 'helix' | 'settings' | 'storage' | 'benchmarks';
