@@ -1,6 +1,6 @@
 /**
  * Enhanced Training System with Contextual Reasoning
- * Implements better "no" response handling, contextual guessing, and redundancy checking
+ * FIXED: 15 unique questions, no loops, always moves forward
  */
 
 export interface TrainingQuestion {
@@ -44,7 +44,7 @@ export class EnhancedTrainingSystem {
   private knownFacts: Map<string, KnownFact> = new Map();
   private personality: PersonalityProfile;
   private currentSession: any = null;
-  private readonly REQUIRED_CORRECT = 25;
+  private readonly REQUIRED_CORRECT = 15; // Reduced to 15 questions
   private contextualInferences: Map<string, string> = new Map();
   private askedQuestions: Set<string> = new Set(); // Track asked questions
   private currentQuestionIndex: number = 0; // Track current position
@@ -61,41 +61,41 @@ export class EnhancedTrainingSystem {
     };
     
     this.initializeEnhancedQuestions();
-    console.log('🧠 Enhanced Training System initialized with contextual reasoning');
+    console.log('🧠 Enhanced Training System initialized with 15 unique questions');
   }
 
   private initializeEnhancedQuestions() {
     this.trainingQuestions = [
-      // Communication Style Questions with Inference Functions
+      // Core 15 questions - carefully selected for maximum learning
       {
-        id: 'comm_1',
-        question: 'Should I address you formally or casually?',
+        id: 'comm_style',
+        question: 'Should I be formal or casual with you?',
         category: 'communication',
         inferenceFunction: (facts, personality) => {
           if (facts.has('communication_style')) {
             return facts.get('communication_style')?.value;
           }
-          if (personality.formality > 0.3) return 'formally';
-          if (personality.formality < -0.3) return 'casually';
+          if (personality.formality > 0.3) return 'formal';
+          if (personality.formality < -0.3) return 'casual';
           return null;
         }
       },
       {
-        id: 'comm_2',
-        question: 'Do you prefer short responses or detailed explanations?',
+        id: 'response_length',
+        question: 'Do you prefer short answers or detailed explanations?',
         category: 'communication',
         inferenceFunction: (facts, personality) => {
           if (facts.has('response_length')) {
             return facts.get('response_length')?.value;
           }
-          if (personality.directness > 0.4) return 'short responses';
+          if (personality.directness > 0.4) return 'short answers';
           if (personality.directness < -0.2) return 'detailed explanations';
           return null;
         }
       },
       {
-        id: 'humor_1',
-        question: 'How do you feel about humor in conversations?',
+        id: 'humor_preference',
+        question: 'How do you feel about humor in our conversations?',
         category: 'personality',
         inferenceFunction: (facts, personality) => {
           if (facts.has('humor_preference')) {
@@ -107,7 +107,7 @@ export class EnhancedTrainingSystem {
         }
       },
       {
-        id: 'tech_1',
+        id: 'tech_comfort',
         question: 'What\'s your comfort level with technical explanations?',
         category: 'technical',
         inferenceFunction: (facts, personality) => {
@@ -120,292 +120,63 @@ export class EnhancedTrainingSystem {
         }
       },
       {
-        id: 'feedback_1',
-        question: 'How should I handle mistakes - apologize or just fix them?',
-        category: 'preferences',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('mistake_handling')) {
-            return facts.get('mistake_handling')?.value;
-          }
-          if (personality.empathy > 0.5) return 'apologize first';
-          if (personality.directness > 0.5) return 'just fix them';
-          return null;
-        }
+        id: 'mistake_handling',
+        question: 'When I make mistakes, should I apologize or just fix them?',
+        category: 'preferences'
       },
       {
-        id: 'emoji_1',
-        question: 'Do you prefer emojis in messages? 😊',
-        category: 'communication',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('emoji_preference')) {
-            return facts.get('emoji_preference')?.value;
-          }
-          if (personality.formality < -0.4 && personality.humor > 0.3) return 'yes, I like emojis';
-          if (personality.formality > 0.4) return 'no, I prefer text without emojis';
-          return null;
-        }
+        id: 'emoji_preference',
+        question: 'Do you like emojis in messages? 😊',
+        category: 'communication'
       },
       {
-        id: 'interrupt_1',
-        question: 'When you\'re busy, should I summarize or wait?',
-        category: 'preferences',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('interruption_preference')) {
-            return facts.get('interruption_preference')?.value;
-          }
-          if (personality.directness > 0.4) return 'summarize briefly';
-          return null;
-        }
+        id: 'interruption_style',
+        question: 'When you\'re busy, should I be brief or wait?',
+        category: 'preferences'
       },
       {
-        id: 'initiative_1',
-        question: 'How much initiative should I take? (1-10)',
-        category: 'preferences',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('initiative_level')) {
-            return facts.get('initiative_level')?.value;
-          }
-          if (personality.directness > 0.6) return 'high (8-10)';
-          if (personality.directness < -0.2) return 'low (1-3)';
-          return null;
-        }
+        id: 'initiative_level',
+        question: 'How proactive should I be? (1-10 scale)',
+        category: 'preferences'
       },
       {
-        id: 'personal_1',
-        question: 'Should I remember personal details?',
-        category: 'preferences',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('remember_details')) {
-            return facts.get('remember_details')?.value;
-          }
-          return null;
-        }
+        id: 'personal_details',
+        question: 'Should I remember personal details about you?',
+        category: 'preferences'
       },
       {
-        id: 'stress_1',
-        question: 'When stressed, do you prefer solutions or empathy?',
-        category: 'personality',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('stress_response')) {
-            return facts.get('stress_response')?.value;
-          }
-          if (personality.empathy > 0.5) return 'empathy first, then solutions';
-          if (personality.directness > 0.5) return 'solutions first';
-          return null;
-        }
+        id: 'stress_response',
+        question: 'When stressed, do you prefer solutions or empathy first?',
+        category: 'personality'
       },
       {
-        id: 'sarcasm_1',
-        question: 'How should I handle sarcasm? Mirror/Ignore/Explain',
-        category: 'personality',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('sarcasm_handling')) {
-            return facts.get('sarcasm_handling')?.value;
-          }
-          if (personality.humor > 0.6) return 'mirror it';
-          if (personality.humor < 0.2) return 'ignore it';
-          return null;
-        }
+        id: 'feedback_style',
+        question: 'How should I give you feedback - direct or gentle?',
+        category: 'communication'
       },
       {
-        id: 'privacy_1',
-        question: 'What\'s your privacy red line?',
-        category: 'preferences',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('privacy_preference')) {
-            return facts.get('privacy_preference')?.value;
-          }
-          return null;
-        }
-      },
-      {
-        id: 'mood_1',
-        question: 'Should I adapt to your mood changes?',
-        category: 'preferences',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('mood_adaptation')) {
-            return facts.get('mood_adaptation')?.value;
-          }
-          if (personality.empathy > 0.4) return 'yes, please adapt';
-          return null;
-        }
-      },
-      {
-        id: 'annoying_1',
-        question: 'What makes an assistant "annoying" to you?',
-        category: 'preferences',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('annoying_traits')) {
-            return facts.get('annoying_traits')?.value;
-          }
-          return null;
-        }
-      },
-      {
-        id: 'phrase_1',
-        question: 'What phrase do you overuse?',
-        category: 'personality',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('overused_phrase')) {
-            return facts.get('overused_phrase')?.value;
-          }
-          return null;
-        }
-      },
-      {
-        id: 'understood_1',
-        question: 'What makes you feel truly understood?',
-        category: 'personality',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('understanding_preference')) {
-            return facts.get('understanding_preference')?.value;
-          }
-          return null;
-        }
-      },
-      {
-        id: 'missed_1',
-        question: 'What should I know about you that others miss?',
-        category: 'personality',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('missed_trait')) {
-            return facts.get('missed_trait')?.value;
-          }
-          return null;
-        }
-      },
-      {
-        id: 'habit_1',
-        question: 'What habit do you wish I could help change?',
-        category: 'learning',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('habit_change')) {
-            return facts.get('habit_change')?.value;
-          }
-          return null;
-        }
-      },
-      {
-        id: 'interrupt_2',
-        question: 'Describe your ideal interruption:',
-        category: 'preferences',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('ideal_interruption')) {
-            return facts.get('ideal_interruption')?.value;
-          }
-          if (facts.has('interruption_preference')) {
-            const pref = facts.get('interruption_preference')?.value;
-            if (pref.includes('summarize')) return 'brief summary of important information';
-            if (pref.includes('wait')) return 'no interruptions unless urgent';
-          }
-          return null;
-        }
-      },
-      {
-        id: 'innovation_1',
-        question: 'What innovation would genuinely surprise you?',
-        category: 'learning',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('innovation_interest')) {
-            return facts.get('innovation_interest')?.value;
-          }
-          return null;
-        }
-      },
-      {
-        id: 'surprise_1',
-        question: 'What would make you say "Whoa - how did you know?!"',
-        category: 'learning',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('surprise_factor')) {
-            return facts.get('surprise_factor')?.value;
-          }
-          return null;
-        }
-      },
-      {
-        id: 'correction_1',
-        question: 'Should I correct your grammar mistakes?',
-        category: 'preferences',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('grammar_correction')) {
-            return facts.get('grammar_correction')?.value;
-          }
-          if (personality.formality > 0.5) return 'yes, please correct my grammar';
-          if (personality.formality < -0.3) return 'no, only if it changes the meaning';
-          return null;
-        }
-      },
-      {
-        id: 'pop_culture_1',
-        question: 'Do you want pop-culture references?',
-        category: 'preferences',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('pop_culture_preference')) {
-            return facts.get('pop_culture_preference')?.value;
-          }
-          if (personality.humor > 0.4 && personality.formality < 0.2) return 'yes, I enjoy pop culture references';
-          if (personality.formality > 0.5) return 'no, keep it professional';
-          return null;
-        }
-      },
-      {
-        id: 'fine_1',
-        question: 'When you say "I\'m fine", what does it usually mean?',
-        category: 'personality',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('fine_meaning')) {
-            return facts.get('fine_meaning')?.value;
-          }
-          return null;
-        }
-      },
-      {
-        id: 'criticism_1',
-        question: 'How do you prefer to receive criticism?',
-        category: 'preferences',
-        inferenceFunction: (facts, personality) => {
-          if (facts.has('criticism_preference')) {
-            return facts.get('criticism_preference')?.value;
-          }
-          if (personality.directness > 0.5) return 'directly and to the point';
-          if (personality.empathy > 0.5) return 'gently with positive reinforcement';
-          return null;
-        }
-      },
-      {
-        id: 'learning_style_1',
+        id: 'learning_style',
         question: 'How do you learn best - examples, theory, or practice?',
         category: 'learning'
       },
       {
-        id: 'decision_making_1',
+        id: 'decision_making',
         question: 'Do you make decisions quickly or need time to think?',
         category: 'personality'
       },
       {
-        id: 'conflict_1',
-        question: 'How do you handle disagreements?',
-        category: 'personality'
-      },
-      {
-        id: 'motivation_1',
+        id: 'motivation_type',
         question: 'What motivates you most - achievement, recognition, or helping others?',
         category: 'personality'
       },
       {
-        id: 'communication_timing_1',
+        id: 'communication_timing',
         question: 'What time of day are you most receptive to new information?',
         category: 'preferences'
-      },
-      {
-        id: 'complexity_1',
-        question: 'Do you prefer step-by-step instructions or high-level overviews?',
-        category: 'communication'
       }
     ];
 
-    console.log(`📚 Loaded ${this.trainingQuestions.length} enhanced training questions with inference capabilities`);
+    console.log(`📚 Loaded ${this.trainingQuestions.length} unique training questions`);
   }
 
   /**
@@ -427,7 +198,7 @@ export class EnhancedTrainingSystem {
     this.askedQuestions.clear();
     this.currentQuestionIndex = 0;
 
-    console.log(`🧠 Started enhanced training session with contextual reasoning`);
+    console.log(`🧠 Started enhanced training session with 15 unique questions`);
     return this.currentSession;
   }
 
@@ -449,7 +220,7 @@ export class EnhancedTrainingSystem {
     let nextQuestion = this.findNextSequentialQuestion();
     
     if (!nextQuestion) {
-      // If we've gone through all questions but haven't reached 25 correct, 
+      // If we've gone through all questions but haven't reached 15 correct, 
       // generate a contextual summary question
       return this.generateFinalQuestion();
     }
@@ -905,7 +676,7 @@ export class EnhancedTrainingSystem {
       this.contextualInferences.set(questionId, "successful_inference");
       
       // Update personality based on the successful inference
-      if (question.category === 'communication' && questionId === 'comm_1') {
+      if (question.category === 'communication' && questionId === 'comm_style') {
         // If we correctly guessed formality preference, strengthen that trait
         this.personality.formality = this.personality.formality > 0 ? 
           Math.min(1, this.personality.formality + 0.1) : 
