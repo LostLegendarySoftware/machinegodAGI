@@ -198,6 +198,98 @@ export class PersistentMemory {
     this.multiModalProgress.modalityInteractions.set('imageGeneration-videoSpatialAnalysis', 0);
   }
 
+  private loadFromStorage() {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      if (stored) {
+        const data = JSON.parse(stored);
+        
+        // Restore user sessions
+        if (data.userSessions) {
+          this.userSessions = new Map(Object.entries(data.userSessions).map(([key, value]: [string, any]) => [
+            key,
+            {
+              ...value,
+              startTime: new Date(value.startTime),
+              lastActivity: new Date(value.lastActivity),
+              preferences: {
+                ...value.preferences,
+                feedbackHistory: value.preferences.feedbackHistory.map((feedback: any) => ({
+                  ...feedback,
+                  timestamp: new Date(feedback.timestamp)
+                }))
+              }
+            }
+          ]));
+        }
+
+        // Restore conversations
+        if (data.conversations) {
+          this.conversations = new Map(Object.entries(data.conversations).map(([userId, tiers]: [string, any]) => [
+            userId,
+            new Map(Object.entries(tiers).map(([tier, convs]: [string, any]) => [
+              tier as MemoryTier,
+              convs.map((conv: any) => ({
+                ...conv,
+                timestamp: new Date(conv.timestamp)
+              }))
+            ]))
+          ]));
+        }
+
+        // Restore training checkpoints
+        if (data.trainingCheckpoints) {
+          this.trainingCheckpoints = data.trainingCheckpoints.map((checkpoint: any) => ({
+            ...checkpoint,
+            timestamp: new Date(checkpoint.timestamp)
+          }));
+        }
+
+        // Restore multi-modal progress
+        if (data.multiModalProgress) {
+          this.multiModalProgress = {
+            ...data.multiModalProgress,
+            modalityInteractions: new Map(data.multiModalProgress.modalityInteractions || [])
+          };
+        }
+
+        console.log('💾 Memory loaded from storage');
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to load from storage:', error);
+    }
+  }
+
+  private startPeriodicSave() {
+    setInterval(() => {
+      this.saveToStorage();
+    }, 30000); // Save every 30 seconds
+  }
+
+  private saveToStorage() {
+    try {
+      const data = {
+        userSessions: Object.fromEntries(this.userSessions),
+        conversations: Object.fromEntries(
+          Array.from(this.conversations.entries()).map(([userId, tiers]) => [
+            userId,
+            Object.fromEntries(tiers)
+          ])
+        ),
+        trainingCheckpoints: this.trainingCheckpoints,
+        multiModalProgress: {
+          ...this.multiModalProgress,
+          modalityInteractions: Array.from(this.multiModalProgress.modalityInteractions.entries())
+        }
+      };
+      
+      localStorage.setItem(this.storageKey, JSON.stringify(data));
+      console.log('💾 Memory saved to storage');
+    } catch (error) {
+      console.warn('⚠️ Failed to save to storage:', error);
+    }
+  }
+
   private startNewSession() {
     this.currentSessionId = `session-${Date.now()}-${crypto.randomUUID()}`;
     
@@ -230,6 +322,168 @@ export class PersistentMemory {
     }
     
     console.log(`🚀 New quantum session: ${this.currentSessionId}`);
+  }
+
+  private getConversationCount(userId: string): number {
+    const userConversations = this.conversations.get(userId);
+    if (!userConversations) return 0;
+    
+    let total = 0;
+    for (const tier of userConversations.values()) {
+      total += tier.length;
+    }
+    return total;
+  }
+
+  private extractTopics(input: string): string[] {
+    // Simple topic extraction - can be enhanced with NLP
+    const words = input.toLowerCase().split(/\s+/);
+    const topics = words.filter(word => 
+      word.length > 4 && 
+      !['this', 'that', 'with', 'from', 'they', 'have', 'been', 'will', 'would', 'could', 'should'].includes(word)
+    );
+    return [...new Set(topics)].slice(0, 5);
+  }
+
+  private calculateComplexity(input: string): number {
+    // Simple complexity calculation based on length, vocabulary, and structure
+    const wordCount = input.split(/\s+/).length;
+    const uniqueWords = new Set(input.toLowerCase().split(/\s+/)).size;
+    const avgWordLength = input.replace(/\s+/g, '').length / wordCount;
+    const sentenceCount = input.split(/[.!?]+/).length;
+    
+    return Math.min(10, (wordCount * 0.1) + (uniqueWords * 0.05) + (avgWordLength * 0.2) + (sentenceCount * 0.3));
+  }
+
+  private generateEmbedding(text: string): number[] {
+    // Simple embedding generation - in production, use proper embedding models
+    const words = text.toLowerCase().split(/\s+/);
+    const embedding = new Array(128).fill(0);
+    
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      for (let j = 0; j < word.length && j < embedding.length; j++) {
+        embedding[j] += word.charCodeAt(j % word.length) * (i + 1);
+      }
+    }
+    
+    // Normalize
+    const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
+    return embedding.map(val => magnitude > 0 ? val / magnitude : 0);
+  }
+
+  private analyzeEmotionalContext(input: string): { valence: number; arousal: number; dominance: number } {
+    // Simple emotional analysis - can be enhanced with sentiment analysis models
+    const positiveWords = ['good', 'great', 'excellent', 'amazing', 'wonderful', 'fantastic', 'love', 'like', 'happy', 'joy'];
+    const negativeWords = ['bad', 'terrible', 'awful', 'hate', 'dislike', 'sad', 'angry', 'frustrated', 'disappointed'];
+    const highArousalWords = ['excited', 'thrilled', 'energetic', 'passionate', 'intense', 'urgent', 'emergency'];
+    const dominantWords = ['must', 'should', 'need', 'require', 'demand', 'insist', 'command'];
+    
+    const words = input.toLowerCase().split(/\s+/);
+    
+    let valence = 0;
+    let arousal = 0.5;
+    let dominance = 0.5;
+    
+    for (const word of words) {
+      if (positiveWords.includes(word)) valence += 0.2;
+      if (negativeWords.includes(word)) valence -= 0.2;
+      if (highArousalWords.includes(word)) arousal += 0.1;
+      if (dominantWords.includes(word)) dominance += 0.1;
+    }
+    
+    return {
+      valence: Math.max(-1, Math.min(1, valence)),
+      arousal: Math.max(0, Math.min(1, arousal)),
+      dominance: Math.max(0, Math.min(1, dominance))
+    };
+  }
+
+  private updateUserPreferences(conversation: ConversationMemory) {
+    const userSession = this.userSessions.get(this.currentUserId);
+    if (!userSession) return;
+    
+    // Update topics based on conversation
+    const newTopics = conversation.topics.filter(topic => 
+      !userSession.preferences.topics.includes(topic)
+    );
+    userSession.preferences.topics.push(...newTopics.slice(0, 3));
+    
+    // Keep only recent topics (max 20)
+    if (userSession.preferences.topics.length > 20) {
+      userSession.preferences.topics = userSession.preferences.topics.slice(-20);
+    }
+  }
+
+  private updateEmotionalProfile(conversation: ConversationMemory) {
+    const userSession = this.userSessions.get(this.currentUserId);
+    if (!userSession) return;
+    
+    // Update emotional profile based on conversation
+    const emotionalTags = conversation.emotionalTags;
+    userSession.emotionalProfile.positivityIndex = 
+      (userSession.emotionalProfile.positivityIndex * 0.9) + (emotionalTags.valence * 0.1);
+    userSession.emotionalProfile.engagementLevel = 
+      (userSession.emotionalProfile.engagementLevel * 0.9) + (emotionalTags.arousal * 0.1);
+    
+    // Update recent valence for trend analysis
+    this.emotionalContextModel.recentValence.push(emotionalTags.valence);
+    if (this.emotionalContextModel.recentValence.length > 10) {
+      this.emotionalContextModel.recentValence.shift();
+    }
+  }
+
+  private updateModalityLinks(conversation: ConversationMemory) {
+    // Update cross-modal progress based on conversation content
+    if (conversation.linkedMedia.images.length > 0) {
+      this.multiModalProgress.imageGeneration.level += 0.01;
+    }
+    if (conversation.linkedMedia.audioClips.length > 0) {
+      this.multiModalProgress.speechToText.level += 0.01;
+    }
+    if (conversation.linkedMedia.spatialData.length > 0) {
+      this.multiModalProgress.videoSpatialAnalysis.level += 0.01;
+    }
+    
+    // Update overall progress
+    const modalities = [
+      this.multiModalProgress.naturalLanguage,
+      this.multiModalProgress.speechToText,
+      this.multiModalProgress.imageGeneration,
+      this.multiModalProgress.videoSpatialAnalysis
+    ];
+    
+    this.multiModalProgress.overallProgress = 
+      modalities.reduce((sum, mod) => sum + mod.level, 0) / modalities.length;
+  }
+
+  private cosineSimilarity(a: number[], b: number[]): number {
+    if (a.length !== b.length) return 0;
+    
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+    
+    for (let i = 0; i < a.length; i++) {
+      dotProduct += a[i] * b[i];
+      normA += a[i] * a[i];
+      normB += b[i] * b[i];
+    }
+    
+    if (normA === 0 || normB === 0) return 0;
+    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+  }
+
+  private isSensitive(url: string): boolean {
+    // Simple sensitivity check - can be enhanced
+    const sensitivePatterns = [
+      /personal/i,
+      /private/i,
+      /confidential/i,
+      /secret/i
+    ];
+    
+    return sensitivePatterns.some(pattern => pattern.test(url));
   }
 
   /**
@@ -367,8 +621,6 @@ export class PersistentMemory {
     return `${memory.topics.join(',')}|${memory.complexity}|${memory.emotionalTags.valence.toFixed(2)}`;
   }
 
-  // ... (Other methods with similar quantum innovations) ...
-
   /**
    * INNOVATION 21: Predictive Memory Prefetch
    * Anticipates user needs based on conversation patterns
@@ -414,8 +666,6 @@ export class PersistentMemory {
       .map(item => item.mem);
   }
 
-  // ... (More innovative methods) ...
-
   /**
    * INNOVATION 22: Cross-Modal Training Boost
    * Accelerates progress in lagging modalities using stronger ones
@@ -428,10 +678,10 @@ export class PersistentMemory {
     let weakest = modalities[0];
     
     for (const modality of modalities) {
-      if (this.multiModalProgress[modality].level > this.multiModalProgress[strongest].level) {
+      if (this.multiModalProgress[modality as keyof MultiModalProgress].level > this.multiModalProgress[strongest as keyof MultiModalProgress].level) {
         strongest = modality;
       }
-      if (this.multiModalProgress[modality].level < this.multiModalProgress[weakest].level) {
+      if (this.multiModalProgress[modality as keyof MultiModalProgress].level < this.multiModalProgress[weakest as keyof MultiModalProgress].level) {
         weakest = modality;
       }
     }
@@ -439,11 +689,11 @@ export class PersistentMemory {
     // Apply boost
     const boostAmount = Math.min(
       0.3, 
-      this.multiModalProgress[strongest].level * 0.1
+      (this.multiModalProgress[strongest as keyof MultiModalProgress] as ModalityProgress).level * 0.1
     );
     
-    this.multiModalProgress[weakest].level += boostAmount;
-    this.multiModalProgress[weakest].synergyBoost += 0.05;
+    (this.multiModalProgress[weakest as keyof MultiModalProgress] as ModalityProgress).level += boostAmount;
+    (this.multiModalProgress[weakest as keyof MultiModalProgress] as ModalityProgress).synergyBoost += 0.05;
     
     // Update interaction graph
     const interactionKey = `${strongest}-${weakest}`;
@@ -488,5 +738,57 @@ export class PersistentMemory {
       .replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g, '[REDACTED-EMAIL]');
   }
 
-  // ... (Remaining methods with similar innovations) ...
+  // Public API methods
+  getRecentConversations(userId: string = this.currentUserId, limit: number = 10): ConversationMemory[] {
+    const userConversations = this.conversations.get(userId);
+    if (!userConversations) return [];
+    
+    const hotMemories = userConversations.get(MemoryTier.HOT) || [];
+    return hotMemories.slice(-limit);
+  }
+
+  getUserSession(userId: string = this.currentUserId): UserSession | undefined {
+    return this.userSessions.get(userId);
+  }
+
+  getMultiModalProgress(): MultiModalProgress {
+    return this.multiModalProgress;
+  }
+
+  getTrainingCheckpoints(): TrainingCheckpoint[] {
+    return this.trainingCheckpoints.slice(-10); // Return last 10 checkpoints
+  }
+
+  addTrainingCheckpoint(checkpoint: Omit<TrainingCheckpoint, 'id' | 'timestamp'>): void {
+    const newCheckpoint: TrainingCheckpoint = {
+      ...checkpoint,
+      id: `checkpoint-${Date.now()}-${crypto.randomUUID()}`,
+      timestamp: new Date()
+    };
+    
+    this.trainingCheckpoints.push(newCheckpoint);
+    
+    // Keep only recent checkpoints
+    if (this.trainingCheckpoints.length > this.maxCheckpoints) {
+      this.trainingCheckpoints = this.trainingCheckpoints.slice(-this.maxCheckpoints);
+    }
+    
+    console.log(`📊 Training checkpoint added: ${newCheckpoint.id}`);
+  }
+
+  clearMemory(userId: string = this.currentUserId): void {
+    this.conversations.delete(userId);
+    this.userSessions.delete(userId);
+    this.predictiveCache.clear();
+    console.log(`🗑️ Memory cleared for user: ${userId}`);
+  }
+
+  exportMemory(userId: string = this.currentUserId): any {
+    return {
+      userSession: this.userSessions.get(userId),
+      conversations: this.conversations.get(userId),
+      multiModalProgress: this.multiModalProgress,
+      trainingCheckpoints: this.trainingCheckpoints
+    };
+  }
 }
