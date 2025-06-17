@@ -337,50 +337,6 @@ export class SocialMediaSpeechProcessor {
   }
 
   /**
-   * Audit speech patterns performance
-   */
-  auditSpeechPatterns(): {
-    totalPatterns: number;
-    highPerformance: number;
-    needsImprovement: number;
-    trending: number;
-    storageUsed: string;
-    recommendations: string[];
-  } {
-    const patterns = Array.from(this.speechPatterns.values());
-    const total = patterns.length;
-    const highPerf = patterns.filter(p => p.frequency > 0.8).length;
-    const needsImprovement = patterns.filter(p => p.frequency < 0.3).length;
-    const trending = patterns.filter(p => p.usage === 'trending').length;
-    
-    const recommendations: string[] = [];
-    
-    if (needsImprovement > total * 0.2) {
-      recommendations.push('Consider removing low-performing patterns');
-    }
-    
-    if (trending < total * 0.1) {
-      recommendations.push('Add more trending expressions');
-    }
-    
-    if (this.userFeedback.length > 0) {
-      const likeRate = this.getFeedbackStats().likeRate;
-      if (likeRate < 70) {
-        recommendations.push('Focus on user feedback to improve speech patterns');
-      }
-    }
-    
-    return {
-      totalPatterns: total,
-      highPerformance: highPerf,
-      needsImprovement,
-      trending,
-      storageUsed: `${(this.speechReferenceSize / 1024 / 1024).toFixed(1)}MB / 256MB`,
-      recommendations
-    };
-  }
-
-  /**
    * Get current speech settings
    */
   getSpeechSettings(): {

@@ -352,4 +352,4 @@ export const EnhancedTrainingInterface: React.FC<EnhancedTrainingInterfaceProps>
       </div>
     </div>
   );
-};
+}

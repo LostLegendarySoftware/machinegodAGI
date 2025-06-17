@@ -6,10 +6,8 @@
 export interface TrainingQuestion {
   id: string;
   question: string;
-  expectedAnswer: string;
-  category: 'logic' | 'language' | 'knowledge' | 'reasoning' | 'social';
-  difficulty: 'easy' | 'medium' | 'hard';
-  inferenceFunction?: (knownFacts: Map<string, any>, personality: any) => string | null;
+  category: 'communication' | 'preferences' | 'technical' | 'personality' | 'learning';
+  inferenceFunction?: (knownFacts: Map<string, KnownFact>, personality: PersonalityProfile) => string | null;
 }
 
 export interface TrainingAttempt {
@@ -32,11 +30,11 @@ export interface KnownFact {
 }
 
 export interface PersonalityProfile {
-  formality: number;
-  directness: number;
-  humor: number;
-  empathy: number;
-  techLevel: number;
+  formality: number; // -1 to 1 (casual to formal)
+  directness: number; // -1 to 1 (detailed to direct)
+  humor: number; // -1 to 1 (serious to humorous)
+  empathy: number; // -1 to 1 (logical to empathetic)
+  techLevel: number; // -1 to 1 (simple to technical)
   responseStyle: 'detailed' | 'concise' | 'casual' | 'formal';
   preferences: Map<string, any>;
 }
@@ -47,7 +45,6 @@ export class EnhancedTrainingSystem {
   private personality: PersonalityProfile;
   private currentSession: any = null;
   private readonly REQUIRED_CORRECT = 25;
-  private learningPatterns: Map<string, string[]> = new Map();
   private contextualInferences: Map<string, string> = new Map();
 
   constructor() {
@@ -71,9 +68,7 @@ export class EnhancedTrainingSystem {
       {
         id: 'comm_1',
         question: 'Should I address you formally or casually?',
-        expectedAnswer: 'depends on preference',
-        category: 'social',
-        difficulty: 'easy',
+        category: 'communication',
         inferenceFunction: (facts, personality) => {
           if (facts.has('communication_style')) {
             return facts.get('communication_style')?.value;
@@ -86,9 +81,7 @@ export class EnhancedTrainingSystem {
       {
         id: 'comm_2',
         question: 'Do you prefer short responses or detailed explanations?',
-        expectedAnswer: 'depends on context',
-        category: 'social',
-        difficulty: 'easy',
+        category: 'communication',
         inferenceFunction: (facts, personality) => {
           if (facts.has('response_length')) {
             return facts.get('response_length')?.value;
@@ -101,9 +94,7 @@ export class EnhancedTrainingSystem {
       {
         id: 'humor_1',
         question: 'How do you feel about humor in conversations?',
-        expectedAnswer: 'varies by person',
-        category: 'social',
-        difficulty: 'medium',
+        category: 'personality',
         inferenceFunction: (facts, personality) => {
           if (facts.has('humor_preference')) {
             return facts.get('humor_preference')?.value;
@@ -116,9 +107,7 @@ export class EnhancedTrainingSystem {
       {
         id: 'tech_1',
         question: 'What\'s your comfort level with technical explanations?',
-        expectedAnswer: 'varies by person',
-        category: 'knowledge',
-        difficulty: 'medium',
+        category: 'technical',
         inferenceFunction: (facts, personality) => {
           if (facts.has('tech_comfort')) {
             return facts.get('tech_comfort')?.value;
@@ -131,9 +120,7 @@ export class EnhancedTrainingSystem {
       {
         id: 'feedback_1',
         question: 'How should I handle mistakes - apologize or just fix them?',
-        expectedAnswer: 'depends on preference',
-        category: 'social',
-        difficulty: 'medium',
+        category: 'preferences',
         inferenceFunction: (facts, personality) => {
           if (facts.has('mistake_handling')) {
             return facts.get('mistake_handling')?.value;
@@ -143,87 +130,247 @@ export class EnhancedTrainingSystem {
           return null;
         }
       },
-
-      // Logic Questions
       {
-        id: 'logic_1',
-        question: 'If all cats are animals and Fluffy is a cat, what is Fluffy?',
-        expectedAnswer: 'an animal',
-        category: 'logic',
-        difficulty: 'easy'
+        id: 'emoji_1',
+        question: 'Do you prefer emojis in messages? 😊',
+        category: 'communication',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('emoji_preference')) {
+            return facts.get('emoji_preference')?.value;
+          }
+          if (personality.formality < -0.4 && personality.humor > 0.3) return 'yes, I like emojis';
+          if (personality.formality > 0.4) return 'no, I prefer text without emojis';
+          return null;
+        }
       },
       {
-        id: 'logic_2',
-        question: 'True or false: If A implies B, and B implies C, then A implies C?',
-        expectedAnswer: 'true',
-        category: 'logic',
-        difficulty: 'medium'
-      },
-
-      // Language Questions
-      {
-        id: 'lang_1',
-        question: 'What does "no cap" mean in modern slang?',
-        expectedAnswer: 'no lie, for real, telling the truth',
-        category: 'language',
-        difficulty: 'easy'
+        id: 'interrupt_1',
+        question: 'When you\'re busy, should I summarize or wait?',
+        category: 'preferences',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('interruption_preference')) {
+            return facts.get('interruption_preference')?.value;
+          }
+          if (personality.directness > 0.4) return 'summarize briefly';
+          return null;
+        }
       },
       {
-        id: 'lang_2',
-        question: 'Rewrite this formally: "That\'s fire, ngl it\'s bussin fr"',
-        expectedAnswer: 'That\'s excellent, honestly it\'s really good',
-        category: 'language',
-        difficulty: 'medium'
-      },
-
-      // Knowledge Questions
-      {
-        id: 'know_1',
-        question: 'What is the capital of France?',
-        expectedAnswer: 'Paris',
-        category: 'knowledge',
-        difficulty: 'easy'
+        id: 'initiative_1',
+        question: 'How much initiative should I take? (1-10)',
+        category: 'preferences',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('initiative_level')) {
+            return facts.get('initiative_level')?.value;
+          }
+          if (personality.proactivity > 0.6) return 'high (8-10)';
+          if (personality.proactivity < -0.2) return 'low (1-3)';
+          return null;
+        }
       },
       {
-        id: 'know_2',
-        question: 'What does AI stand for?',
-        expectedAnswer: 'Artificial Intelligence',
-        category: 'knowledge',
-        difficulty: 'easy'
-      },
-
-      // Reasoning Questions
-      {
-        id: 'reason_1',
-        question: 'What comes next in this sequence: 2, 4, 8, 16, ?',
-        expectedAnswer: '32',
-        category: 'reasoning',
-        difficulty: 'medium'
+        id: 'personal_1',
+        question: 'Should I remember personal details?',
+        category: 'preferences',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('remember_details')) {
+            return facts.get('remember_details')?.value;
+          }
+          return null;
+        }
       },
       {
-        id: 'reason_2',
-        question: 'If today is Tuesday, what day was it 100 days ago?',
-        expectedAnswer: 'Sunday',
-        category: 'reasoning',
-        difficulty: 'medium'
-      },
-
-      // Additional questions to reach 25...
-      {
-        id: 'social_1',
-        question: 'How should you respond when someone is clearly upset?',
-        expectedAnswer: 'listen, show empathy, ask how you can help',
-        category: 'social',
-        difficulty: 'medium'
+        id: 'stress_1',
+        question: 'When stressed, do you prefer solutions or empathy?',
+        category: 'personality',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('stress_response')) {
+            return facts.get('stress_response')?.value;
+          }
+          if (personality.empathy > 0.5) return 'empathy first, then solutions';
+          if (personality.directness > 0.5) return 'solutions first';
+          return null;
+        }
       },
       {
-        id: 'social_2',
-        question: 'What\'s the best way to give constructive criticism?',
-        expectedAnswer: 'be specific, focus on behavior not person, offer solutions',
-        category: 'social',
-        difficulty: 'medium'
+        id: 'sarcasm_1',
+        question: 'How should I handle sarcasm? Mirror/Ignore/Explain',
+        category: 'personality',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('sarcasm_handling')) {
+            return facts.get('sarcasm_handling')?.value;
+          }
+          if (personality.humor > 0.6) return 'mirror it';
+          if (personality.humor < 0.2) return 'ignore it';
+          return null;
+        }
       },
-      // ... (add more questions to reach 25 total)
+      {
+        id: 'privacy_1',
+        question: 'What\'s your privacy red line?',
+        category: 'preferences',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('privacy_preference')) {
+            return facts.get('privacy_preference')?.value;
+          }
+          return null;
+        }
+      },
+      {
+        id: 'mood_1',
+        question: 'Should I adapt to your mood changes?',
+        category: 'preferences',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('mood_adaptation')) {
+            return facts.get('mood_adaptation')?.value;
+          }
+          if (personality.empathy > 0.4) return 'yes, please adapt';
+          return null;
+        }
+      },
+      {
+        id: 'annoying_1',
+        question: 'What makes an assistant "annoying" to you?',
+        category: 'preferences',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('annoying_traits')) {
+            return facts.get('annoying_traits')?.value;
+          }
+          return null;
+        }
+      },
+      {
+        id: 'phrase_1',
+        question: 'What phrase do you overuse?',
+        category: 'personality',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('overused_phrase')) {
+            return facts.get('overused_phrase')?.value;
+          }
+          return null;
+        }
+      },
+      {
+        id: 'understood_1',
+        question: 'What makes you feel truly understood?',
+        category: 'personality',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('understanding_preference')) {
+            return facts.get('understanding_preference')?.value;
+          }
+          return null;
+        }
+      },
+      {
+        id: 'missed_1',
+        question: 'What should I know about you that others miss?',
+        category: 'personality',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('missed_trait')) {
+            return facts.get('missed_trait')?.value;
+          }
+          return null;
+        }
+      },
+      {
+        id: 'habit_1',
+        question: 'What habit do you wish I could help change?',
+        category: 'learning',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('habit_change')) {
+            return facts.get('habit_change')?.value;
+          }
+          return null;
+        }
+      },
+      {
+        id: 'interrupt_2',
+        question: 'Describe your ideal interruption:',
+        category: 'preferences',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('ideal_interruption')) {
+            return facts.get('ideal_interruption')?.value;
+          }
+          if (facts.has('interruption_preference')) {
+            const pref = facts.get('interruption_preference')?.value;
+            if (pref.includes('summarize')) return 'brief summary of important information';
+            if (pref.includes('wait')) return 'no interruptions unless urgent';
+          }
+          return null;
+        }
+      },
+      {
+        id: 'innovation_1',
+        question: 'What innovation would genuinely surprise you?',
+        category: 'learning',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('innovation_interest')) {
+            return facts.get('innovation_interest')?.value;
+          }
+          return null;
+        }
+      },
+      {
+        id: 'surprise_1',
+        question: 'What would make you say "Whoa - how did you know?!"',
+        category: 'learning',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('surprise_factor')) {
+            return facts.get('surprise_factor')?.value;
+          }
+          return null;
+        }
+      },
+      {
+        id: 'correction_1',
+        question: 'Should I correct your grammar mistakes?',
+        category: 'preferences',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('grammar_correction')) {
+            return facts.get('grammar_correction')?.value;
+          }
+          if (personality.formality > 0.5) return 'yes, please correct my grammar';
+          if (personality.formality < -0.3) return 'no, only if it changes the meaning';
+          return null;
+        }
+      },
+      {
+        id: 'pop_culture_1',
+        question: 'Do you want pop-culture references?',
+        category: 'preferences',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('pop_culture_preference')) {
+            return facts.get('pop_culture_preference')?.value;
+          }
+          if (personality.humor > 0.4 && personality.formality < 0.2) return 'yes, I enjoy pop culture references';
+          if (personality.formality > 0.5) return 'no, keep it professional';
+          return null;
+        }
+      },
+      {
+        id: 'fine_1',
+        question: 'When you say "I\'m fine", what does it usually mean?',
+        category: 'personality',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('fine_meaning')) {
+            return facts.get('fine_meaning')?.value;
+          }
+          return null;
+        }
+      },
+      {
+        id: 'criticism_1',
+        question: 'How do you prefer to receive criticism?',
+        category: 'preferences',
+        inferenceFunction: (facts, personality) => {
+          if (facts.has('criticism_preference')) {
+            return facts.get('criticism_preference')?.value;
+          }
+          if (personality.directness > 0.5) return 'directly and to the point';
+          if (personality.empathy > 0.5) return 'gently with positive reinforcement';
+          return null;
+        }
+      }
     ];
 
     console.log(`📚 Loaded ${this.trainingQuestions.length} enhanced training questions with inference capabilities`);
@@ -494,7 +641,7 @@ export class EnhancedTrainingSystem {
 
     // Category-specific insight extraction
     switch (category) {
-      case 'social':
+      case 'communication':
         if (lowerExplanation.includes('formal')) {
           insights.push('prefers formal communication');
           this.personality.formality += 0.3;
@@ -513,7 +660,7 @@ export class EnhancedTrainingSystem {
         }
         break;
 
-      case 'language':
+      case 'technical':
         if (lowerExplanation.includes('simple')) {
           insights.push('prefers simple language');
           this.personality.techLevel -= 0.2;
@@ -524,9 +671,19 @@ export class EnhancedTrainingSystem {
         }
         break;
 
-      case 'logic':
-        if (lowerExplanation.includes('step by step')) {
-          insights.push('prefers step-by-step reasoning');
+      case 'personality':
+        if (lowerExplanation.includes('humor') || lowerExplanation.includes('joke')) {
+          if (lowerExplanation.includes('no ') || lowerExplanation.includes('not ')) {
+            insights.push('prefers serious tone');
+            this.personality.humor -= 0.3;
+          } else {
+            insights.push('enjoys humor');
+            this.personality.humor += 0.3;
+          }
+        }
+        if (lowerExplanation.includes('empathy') || lowerExplanation.includes('understand')) {
+          insights.push('values empathy');
+          this.personality.empathy += 0.3;
         }
         break;
     }
@@ -632,22 +789,78 @@ export class EnhancedTrainingSystem {
 
   private recordCorrectAnswer(questionId: string, wasInferred: boolean): void {
     this.currentSession.correctCount++;
-    // Additional logic for tracking inferred vs direct answers
+    this.currentSession.totalAttempts++;
+    
+    // If this was an inferred answer, record that for metrics
+    if (wasInferred) {
+      if (!this.currentSession.inferredCorrect) {
+        this.currentSession.inferredCorrect = 0;
+      }
+      this.currentSession.inferredCorrect++;
+    }
   }
 
   private reinforceInference(questionId: string): void {
     // Strengthen the inference pattern that worked
     const question = this.trainingQuestions.find(q => q.id === questionId);
     if (question && question.category) {
-      const patterns = this.learningPatterns.get(question.category) || [];
-      patterns.push('successful_inference');
-      this.learningPatterns.set(question.category, patterns);
+      // Store the successful inference
+      this.contextualInferences.set(questionId, "successful_inference");
+      
+      // Update personality based on the successful inference
+      if (question.category === 'communication' && questionId === 'comm_1') {
+        // If we correctly guessed formality preference, strengthen that trait
+        this.personality.formality = this.personality.formality > 0 ? 
+          Math.min(1, this.personality.formality + 0.1) : 
+          Math.max(-1, this.personality.formality - 0.1);
+      }
     }
   }
 
   private storeUserAnswer(questionId: string, answer: string): void {
     // Store user's answer for future reference
-    this.storeKnownFact(`answer_${questionId}`, answer, 'explicit', 1.0);
+    const question = this.trainingQuestions.find(q => q.id === questionId);
+    if (question) {
+      this.storeKnownFact(`answer_${questionId}`, answer, 'explicit', 1.0);
+      
+      // Update personality based on answer
+      this.updatePersonalityFromAnswer(question.category, answer);
+    }
+  }
+
+  private updatePersonalityFromAnswer(category: string, answer: string): void {
+    const lowerAnswer = answer.toLowerCase();
+    
+    switch(category) {
+      case 'communication':
+        if (lowerAnswer.includes('formal')) this.personality.formality += 0.2;
+        if (lowerAnswer.includes('casual')) this.personality.formality -= 0.2;
+        if (lowerAnswer.includes('direct') || lowerAnswer.includes('short')) this.personality.directness += 0.2;
+        if (lowerAnswer.includes('detail')) this.personality.directness -= 0.2;
+        break;
+        
+      case 'personality':
+        if (lowerAnswer.includes('humor') || lowerAnswer.includes('joke') || lowerAnswer.includes('funny')) {
+          if (!lowerAnswer.includes('no ') && !lowerAnswer.includes('not ')) {
+            this.personality.humor += 0.2;
+          } else {
+            this.personality.humor -= 0.2;
+          }
+        }
+        break;
+        
+      case 'technical':
+        if (lowerAnswer.includes('technical') || lowerAnswer.includes('detail')) this.personality.techLevel += 0.2;
+        if (lowerAnswer.includes('simple') || lowerAnswer.includes('basic')) this.personality.techLevel -= 0.2;
+        break;
+    }
+    
+    // Clamp values
+    this.personality.formality = Math.max(-1, Math.min(1, this.personality.formality));
+    this.personality.directness = Math.max(-1, Math.min(1, this.personality.directness));
+    this.personality.humor = Math.max(-1, Math.min(1, this.personality.humor));
+    this.personality.empathy = Math.max(-1, Math.min(1, this.personality.empathy));
+    this.personality.techLevel = Math.max(-1, Math.min(1, this.personality.techLevel));
   }
 
   private generateAIResponse(questionId: string, userAnswer: string): string {
@@ -656,16 +869,16 @@ export class EnhancedTrainingSystem {
 
     // Generate contextual response based on question category and user answer
     switch (question.category) {
-      case 'social':
+      case 'communication':
         return `Got it! So you prefer ${userAnswer}. I'll keep that in mind for how we interact.`;
-      case 'logic':
-        return `Your answer is "${userAnswer}". Let me check if that follows the logical rules correctly.`;
-      case 'language':
-        return `You said "${userAnswer}". That shows me your language style preferences.`;
-      case 'knowledge':
-        return `The answer "${userAnswer}" - let me verify that's correct.`;
-      case 'reasoning':
-        return `Interesting reasoning: "${userAnswer}". Let me see if that logic holds up.`;
+      case 'technical':
+        return `Your answer is "${userAnswer}". That helps me understand your technical preferences.`;
+      case 'personality':
+        return `Thanks for sharing that "${userAnswer}". This helps me understand your personality better.`;
+      case 'preferences':
+        return `I'll remember your preference: "${userAnswer}". This will help me serve you better.`;
+      case 'learning':
+        return `Interesting response: "${userAnswer}". I'll keep this in mind for our future interactions.`;
       default:
         return `I understand your answer: "${userAnswer}".`;
     }
@@ -673,16 +886,28 @@ export class EnhancedTrainingSystem {
 
   private generateImprovedResponse(questionId: string, explanation: string): string {
     // Generate improved response based on user's explanation
-    return explanation; // Simplified for now
+    const question = this.trainingQuestions.find(q => q.id === questionId);
+    if (!question) return explanation;
+    
+    // Extract key points from explanation
+    const keyPoints = explanation.split(/[.,!?]/).filter(s => s.trim().length > 0);
+    
+    // For simple explanations, just return them
+    if (keyPoints.length <= 1) return explanation;
+    
+    // For more complex explanations, try to summarize
+    return explanation.trim();
   }
 
   private learnFromSuccess(attempt: TrainingAttempt): void {
     // Learn from successful patterns
     const question = this.trainingQuestions.find(q => q.id === attempt.questionId);
     if (question) {
-      const patterns = this.learningPatterns.get(question.category) || [];
-      patterns.push(attempt.aiResponse);
-      this.learningPatterns.set(question.category, patterns);
+      // Store the successful answer
+      this.storeKnownFact(`${question.category}_success_${attempt.questionId}`, attempt.userAnswer, 'explicit', 0.9);
+      
+      // Update contextual inferences
+      this.contextualInferences.set(attempt.questionId, attempt.userAnswer);
     }
   }
 
@@ -716,14 +941,16 @@ export class EnhancedTrainingSystem {
         requiredCorrect: this.REQUIRED_CORRECT,
         isComplete: false,
         personalityDeveloped: 0,
-        factsLearned: 0
+        factsLearned: 0,
+        inferencesMade: 0
       };
     }
 
     const personalityDeveloped = Math.abs(this.personality.formality) + 
                                 Math.abs(this.personality.directness) + 
                                 Math.abs(this.personality.humor) + 
-                                Math.abs(this.personality.empathy);
+                                Math.abs(this.personality.empathy) +
+                                Math.abs(this.personality.techLevel);
 
     return {
       sessionActive: true,
@@ -731,7 +958,7 @@ export class EnhancedTrainingSystem {
       totalAttempts: this.currentSession.totalAttempts,
       requiredCorrect: this.REQUIRED_CORRECT,
       isComplete: this.currentSession.isComplete,
-      personalityDeveloped: Math.min(100, personalityDeveloped * 25),
+      personalityDeveloped: Math.min(100, personalityDeveloped * 20),
       factsLearned: this.knownFacts.size,
       inferencesMade: this.contextualInferences.size
     };
