@@ -1,1021 +1,956 @@
 /**
- * Logic Data Storage System
- * Implements 6-tier x 256 unit storage for algorithms and diffusion model data
+ * Advanced Brain Logic Storage System
+ * Implements human-like brain mechanics with visual-linguistic diffusion models
+ * Builds connections between words and visuals in real-time as we speak
  */
 
-export interface LogicDataTier {
-  id: number;
-  name: string;
-  description: string;
-  units: LogicDataUnit[];
-  totalCapacity: number;
-  usedCapacity: number;
-  compressionRatio: number;
+export interface NeuralConnection {
+  id: string;
+  sourceNode: string;
+  targetNode: string;
+  strength: number;
+  type: 'visual-linguistic' | 'conceptual' | 'emotional' | 'temporal';
+  activationHistory: number[];
+  lastActivated: Date;
 }
 
-export interface LogicDataUnit {
+export interface ConceptNode {
   id: string;
-  tier: number;
-  unitIndex: number;
-  algorithms: AlgorithmData[];
-  patterns: PatternData[];
-  nlpTokens: Map<string, number>;
-  performance: number;
-  lastUpdated: Date;
-  compressionLevel: number;
-  usedCapacity: number;
-  maxCapacity: number;
+  concept: string;
+  visualRepresentation: VisualEncoding;
+  linguisticEncoding: LinguisticEncoding;
+  emotionalWeight: number;
+  activationLevel: number;
+  connections: string[]; // IDs of connected nodes
+  diffusionPattern: DiffusionPattern;
+  memoryStrength: number;
+  lastAccessed: Date;
 }
 
-export interface AlgorithmData {
-  id: string;
-  name: string;
-  pattern: string;
-  purpose: string;
-  performance: number;
-  generation: number;
-  parentIds: string[];
-  mutations: number;
-  size: number;
-  lastUsed: Date;
-  usageCount: number;
-  compressionRatio: number;
+export interface VisualEncoding {
+  colorPalette: string[];
+  shapes: string[];
+  textures: string[];
+  spatialRelations: string[];
+  movement: string[];
+  brightness: number;
+  contrast: number;
+  visualComplexity: number;
 }
 
-export interface PatternData {
-  id: string;
-  type: 'reasoning' | 'language' | 'slang' | 'common_sense' | 'domain_knowledge';
-  pattern: string;
-  examples: string[];
+export interface LinguisticEncoding {
+  phonemes: string[];
+  syllables: string[];
+  semanticFields: string[];
+  syntacticRole: string[];
   frequency: number;
-  lastUsed: Date;
-  size: number;
+  abstractness: number;
+  emotionalValence: number;
 }
 
-export interface StorageStats {
-  totalUnits: number;
-  activeUnits: number;
-  totalAlgorithms: number;
-  totalPatterns: number;
-  averagePerformance: number;
-  topPerformingTier: number;
-  compressionRatio: number;
-  capacityUsed: number;
-  capacityTotal: number;
+export interface DiffusionPattern {
+  spreadRate: number;
+  decayRate: number;
+  resonanceFrequency: number;
+  interferencePattern: number[];
+  amplificationNodes: string[];
+  dampingNodes: string[];
+}
+
+export interface BrainRegion {
+  id: string;
+  name: string;
+  function: string;
+  nodes: ConceptNode[];
+  connections: NeuralConnection[];
+  activationThreshold: number;
+  processingSpeed: number;
+  plasticity: number;
+  specialization: string[];
+}
+
+export interface ThoughtProcess {
+  id: string;
+  trigger: string;
+  activatedNodes: string[];
+  connectionPath: string[];
+  visualizations: VisualThought[];
+  linguisticFlow: string[];
+  emergentConcepts: string[];
+  duration: number;
+  intensity: number;
+}
+
+export interface VisualThought {
+  concept: string;
+  visualElements: string[];
+  spatialArrangement: string;
+  colorScheme: string[];
+  movement: string;
+  clarity: number;
+  vividness: number;
 }
 
 export class LogicDataStorage {
-  private tiers: LogicDataTier[] = [];
-  private readonly TIER_COUNT = 6;
-  private readonly UNITS_PER_TIER = 256;
-  private readonly UNIT_CAPACITY = 1024 * 1024; // 1MB per unit
-  private readonly TIER_PURPOSES = [
-    'Common Sense & Meta-Logic',
-    'Natural Language Processing',
-    'Agentic Training',
-    'Slang & Natural Speaking',
-    'Image Generation & Spatial Analysis',
-    'Video Generation & 3D Modeling'
-  ];
+  private brainRegions: Map<string, BrainRegion> = new Map();
+  private globalConnections: Map<string, NeuralConnection> = new Map();
+  private activeThoughts: ThoughtProcess[] = [];
+  private visualDiffusionModel: Map<string, VisualEncoding> = new Map();
+  private linguisticDiffusionModel: Map<string, LinguisticEncoding> = new Map();
+  private conceptNetwork: Map<string, ConceptNode> = new Map();
+  private currentActivationPattern: Map<string, number> = new Map();
+  private thoughtHistory: ThoughtProcess[] = [];
+  
+  // Brain-like parameters
+  private readonly ACTIVATION_THRESHOLD = 0.6;
+  private readonly CONNECTION_STRENGTH_DECAY = 0.95;
+  private readonly PLASTICITY_RATE = 0.1;
+  private readonly MAX_ACTIVE_THOUGHTS = 7; // Miller's magic number
   
   constructor() {
-    this.initializeStorage();
-    console.log('💾 Logic Data Storage initialized with 6 tiers × 256 units (1536 total)');
+    this.initializeBrainRegions();
+    this.initializeVisualLinguisticMappings();
+    this.startNeuralActivity();
+    console.log('🧠 Advanced Brain Logic Storage initialized - visual-linguistic diffusion active');
   }
   
-  private initializeStorage() {
-    // Create 6 tiers with 256 units each
-    for (let tierId = 0; tierId < this.TIER_COUNT; tierId++) {
-      const tier: LogicDataTier = {
-        id: tierId,
-        name: `Tier ${tierId + 1}`,
-        description: this.TIER_PURPOSES[tierId],
-        units: [],
-        totalCapacity: this.UNITS_PER_TIER * this.UNIT_CAPACITY,
-        usedCapacity: 0,
-        compressionRatio: 1.0
+  private initializeBrainRegions() {
+    const regions = [
+      {
+        id: 'visual_cortex',
+        name: 'Visual Processing Center',
+        function: 'Processes visual information and creates mental imagery',
+        specialization: ['color_processing', 'shape_recognition', 'spatial_relations', 'movement_detection']
+      },
+      {
+        id: 'language_center',
+        name: 'Linguistic Processing Hub',
+        function: 'Handles language comprehension and production',
+        specialization: ['phoneme_processing', 'semantic_analysis', 'syntax_parsing', 'word_formation']
+      },
+      {
+        id: 'association_cortex',
+        name: 'Concept Association Network',
+        function: 'Creates connections between different concepts and ideas',
+        specialization: ['cross_modal_binding', 'metaphor_generation', 'analogy_creation', 'pattern_recognition']
+      },
+      {
+        id: 'memory_hippocampus',
+        name: 'Memory Formation Center',
+        function: 'Encodes and retrieves memories with visual-linguistic binding',
+        specialization: ['episodic_memory', 'semantic_memory', 'working_memory', 'memory_consolidation']
+      },
+      {
+        id: 'emotional_amygdala',
+        name: 'Emotional Processing Core',
+        function: 'Adds emotional weight to visual-linguistic connections',
+        specialization: ['emotional_tagging', 'valence_processing', 'arousal_modulation', 'fear_conditioning']
+      },
+      {
+        id: 'executive_prefrontal',
+        name: 'Executive Control Network',
+        function: 'Manages attention and controls thought processes',
+        specialization: ['attention_control', 'working_memory_management', 'cognitive_flexibility', 'inhibitory_control']
+      }
+    ];
+
+    regions.forEach(regionData => {
+      const region: BrainRegion = {
+        id: regionData.id,
+        name: regionData.name,
+        function: regionData.function,
+        nodes: [],
+        connections: [],
+        activationThreshold: this.ACTIVATION_THRESHOLD + (Math.random() - 0.5) * 0.2,
+        processingSpeed: 0.7 + Math.random() * 0.3,
+        plasticity: 0.8 + Math.random() * 0.2,
+        specialization: regionData.specialization
       };
       
-      // Create 256 units per tier
-      for (let unitIndex = 0; unitIndex < this.UNITS_PER_TIER; unitIndex++) {
-        const unit: LogicDataUnit = {
-          id: `T${tierId}_U${unitIndex}`,
-          tier: tierId,
-          unitIndex,
-          algorithms: [],
-          patterns: [],
-          nlpTokens: new Map(),
-          performance: 0.3 + Math.random() * 0.2, // Start with baseline performance
-          lastUpdated: new Date(),
-          compressionLevel: 1.0,
-          usedCapacity: 0,
-          maxCapacity: this.UNIT_CAPACITY
-        };
-        
-        // Initialize with basic algorithms and patterns based on tier
-        this.seedInitialData(unit);
-        
-        tier.units.push(unit);
-        tier.usedCapacity += unit.usedCapacity;
+      this.brainRegions.set(regionData.id, region);
+    });
+    
+    console.log(`🧠 Initialized ${regions.length} brain regions with specialized functions`);
+  }
+  
+  private initializeVisualLinguisticMappings() {
+    // Create foundational visual-linguistic connections
+    const foundationalConcepts = [
+      {
+        concept: 'red',
+        visual: {
+          colorPalette: ['#FF0000', '#DC143C', '#B22222'],
+          shapes: ['circle', 'square'],
+          textures: ['smooth', 'glossy'],
+          spatialRelations: ['central', 'prominent'],
+          movement: ['pulsing', 'glowing'],
+          brightness: 0.8,
+          contrast: 0.9,
+          visualComplexity: 0.3
+        },
+        linguistic: {
+          phonemes: ['r', 'e', 'd'],
+          syllables: ['red'],
+          semanticFields: ['color', 'warmth', 'passion', 'danger'],
+          syntacticRole: ['adjective', 'noun'],
+          frequency: 0.8,
+          abstractness: 0.2,
+          emotionalValence: 0.6
+        }
+      },
+      {
+        concept: 'thinking',
+        visual: {
+          colorPalette: ['#4169E1', '#6495ED', '#87CEEB'],
+          shapes: ['spiral', 'cloud', 'network'],
+          textures: ['flowing', 'ethereal', 'dynamic'],
+          spatialRelations: ['expanding', 'interconnected'],
+          movement: ['swirling', 'branching', 'pulsing'],
+          brightness: 0.6,
+          contrast: 0.7,
+          visualComplexity: 0.8
+        },
+        linguistic: {
+          phonemes: ['th', 'i', 'n', 'k', 'i', 'ng'],
+          syllables: ['think', 'ing'],
+          semanticFields: ['cognition', 'mental_process', 'reasoning', 'consciousness'],
+          syntacticRole: ['verb', 'gerund'],
+          frequency: 0.9,
+          abstractness: 0.9,
+          emotionalValence: 0.5
+        }
+      },
+      {
+        concept: 'connection',
+        visual: {
+          colorPalette: ['#32CD32', '#00FF00', '#ADFF2F'],
+          shapes: ['line', 'bridge', 'web'],
+          textures: ['smooth', 'flowing', 'continuous'],
+          spatialRelations: ['linking', 'bridging', 'spanning'],
+          movement: ['flowing', 'connecting', 'merging'],
+          brightness: 0.7,
+          contrast: 0.8,
+          visualComplexity: 0.6
+        },
+        linguistic: {
+          phonemes: ['k', 'ə', 'n', 'e', 'k', 'ʃ', 'ə', 'n'],
+          syllables: ['con', 'nec', 'tion'],
+          semanticFields: ['relationship', 'link', 'bond', 'network'],
+          syntacticRole: ['noun'],
+          frequency: 0.7,
+          abstractness: 0.6,
+          emotionalValence: 0.7
+        }
       }
-      
-      this.tiers.push(tier);
-    }
-  }
-  
-  /**
-   * Seed initial data based on tier purpose
-   */
-  private seedInitialData(unit: LogicDataUnit) {
-    const tierPurpose = this.TIER_PURPOSES[unit.tier];
-    
-    // Create initial algorithms based on tier purpose
-    const algorithmCount = Math.floor(Math.random() * 3) + 2; // 2-4 initial algorithms
-    for (let i = 0; i < algorithmCount; i++) {
-      const algorithm = this.createInitialAlgorithm(unit.tier, unit.id, i);
-      unit.algorithms.push(algorithm);
-      unit.usedCapacity += algorithm.size;
-    }
-    
-    // Create initial patterns based on tier purpose
-    const patternCount = Math.floor(Math.random() * 5) + 3; // 3-7 initial patterns
-    for (let i = 0; i < patternCount; i++) {
-      const pattern = this.createInitialPattern(unit.tier, unit.id, i);
-      unit.patterns.push(pattern);
-      unit.usedCapacity += pattern.size;
-    }
-  }
-  
-  /**
-   * Create initial algorithm based on tier
-   */
-  private createInitialAlgorithm(tier: number, unitId: string, index: number): AlgorithmData {
-    // Different algorithm types based on tier
-    const tierAlgorithms = [
-      // Tier 0: Common Sense & Meta-Logic
-      ['common-sense-reasoning', 'logical-inference', 'paradox-resolution', 'self-reference-detection'],
-      // Tier 1: Natural Language Processing
-      ['language-understanding', 'context-awareness', 'sentiment-analysis', 'entity-recognition'],
-      // Tier 2: Agentic Training
-      ['agent-coordination', 'debate-framework', 'consensus-building', 'task-allocation'],
-      // Tier 3: Slang & Natural Speaking
-      ['slang-detection', 'casual-speech', 'regional-dialect', 'conversational-flow'],
-      // Tier 4: Image Generation & Spatial Analysis
-      ['image-understanding', 'spatial-reasoning', 'visual-composition', 'color-theory'],
-      // Tier 5: Video Generation & 3D Modeling
-      ['motion-analysis', '3d-representation', 'temporal-consistency', 'physics-simulation']
     ];
+
+    foundationalConcepts.forEach(concept => {
+      this.createConceptNode(concept.concept, concept.visual, concept.linguistic);
+    });
     
-    const algorithmTypes = tierAlgorithms[tier];
-    const algorithmType = algorithmTypes[index % algorithmTypes.length];
+    console.log(`🎨 Initialized visual-linguistic mappings for ${foundationalConcepts.length} foundational concepts`);
+  }
+  
+  /**
+   * Process input and build visual-linguistic connections in real-time
+   */
+  async processInputWithVisualization(input: string, context: string[] = []): Promise<{
+    visualThoughts: VisualThought[];
+    activatedConcepts: string[];
+    newConnections: NeuralConnection[];
+    diffusionPattern: string;
+    emergentVisualizations: string[];
+  }> {
+    console.log(`🧠 Processing input with brain-like visualization: "${input}"`);
+    
+    // Step 1: Parse input into concepts
+    const concepts = this.extractConcepts(input);
+    
+    // Step 2: Activate relevant brain regions
+    const activatedRegions = await this.activateBrainRegions(concepts);
+    
+    // Step 3: Generate visual thoughts for each concept
+    const visualThoughts = await this.generateVisualThoughts(concepts);
+    
+    // Step 4: Create new neural connections
+    const newConnections = await this.formNeuralConnections(concepts, context);
+    
+    // Step 5: Run diffusion process
+    const diffusionPattern = await this.runDiffusionProcess(concepts);
+    
+    // Step 6: Generate emergent visualizations
+    const emergentVisualizations = await this.generateEmergentVisualizations(concepts, visualThoughts);
+    
+    // Step 7: Update memory and strengthen connections
+    await this.updateMemoryAndConnections(concepts, visualThoughts, newConnections);
     
     return {
-      id: `${unitId}_ALG_${index}`,
-      name: `${algorithmType}-v1`,
-      pattern: `${algorithmType}-pattern-${Math.floor(Math.random() * 100)}`,
-      purpose: `Handles ${algorithmType.replace(/-/g, ' ')} operations`,
-      performance: 0.3 + Math.random() * 0.3,
-      generation: 1,
-      parentIds: [],
-      mutations: 0,
-      size: 10000 + Math.floor(Math.random() * 50000), // 10KB - 60KB
-      lastUsed: new Date(),
-      usageCount: 0,
-      compressionRatio: 1.0
+      visualThoughts,
+      activatedConcepts: concepts,
+      newConnections,
+      diffusionPattern,
+      emergentVisualizations
     };
   }
   
-  /**
-   * Create initial pattern based on tier
-   */
-  private createInitialPattern(tier: number, unitId: string, index: number): PatternData {
-    // Different pattern types based on tier
-    const patternTypes: ('reasoning' | 'language' | 'slang' | 'common_sense' | 'domain_knowledge')[] = [
-      'common_sense', 'reasoning', 'reasoning', 'common_sense', 'domain_knowledge', // Tier 0
-      'language', 'language', 'reasoning', 'domain_knowledge', 'common_sense',      // Tier 1
-      'reasoning', 'language', 'domain_knowledge', 'common_sense', 'reasoning',     // Tier 2
-      'slang', 'language', 'slang', 'language', 'common_sense',                     // Tier 3
-      'domain_knowledge', 'reasoning', 'common_sense', 'language', 'reasoning',     // Tier 4
-      'domain_knowledge', 'reasoning', 'language', 'common_sense', 'reasoning'      // Tier 5
-    ];
+  private extractConcepts(input: string): string[] {
+    const words = input.toLowerCase().split(/\s+/);
+    const concepts: string[] = [];
     
-    const patternType = patternTypes[tier * 5 + (index % 5)];
+    // Extract meaningful concepts (not stop words)
+    const stopWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by']);
+    
+    words.forEach(word => {
+      if (!stopWords.has(word) && word.length > 2) {
+        concepts.push(word);
+        
+        // Also extract related concepts through association
+        const relatedConcepts = this.findRelatedConcepts(word);
+        concepts.push(...relatedConcepts);
+      }
+    });
+    
+    return [...new Set(concepts)]; // Remove duplicates
+  }
+  
+  private findRelatedConcepts(concept: string): string[] {
+    const related: string[] = [];
+    
+    // Find concepts with strong connections
+    this.globalConnections.forEach(connection => {
+      if (connection.sourceNode === concept && connection.strength > 0.7) {
+        related.push(connection.targetNode);
+      } else if (connection.targetNode === concept && connection.strength > 0.7) {
+        related.push(connection.sourceNode);
+      }
+    });
+    
+    return related.slice(0, 3); // Limit to top 3 related concepts
+  }
+  
+  private async activateBrainRegions(concepts: string[]): Promise<string[]> {
+    const activatedRegions: string[] = [];
+    
+    concepts.forEach(concept => {
+      // Determine which brain regions should activate for this concept
+      const conceptNode = this.conceptNetwork.get(concept);
+      
+      if (conceptNode) {
+        // Visual concepts activate visual cortex
+        if (conceptNode.visualRepresentation.visualComplexity > 0.5) {
+          activatedRegions.push('visual_cortex');
+        }
+        
+        // Abstract concepts activate language center
+        if (conceptNode.linguisticEncoding.abstractness > 0.5) {
+          activatedRegions.push('language_center');
+        }
+        
+        // Emotional concepts activate amygdala
+        if (Math.abs(conceptNode.emotionalWeight) > 0.5) {
+          activatedRegions.push('emotional_amygdala');
+        }
+        
+        // All concepts activate association cortex
+        activatedRegions.push('association_cortex');
+      }
+    });
+    
+    // Update activation levels
+    const uniqueRegions = [...new Set(activatedRegions)];
+    uniqueRegions.forEach(regionId => {
+      const region = this.brainRegions.get(regionId);
+      if (region) {
+        // Simulate neural activation
+        region.nodes.forEach(node => {
+          node.activationLevel = Math.min(1.0, node.activationLevel + 0.3);
+        });
+      }
+    });
+    
+    return uniqueRegions;
+  }
+  
+  private async generateVisualThoughts(concepts: string[]): Promise<VisualThought[]> {
+    const visualThoughts: VisualThought[] = [];
+    
+    for (const concept of concepts) {
+      let conceptNode = this.conceptNetwork.get(concept);
+      
+      if (!conceptNode) {
+        // Create new concept node if it doesn't exist
+        conceptNode = await this.createConceptNodeFromWord(concept);
+      }
+      
+      // Generate visual thought based on concept
+      const visualThought: VisualThought = {
+        concept,
+        visualElements: [
+          ...conceptNode.visualRepresentation.shapes,
+          ...conceptNode.visualRepresentation.textures,
+          ...conceptNode.visualRepresentation.movement
+        ],
+        spatialArrangement: this.generateSpatialArrangement(conceptNode),
+        colorScheme: conceptNode.visualRepresentation.colorPalette,
+        movement: conceptNode.visualRepresentation.movement[0] || 'static',
+        clarity: conceptNode.memoryStrength,
+        vividness: conceptNode.visualRepresentation.brightness
+      };
+      
+      visualThoughts.push(visualThought);
+    }
+    
+    return visualThoughts;
+  }
+  
+  private async createConceptNodeFromWord(word: string): Promise<ConceptNode> {
+    // Generate visual and linguistic encodings for new word
+    const visualEncoding = this.generateVisualEncoding(word);
+    const linguisticEncoding = this.generateLinguisticEncoding(word);
+    
+    return this.createConceptNode(word, visualEncoding, linguisticEncoding);
+  }
+  
+  private generateVisualEncoding(word: string): VisualEncoding {
+    // Generate visual representation based on word characteristics
+    const wordLength = word.length;
+    const vowelCount = (word.match(/[aeiou]/g) || []).length;
+    const consonantCount = wordLength - vowelCount;
+    
+    // Map linguistic features to visual features
+    const hue = (word.charCodeAt(0) * 137.5) % 360; // Golden angle for color distribution
+    const saturation = Math.min(1, vowelCount / wordLength + 0.3);
+    const brightness = Math.min(1, consonantCount / wordLength + 0.4);
     
     return {
-      id: `${unitId}_PAT_${index}`,
-      type: patternType,
-      pattern: `${patternType}-pattern-${Math.floor(Math.random() * 100)}`,
-      examples: [
-        `Example 1 for ${patternType} pattern`,
-        `Example 2 for ${patternType} pattern`
+      colorPalette: [
+        `hsl(${hue}, ${saturation * 100}%, ${brightness * 50}%)`,
+        `hsl(${(hue + 30) % 360}, ${saturation * 80}%, ${brightness * 60}%)`,
+        `hsl(${(hue + 60) % 360}, ${saturation * 60}%, ${brightness * 70}%)`
       ],
-      frequency: Math.random(),
-      lastUsed: new Date(),
-      size: 5000 + Math.floor(Math.random() * 15000) // 5KB - 20KB
+      shapes: this.mapWordToShapes(word),
+      textures: this.mapWordToTextures(word),
+      spatialRelations: this.mapWordToSpatialRelations(word),
+      movement: this.mapWordToMovement(word),
+      brightness,
+      contrast: Math.min(1, wordLength / 10),
+      visualComplexity: Math.min(1, (vowelCount + consonantCount) / 15)
     };
   }
   
-  /**
-   * Store algorithm in appropriate tier
-   */
-  storeAlgorithm(algorithm: Omit<AlgorithmData, 'id' | 'lastUsed' | 'usageCount'>, tierPreference?: number): string {
-    // Determine best tier based on algorithm purpose if not specified
-    const tier = tierPreference !== undefined ? 
-      Math.min(this.TIER_COUNT - 1, Math.max(0, tierPreference)) : 
-      this.determineBestTier(algorithm.purpose);
+  private generateLinguisticEncoding(word: string): LinguisticEncoding {
+    return {
+      phonemes: word.split(''),
+      syllables: this.extractSyllables(word),
+      semanticFields: this.inferSemanticFields(word),
+      syntacticRole: this.inferSyntacticRole(word),
+      frequency: Math.random() * 0.5 + 0.3, // Estimate frequency
+      abstractness: this.calculateAbstractness(word),
+      emotionalValence: this.calculateEmotionalValence(word)
+    };
+  }
+  
+  private mapWordToShapes(word: string): string[] {
+    const shapes = ['circle', 'square', 'triangle', 'spiral', 'wave', 'star', 'diamond', 'cloud'];
+    const index = word.charCodeAt(0) % shapes.length;
+    return [shapes[index], shapes[(index + 1) % shapes.length]];
+  }
+  
+  private mapWordToTextures(word: string): string[] {
+    const textures = ['smooth', 'rough', 'soft', 'hard', 'flowing', 'crystalline', 'organic', 'geometric'];
+    const index = word.length % textures.length;
+    return [textures[index]];
+  }
+  
+  private mapWordToSpatialRelations(word: string): string[] {
+    const relations = ['central', 'peripheral', 'above', 'below', 'connected', 'isolated', 'expanding', 'contracting'];
+    const index = (word.charCodeAt(0) + word.length) % relations.length;
+    return [relations[index]];
+  }
+  
+  private mapWordToMovement(word: string): string[] {
+    const movements = ['flowing', 'pulsing', 'rotating', 'oscillating', 'growing', 'shrinking', 'dancing', 'static'];
+    const index = word.charCodeAt(word.length - 1) % movements.length;
+    return [movements[index]];
+  }
+  
+  private extractSyllables(word: string): string[] {
+    // Simple syllable extraction (could be enhanced)
+    const vowelGroups = word.match(/[aeiou]+/g) || [];
+    return vowelGroups.length > 0 ? vowelGroups : [word];
+  }
+  
+  private inferSemanticFields(word: string): string[] {
+    // Basic semantic field inference based on word patterns
+    const fields: string[] = [];
     
-    // Find unit with most available space
-    const tierUnits = this.tiers[tier].units;
-    const sortedUnits = [...tierUnits].sort((a, b) => 
-      (a.maxCapacity - a.usedCapacity) - (b.maxCapacity - b.usedCapacity)
-    );
+    if (word.endsWith('ing')) fields.push('action', 'process');
+    if (word.endsWith('tion')) fields.push('concept', 'state');
+    if (word.endsWith('ly')) fields.push('manner', 'quality');
+    if (word.includes('color') || ['red', 'blue', 'green', 'yellow'].includes(word)) fields.push('color');
+    if (['think', 'know', 'understand', 'learn'].includes(word)) fields.push('cognition');
     
-    const targetUnit = sortedUnits[0];
+    return fields.length > 0 ? fields : ['general'];
+  }
+  
+  private inferSyntacticRole(word: string): string[] {
+    const roles: string[] = [];
     
-    // Check if there's enough space
-    if (targetUnit.usedCapacity + algorithm.size > targetUnit.maxCapacity) {
-      // Try to compress existing data
-      this.compressUnit(targetUnit);
-      
-      // Check again after compression
-      if (targetUnit.usedCapacity + algorithm.size > targetUnit.maxCapacity) {
-        // Not enough space even after compression
-        console.warn(`⚠️ Not enough space in tier ${tier} for algorithm. Trying to replace obsolete algorithm.`);
-        
-        // Try to replace an obsolete algorithm
-        const replaced = this.replaceObsoleteAlgorithm(targetUnit, algorithm);
-        if (!replaced) {
-          throw new Error(`Not enough space in tier ${tier} for algorithm of size ${algorithm.size}`);
-        }
-      }
-    }
+    if (word.endsWith('ing')) roles.push('verb', 'gerund');
+    if (word.endsWith('ed')) roles.push('verb', 'past_participle');
+    if (word.endsWith('ly')) roles.push('adverb');
+    if (word.endsWith('tion') || word.endsWith('ness')) roles.push('noun');
     
-    // Create full algorithm object
-    const fullAlgorithm: AlgorithmData = {
-      ...algorithm,
-      id: `T${tier}_U${targetUnit.unitIndex}_ALG_${targetUnit.algorithms.length}`,
-      lastUsed: new Date(),
-      usageCount: 0
+    return roles.length > 0 ? roles : ['noun']; // Default to noun
+  }
+  
+  private calculateAbstractness(word: string): number {
+    // Simple abstractness calculation
+    const abstractWords = ['think', 'idea', 'concept', 'feeling', 'emotion', 'thought', 'mind'];
+    const concreteWords = ['table', 'chair', 'car', 'house', 'tree', 'rock', 'water'];
+    
+    if (abstractWords.includes(word)) return 0.9;
+    if (concreteWords.includes(word)) return 0.1;
+    
+    // Default based on word characteristics
+    return word.length > 6 ? 0.7 : 0.4;
+  }
+  
+  private calculateEmotionalValence(word: string): number {
+    // Simple emotional valence calculation
+    const positiveWords = ['happy', 'joy', 'love', 'good', 'great', 'amazing', 'wonderful'];
+    const negativeWords = ['sad', 'angry', 'hate', 'bad', 'terrible', 'awful', 'horrible'];
+    
+    if (positiveWords.includes(word)) return 0.8;
+    if (negativeWords.includes(word)) return -0.8;
+    
+    return 0; // Neutral
+  }
+  
+  private createConceptNode(concept: string, visual: VisualEncoding, linguistic: LinguisticEncoding): ConceptNode {
+    const node: ConceptNode = {
+      id: `concept_${concept}_${Date.now()}`,
+      concept,
+      visualRepresentation: visual,
+      linguisticEncoding: linguistic,
+      emotionalWeight: linguistic.emotionalValence,
+      activationLevel: 0.5,
+      connections: [],
+      diffusionPattern: {
+        spreadRate: 0.8,
+        decayRate: 0.95,
+        resonanceFrequency: Math.random() * 10 + 5,
+        interferencePattern: [0.1, 0.3, 0.5, 0.7, 0.9],
+        amplificationNodes: [],
+        dampingNodes: []
+      },
+      memoryStrength: 0.7,
+      lastAccessed: new Date()
     };
     
-    // Store algorithm
-    targetUnit.algorithms.push(fullAlgorithm);
-    targetUnit.usedCapacity += algorithm.size;
-    targetUnit.lastUpdated = new Date();
+    this.conceptNetwork.set(concept, node);
     
-    // Update tier capacity
-    this.tiers[tier].usedCapacity += algorithm.size;
+    // Add to appropriate brain region
+    const region = this.determineBrainRegion(visual, linguistic);
+    region.nodes.push(node);
     
-    console.log(`✅ Stored algorithm ${fullAlgorithm.id} in tier ${tier} (${this.TIER_PURPOSES[tier]})`);
-    
-    return fullAlgorithm.id;
+    console.log(`🧠 Created concept node: ${concept} with visual-linguistic encoding`);
+    return node;
   }
   
-  /**
-   * Store pattern in appropriate tier
-   */
-  storePattern(pattern: Omit<PatternData, 'id' | 'lastUsed'>, tierPreference?: number): string {
-    // Determine best tier based on pattern type if not specified
-    const tier = tierPreference !== undefined ? 
-      Math.min(this.TIER_COUNT - 1, Math.max(0, tierPreference)) : 
-      this.determineBestTierForPattern(pattern.type);
+  private determineBrainRegion(visual: VisualEncoding, linguistic: LinguisticEncoding): BrainRegion {
+    // Determine primary brain region based on concept characteristics
+    if (visual.visualComplexity > 0.7) {
+      return this.brainRegions.get('visual_cortex')!;
+    } else if (linguistic.abstractness > 0.7) {
+      return this.brainRegions.get('language_center')!;
+    } else if (Math.abs(linguistic.emotionalValence) > 0.5) {
+      return this.brainRegions.get('emotional_amygdala')!;
+    } else {
+      return this.brainRegions.get('association_cortex')!;
+    }
+  }
+  
+  private generateSpatialArrangement(node: ConceptNode): string {
+    const arrangements = [
+      'centered with radiating connections',
+      'layered with depth perception',
+      'networked with multiple focal points',
+      'flowing in organic patterns',
+      'structured in geometric harmony',
+      'dynamic with movement vectors'
+    ];
     
-    // Find unit with most available space
-    const tierUnits = this.tiers[tier].units;
-    const sortedUnits = [...tierUnits].sort((a, b) => 
-      (a.maxCapacity - a.usedCapacity) - (b.maxCapacity - b.usedCapacity)
-    );
+    const index = Math.floor(node.visualRepresentation.visualComplexity * arrangements.length);
+    return arrangements[Math.min(index, arrangements.length - 1)];
+  }
+  
+  private async formNeuralConnections(concepts: string[], context: string[]): Promise<NeuralConnection[]> {
+    const newConnections: NeuralConnection[] = [];
     
-    const targetUnit = sortedUnits[0];
-    
-    // Check if there's enough space
-    if (targetUnit.usedCapacity + pattern.size > targetUnit.maxCapacity) {
-      // Try to compress existing data
-      this.compressUnit(targetUnit);
-      
-      // Check again after compression
-      if (targetUnit.usedCapacity + pattern.size > targetUnit.maxCapacity) {
-        // Not enough space even after compression
-        console.warn(`⚠️ Not enough space in tier ${tier} for pattern. Trying to replace obsolete pattern.`);
-        
-        // Try to replace an obsolete pattern
-        const replaced = this.replaceObsoletePattern(targetUnit, pattern);
-        if (!replaced) {
-          throw new Error(`Not enough space in tier ${tier} for pattern of size ${pattern.size}`);
-        }
+    // Create connections between concepts in the input
+    for (let i = 0; i < concepts.length; i++) {
+      for (let j = i + 1; j < concepts.length; j++) {
+        const connection = this.createNeuralConnection(concepts[i], concepts[j], 'conceptual');
+        newConnections.push(connection);
       }
     }
     
-    // Create full pattern object
-    const fullPattern: PatternData = {
-      ...pattern,
-      id: `T${tier}_U${targetUnit.unitIndex}_PAT_${targetUnit.patterns.length}`,
-      lastUsed: new Date()
-    };
-    
-    // Store pattern
-    targetUnit.patterns.push(fullPattern);
-    targetUnit.usedCapacity += pattern.size;
-    targetUnit.lastUpdated = new Date();
-    
-    // Update tier capacity
-    this.tiers[tier].usedCapacity += pattern.size;
-    
-    console.log(`✅ Stored pattern ${fullPattern.id} in tier ${tier} (${this.TIER_PURPOSES[tier]})`);
-    
-    return fullPattern.id;
-  }
-  
-  /**
-   * Store NLP tokens in appropriate tier
-   */
-  storeNLPTokens(tokens: Map<string, number>, tierPreference?: number): void {
-    // Default to Tier 1 (Natural Language Processing) if not specified
-    const tier = tierPreference !== undefined ? 
-      Math.min(this.TIER_COUNT - 1, Math.max(0, tierPreference)) : 
-      1;
-    
-    // Calculate approximate size
-    const tokenSize = Array.from(tokens.entries()).reduce((size, [token, count]) => {
-      return size + token.length * 2 + 8; // Rough estimate: token length * 2 bytes + 8 bytes for count
-    }, 0);
-    
-    // Distribute tokens across units
-    const tierUnits = this.tiers[tier].units;
-    
-    // Group tokens into chunks
-    const tokenEntries = Array.from(tokens.entries());
-    const chunkSize = Math.ceil(tokenEntries.length / Math.min(10, tierUnits.length));
-    const chunks = [];
-    
-    for (let i = 0; i < tokenEntries.length; i += chunkSize) {
-      chunks.push(tokenEntries.slice(i, i + chunkSize));
-    }
-    
-    // Store each chunk in a different unit
-    chunks.forEach((chunk, index) => {
-      const unitIndex = index % tierUnits.length;
-      const unit = tierUnits[unitIndex];
-      
-      // Calculate chunk size
-      const chunkTokenSize = chunk.reduce((size, [token, count]) => {
-        return size + token.length * 2 + 8;
-      }, 0);
-      
-      // Check if there's enough space
-      if (unit.usedCapacity + chunkTokenSize > unit.maxCapacity) {
-        // Try to compress
-        this.compressUnit(unit);
-        
-        // If still not enough space, remove old tokens
-        if (unit.usedCapacity + chunkTokenSize > unit.maxCapacity) {
-          this.pruneOldTokens(unit, chunkTokenSize);
-        }
-      }
-      
-      // Store tokens
-      chunk.forEach(([token, count]) => {
-        const currentCount = unit.nlpTokens.get(token) || 0;
-        unit.nlpTokens.set(token, currentCount + count);
-      });
-      
-      // Update capacity
-      unit.usedCapacity += chunkTokenSize;
-      unit.lastUpdated = new Date();
-      
-      // Update tier capacity
-      this.tiers[tier].usedCapacity += chunkTokenSize;
-    });
-    
-    console.log(`✅ Stored ${tokens.size} NLP tokens across ${chunks.length} units in tier ${tier}`);
-  }
-  
-  /**
-   * Retrieve algorithm by ID
-   */
-  getAlgorithm(algorithmId: string): AlgorithmData | null {
-    // Parse tier and unit from ID
-    const idParts = algorithmId.split('_');
-    if (idParts.length < 2) return null;
-    
-    const tierUnitParts = idParts[0].split('U');
-    if (tierUnitParts.length < 2) return null;
-    
-    const tierStr = tierUnitParts[0].replace('T', '');
-    const unitStr = tierUnitParts[1];
-    
-    const tier = parseInt(tierStr);
-    const unitIndex = parseInt(unitStr);
-    
-    if (isNaN(tier) || isNaN(unitIndex) || 
-        tier < 0 || tier >= this.TIER_COUNT || 
-        unitIndex < 0 || unitIndex >= this.UNITS_PER_TIER) {
-      return null;
-    }
-    
-    // Find algorithm in unit
-    const unit = this.tiers[tier].units[unitIndex];
-    const algorithm = unit.algorithms.find(alg => alg.id === algorithmId);
-    
-    if (algorithm) {
-      // Update usage statistics
-      algorithm.lastUsed = new Date();
-      algorithm.usageCount++;
-      unit.lastUpdated = new Date();
-      
-      return algorithm;
-    }
-    
-    return null;
-  }
-  
-  /**
-   * Retrieve pattern by ID
-   */
-  getPattern(patternId: string): PatternData | null {
-    // Parse tier and unit from ID
-    const idParts = patternId.split('_');
-    if (idParts.length < 2) return null;
-    
-    const tierUnitParts = idParts[0].split('U');
-    if (tierUnitParts.length < 2) return null;
-    
-    const tierStr = tierUnitParts[0].replace('T', '');
-    const unitStr = tierUnitParts[1];
-    
-    const tier = parseInt(tierStr);
-    const unitIndex = parseInt(unitStr);
-    
-    if (isNaN(tier) || isNaN(unitIndex) || 
-        tier < 0 || tier >= this.TIER_COUNT || 
-        unitIndex < 0 || unitIndex >= this.UNITS_PER_TIER) {
-      return null;
-    }
-    
-    // Find pattern in unit
-    const unit = this.tiers[tier].units[unitIndex];
-    const pattern = unit.patterns.find(pat => pat.id === patternId);
-    
-    if (pattern) {
-      // Update usage statistics
-      pattern.lastUsed = new Date();
-      pattern.frequency += 0.01; // Slightly increase frequency with each use
-      unit.lastUpdated = new Date();
-      
-      return pattern;
-    }
-    
-    return null;
-  }
-  
-  /**
-   * Search for algorithms by purpose or pattern
-   */
-  searchAlgorithms(query: string): AlgorithmData[] {
-    const results: AlgorithmData[] = [];
-    
-    this.tiers.forEach(tier => {
-      tier.units.forEach(unit => {
-        const matchingAlgorithms = unit.algorithms.filter(alg => 
-          alg.purpose.toLowerCase().includes(query.toLowerCase()) ||
-          alg.pattern.toLowerCase().includes(query.toLowerCase()) ||
-          alg.name.toLowerCase().includes(query.toLowerCase())
-        );
-        
-        results.push(...matchingAlgorithms);
-      });
-    });
-    
-    // Update usage statistics for found algorithms
-    results.forEach(alg => {
-      alg.lastUsed = new Date();
-      alg.usageCount++;
-    });
-    
-    return results;
-  }
-  
-  /**
-   * Search for patterns by type or content
-   */
-  searchPatterns(query: string, type?: PatternData['type']): PatternData[] {
-    const results: PatternData[] = [];
-    
-    this.tiers.forEach(tier => {
-      tier.units.forEach(unit => {
-        const matchingPatterns = unit.patterns.filter(pat => 
-          (type === undefined || pat.type === type) &&
-          (pat.pattern.toLowerCase().includes(query.toLowerCase()) ||
-           pat.examples.some(ex => ex.toLowerCase().includes(query.toLowerCase())))
-        );
-        
-        results.push(...matchingPatterns);
-      });
-    });
-    
-    // Update usage statistics for found patterns
-    results.forEach(pat => {
-      pat.lastUsed = new Date();
-      pat.frequency += 0.01; // Slightly increase frequency with each use
-    });
-    
-    return results;
-  }
-  
-  /**
-   * Get top performing algorithms
-   */
-  getTopAlgorithms(count: number = 10): AlgorithmData[] {
-    const allAlgorithms: AlgorithmData[] = [];
-    
-    this.tiers.forEach(tier => {
-      tier.units.forEach(unit => {
-        allAlgorithms.push(...unit.algorithms);
-      });
-    });
-    
-    return allAlgorithms
-      .sort((a, b) => b.performance - a.performance)
-      .slice(0, count);
-  }
-  
-  /**
-   * Get most frequently used patterns
-   */
-  getMostFrequentPatterns(count: number = 10): PatternData[] {
-    const allPatterns: PatternData[] = [];
-    
-    this.tiers.forEach(tier => {
-      tier.units.forEach(unit => {
-        allPatterns.push(...unit.patterns);
-      });
-    });
-    
-    return allPatterns
-      .sort((a, b) => b.frequency - a.frequency)
-      .slice(0, count);
-  }
-  
-  /**
-   * Compress a unit to free up space
-   */
-  private compressUnit(unit: LogicDataUnit): void {
-    console.log(`🗜️ Compressing unit ${unit.id}`);
-    
-    // Calculate current size
-    const currentSize = unit.usedCapacity;
-    
-    // Apply compression to algorithms
-    unit.algorithms.forEach(alg => {
-      // More frequently used algorithms get better compression
-      const usageBonus = Math.min(0.2, alg.usageCount / 100);
-      const newCompressionRatio = Math.max(0.5, alg.compressionRatio - 0.1 - usageBonus);
-      
-      // Calculate space saved
-      const oldSize = alg.size;
-      const newSize = Math.floor(oldSize * newCompressionRatio / alg.compressionRatio);
-      const spaceSaved = oldSize - newSize;
-      
-      // Update algorithm
-      alg.size = newSize;
-      alg.compressionRatio = newCompressionRatio;
-      
-      // Update unit capacity
-      unit.usedCapacity -= spaceSaved;
-    });
-    
-    // Apply compression to patterns
-    unit.patterns.forEach(pat => {
-      // More frequent patterns get better compression
-      const frequencyBonus = Math.min(0.2, pat.frequency);
-      const compressionFactor = 0.8 - frequencyBonus;
-      
-      // Calculate space saved
-      const oldSize = pat.size;
-      const newSize = Math.floor(oldSize * compressionFactor);
-      const spaceSaved = oldSize - newSize;
-      
-      // Update pattern
-      pat.size = newSize;
-      
-      // Update unit capacity
-      unit.usedCapacity -= spaceSaved;
-    });
-    
-    // Update unit compression level
-    unit.compressionLevel = unit.usedCapacity / currentSize;
-    
-    console.log(`✅ Compressed unit ${unit.id} from ${currentSize} to ${unit.usedCapacity} bytes (${(unit.compressionLevel * 100).toFixed(1)}%)`);
-  }
-  
-  /**
-   * Replace obsolete algorithm to make space
-   */
-  private replaceObsoleteAlgorithm(unit: LogicDataUnit, newAlgorithm: Omit<AlgorithmData, 'id' | 'lastUsed' | 'usageCount'>): boolean {
-    // Find least used and oldest algorithm
-    const sortedAlgorithms = [...unit.algorithms].sort((a, b) => {
-      // Sort by usage count first
-      if (a.usageCount !== b.usageCount) {
-        return a.usageCount - b.usageCount;
-      }
-      // Then by last used date
-      return a.lastUsed.getTime() - b.lastUsed.getTime();
-    });
-    
-    if (sortedAlgorithms.length === 0) return false;
-    
-    const obsoleteAlgorithm = sortedAlgorithms[0];
-    
-    // Check if the new algorithm is better than the obsolete one
-    if (newAlgorithm.performance <= obsoleteAlgorithm.performance) {
-      // Only replace if the new algorithm is better
-      return false;
-    }
-    
-    // Remove obsolete algorithm
-    const index = unit.algorithms.findIndex(alg => alg.id === obsoleteAlgorithm.id);
-    if (index !== -1) {
-      unit.algorithms.splice(index, 1);
-      unit.usedCapacity -= obsoleteAlgorithm.size;
-      
-      console.log(`🔄 Replaced obsolete algorithm ${obsoleteAlgorithm.id} (performance: ${obsoleteAlgorithm.performance.toFixed(2)}, usage: ${obsoleteAlgorithm.usageCount})`);
-      return true;
-    }
-    
-    return false;
-  }
-  
-  /**
-   * Replace obsolete pattern to make space
-   */
-  private replaceObsoletePattern(unit: LogicDataUnit, newPattern: Omit<PatternData, 'id' | 'lastUsed'>): boolean {
-    // Find least frequent and oldest pattern
-    const sortedPatterns = [...unit.patterns].sort((a, b) => {
-      // Sort by frequency first
-      if (a.frequency !== b.frequency) {
-        return a.frequency - b.frequency;
-      }
-      // Then by last used date
-      return a.lastUsed.getTime() - b.lastUsed.getTime();
-    });
-    
-    if (sortedPatterns.length === 0) return false;
-    
-    const obsoletePattern = sortedPatterns[0];
-    
-    // Remove obsolete pattern
-    const index = unit.patterns.findIndex(pat => pat.id === obsoletePattern.id);
-    if (index !== -1) {
-      unit.patterns.splice(index, 1);
-      unit.usedCapacity -= obsoletePattern.size;
-      
-      console.log(`🔄 Replaced obsolete pattern ${obsoletePattern.id} (frequency: ${obsoletePattern.frequency.toFixed(2)})`);
-      return true;
-    }
-    
-    return false;
-  }
-  
-  /**
-   * Prune old tokens to make space
-   */
-  private pruneOldTokens(unit: LogicDataUnit, requiredSpace: number): void {
-    // Convert tokens to array for sorting
-    const tokenEntries = Array.from(unit.nlpTokens.entries());
-    
-    // Sort by frequency (count)
-    tokenEntries.sort((a, b) => a[1] - b[1]);
-    
-    let spaceFreed = 0;
-    const tokensToRemove: string[] = [];
-    
-    // Remove tokens until enough space is freed
-    for (const [token, count] of tokenEntries) {
-      const tokenSize = token.length * 2 + 8; // Same estimate as when storing
-      tokensToRemove.push(token);
-      spaceFreed += tokenSize;
-      
-      if (spaceFreed >= requiredSpace) {
-        break;
-      }
-    }
-    
-    // Remove the tokens
-    tokensToRemove.forEach(token => {
-      unit.nlpTokens.delete(token);
-    });
-    
-    unit.usedCapacity -= spaceFreed;
-    console.log(`🧹 Pruned ${tokensToRemove.length} old tokens to free ${spaceFreed} bytes`);
-  }
-  
-  /**
-   * Determine best tier for algorithm based on purpose
-   */
-  private determineBestTier(purpose: string): number {
-    const purpose_lower = purpose.toLowerCase();
-    
-    if (purpose_lower.includes('common sense') || purpose_lower.includes('logic') || 
-        purpose_lower.includes('reasoning') || purpose_lower.includes('inference')) {
-      return 0; // Tier 1: Common Sense & Meta-Logic
-    }
-    
-    if (purpose_lower.includes('language') || purpose_lower.includes('nlp') || 
-        purpose_lower.includes('text') || purpose_lower.includes('word')) {
-      return 1; // Tier 2: Natural Language Processing
-    }
-    
-    if (purpose_lower.includes('agent') || purpose_lower.includes('team') || 
-        purpose_lower.includes('debate') || purpose_lower.includes('coordination')) {
-      return 2; // Tier 3: Agentic Training
-    }
-    
-    if (purpose_lower.includes('slang') || purpose_lower.includes('speak') || 
-        purpose_lower.includes('conversation') || purpose_lower.includes('casual')) {
-      return 3; // Tier 4: Slang & Natural Speaking
-    }
-    
-    if (purpose_lower.includes('image') || purpose_lower.includes('visual') || 
-        purpose_lower.includes('spatial') || purpose_lower.includes('2d')) {
-      return 4; // Tier 5: Image Generation & Spatial Analysis
-    }
-    
-    if (purpose_lower.includes('video') || purpose_lower.includes('3d') || 
-        purpose_lower.includes('animation') || purpose_lower.includes('model')) {
-      return 5; // Tier 6: Video Generation & 3D Modeling
-    }
-    
-    // Default to Tier 1 if no match
-    return 0;
-  }
-  
-  /**
-   * Determine best tier for pattern based on type
-   */
-  private determineBestTierForPattern(type: PatternData['type']): number {
-    switch (type) {
-      case 'reasoning':
-        return 0; // Tier 1: Common Sense & Meta-Logic
-      case 'language':
-        return 1; // Tier 2: Natural Language Processing
-      case 'slang':
-        return 3; // Tier 4: Slang & Natural Speaking
-      case 'common_sense':
-        return 0; // Tier 1: Common Sense & Meta-Logic
-      case 'domain_knowledge':
-        return 2; // Tier 3: Agentic Training
-      default:
-        return 1; // Default to Tier 2
-    }
-  }
-  
-  /**
-   * Get storage statistics
-   */
-  getStorageStats(): StorageStats {
-    let totalAlgorithms = 0;
-    let totalPatterns = 0;
-    let totalPerformance = 0;
-    let algorithmCount = 0;
-    let activeUnits = 0;
-    let totalCapacity = 0;
-    let usedCapacity = 0;
-    
-    // Calculate tier with highest average performance
-    const tierPerformances: number[] = Array(this.TIER_COUNT).fill(0);
-    const tierAlgorithmCounts: number[] = Array(this.TIER_COUNT).fill(0);
-    
-    this.tiers.forEach(tier => {
-      totalCapacity += tier.totalCapacity;
-      usedCapacity += tier.usedCapacity;
-      
-      tier.units.forEach(unit => {
-        if (unit.algorithms.length > 0 || unit.patterns.length > 0) {
-          activeUnits++;
-        }
-        
-        totalAlgorithms += unit.algorithms.length;
-        totalPatterns += unit.patterns.length;
-        
-        unit.algorithms.forEach(alg => {
-          totalPerformance += alg.performance;
-          algorithmCount++;
-          
-          tierPerformances[tier.id] += alg.performance;
-          tierAlgorithmCounts[tier.id]++;
+    // Create connections with context
+    concepts.forEach(concept => {
+      context.forEach(contextItem => {
+        const contextConcepts = this.extractConcepts(contextItem);
+        contextConcepts.forEach(contextConcept => {
+          const connection = this.createNeuralConnection(concept, contextConcept, 'temporal');
+          newConnections.push(connection);
         });
       });
     });
     
-    // Calculate average performance per tier
-    const tierAveragePerformances = tierPerformances.map((perf, index) => 
-      tierAlgorithmCounts[index] > 0 ? perf / tierAlgorithmCounts[index] : 0
-    );
+    return newConnections;
+  }
+  
+  private createNeuralConnection(source: string, target: string, type: NeuralConnection['type']): NeuralConnection {
+    const connectionId = `${source}_${target}_${type}`;
     
-    // Find top performing tier
-    let topPerformingTier = 0;
-    let highestPerformance = 0;
+    const connection: NeuralConnection = {
+      id: connectionId,
+      sourceNode: source,
+      targetNode: target,
+      strength: 0.5 + Math.random() * 0.3,
+      type,
+      activationHistory: [0.5],
+      lastActivated: new Date()
+    };
     
-    tierAveragePerformances.forEach((perf, index) => {
-      if (perf > highestPerformance) {
-        highestPerformance = perf;
-        topPerformingTier = index;
+    this.globalConnections.set(connectionId, connection);
+    
+    // Update concept nodes
+    const sourceNode = this.conceptNetwork.get(source);
+    const targetNode = this.conceptNetwork.get(target);
+    
+    if (sourceNode) sourceNode.connections.push(connectionId);
+    if (targetNode) targetNode.connections.push(connectionId);
+    
+    return connection;
+  }
+  
+  private async runDiffusionProcess(concepts: string[]): Promise<string> {
+    let diffusionDescription = 'Neural diffusion pattern: ';
+    
+    concepts.forEach(concept => {
+      const node = this.conceptNetwork.get(concept);
+      if (node) {
+        // Simulate diffusion spreading
+        const spreadPattern = this.simulateDiffusionSpread(node);
+        diffusionDescription += `${concept} spreads with ${spreadPattern.intensity} intensity, `;
       }
     });
     
+    return diffusionDescription.slice(0, -2); // Remove trailing comma
+  }
+  
+  private simulateDiffusionSpread(node: ConceptNode): { intensity: string; pattern: string } {
+    const intensity = node.diffusionPattern.spreadRate > 0.7 ? 'high' : 
+                     node.diffusionPattern.spreadRate > 0.4 ? 'medium' : 'low';
+    
+    const pattern = node.visualRepresentation.movement[0] || 'static';
+    
+    return { intensity, pattern };
+  }
+  
+  private async generateEmergentVisualizations(concepts: string[], visualThoughts: VisualThought[]): Promise<string[]> {
+    const emergent: string[] = [];
+    
+    // Combine visual elements from different concepts
+    const allColors = visualThoughts.flatMap(vt => vt.colorScheme);
+    const allShapes = visualThoughts.flatMap(vt => vt.visualElements);
+    const allMovements = visualThoughts.map(vt => vt.movement);
+    
+    // Generate emergent visualizations
+    emergent.push(`Emergent color harmony: ${allColors.slice(0, 3).join(', ')}`);
+    emergent.push(`Shape interaction: ${allShapes.slice(0, 2).join(' merging with ')}`);
+    emergent.push(`Movement synthesis: ${allMovements.join(' flowing into ')}`);
+    
+    // Create conceptual blends
+    if (concepts.length >= 2) {
+      emergent.push(`Conceptual blend: ${concepts[0]} + ${concepts[1]} = new emergent meaning`);
+    }
+    
+    return emergent;
+  }
+  
+  private async updateMemoryAndConnections(
+    concepts: string[], 
+    visualThoughts: VisualThought[], 
+    newConnections: NeuralConnection[]
+  ): Promise<void> {
+    // Strengthen memory for accessed concepts
+    concepts.forEach(concept => {
+      const node = this.conceptNetwork.get(concept);
+      if (node) {
+        node.memoryStrength = Math.min(1.0, node.memoryStrength + 0.1);
+        node.lastAccessed = new Date();
+      }
+    });
+    
+    // Update connection strengths
+    newConnections.forEach(connection => {
+      connection.strength = Math.min(1.0, connection.strength + 0.05);
+      connection.activationHistory.push(connection.strength);
+      
+      // Limit history
+      if (connection.activationHistory.length > 10) {
+        connection.activationHistory.shift();
+      }
+    });
+    
+    // Apply neural plasticity
+    this.applyNeuralPlasticity();
+  }
+  
+  private applyNeuralPlasticity(): void {
+    // Strengthen frequently used connections
+    this.globalConnections.forEach(connection => {
+      const avgActivation = connection.activationHistory.reduce((sum, val) => sum + val, 0) / connection.activationHistory.length;
+      
+      if (avgActivation > 0.7) {
+        connection.strength = Math.min(1.0, connection.strength + this.PLASTICITY_RATE);
+      } else if (avgActivation < 0.3) {
+        connection.strength = Math.max(0.1, connection.strength - this.PLASTICITY_RATE * 0.5);
+      }
+    });
+    
+    // Update concept node activation levels
+    this.conceptNetwork.forEach(node => {
+      node.activationLevel *= 0.9; // Gradual decay
+    });
+  }
+  
+  private startNeuralActivity(): void {
+    // Simulate ongoing neural activity
+    setInterval(() => {
+      this.simulateBackgroundActivity();
+    }, 5000); // Every 5 seconds
+  }
+  
+  private simulateBackgroundActivity(): void {
+    // Random activation of concepts to maintain neural activity
+    const concepts = Array.from(this.conceptNetwork.keys());
+    if (concepts.length > 0) {
+      const randomConcept = concepts[Math.floor(Math.random() * concepts.length)];
+      const node = this.conceptNetwork.get(randomConcept);
+      
+      if (node) {
+        node.activationLevel = Math.min(1.0, node.activationLevel + 0.1);
+        
+        // Spread activation to connected nodes
+        node.connections.forEach(connectionId => {
+          const connection = this.globalConnections.get(connectionId);
+          if (connection && connection.strength > 0.5) {
+            const targetNode = this.conceptNetwork.get(connection.targetNode);
+            if (targetNode) {
+              targetNode.activationLevel = Math.min(1.0, targetNode.activationLevel + 0.05);
+            }
+          }
+        });
+      }
+    }
+  }
+  
+  /**
+   * Get brain visualization data for display
+   */
+  getBrainVisualization(): {
+    activeRegions: string[];
+    conceptNetwork: { nodes: any[]; connections: any[] };
+    currentThoughts: VisualThought[];
+    activationPattern: Map<string, number>;
+  } {
+    const activeRegions = Array.from(this.brainRegions.entries())
+      .filter(([_, region]) => region.nodes.some(node => node.activationLevel > 0.5))
+      .map(([id, _]) => id);
+    
+    const nodes = Array.from(this.conceptNetwork.values()).map(node => ({
+      id: node.id,
+      concept: node.concept,
+      activation: node.activationLevel,
+      visual: node.visualRepresentation,
+      position: this.calculateNodePosition(node)
+    }));
+    
+    const connections = Array.from(this.globalConnections.values()).map(conn => ({
+      id: conn.id,
+      source: conn.sourceNode,
+      target: conn.targetNode,
+      strength: conn.strength,
+      type: conn.type
+    }));
+    
     return {
-      totalUnits: this.TIER_COUNT * this.UNITS_PER_TIER,
-      activeUnits,
-      totalAlgorithms,
-      totalPatterns,
-      averagePerformance: algorithmCount > 0 ? totalPerformance / algorithmCount : 0,
-      topPerformingTier,
-      compressionRatio: usedCapacity / totalCapacity,
-      capacityUsed: usedCapacity,
-      capacityTotal: totalCapacity
+      activeRegions,
+      conceptNetwork: { nodes, connections },
+      currentThoughts: this.activeThoughts.flatMap(thought => thought.visualizations),
+      activationPattern: new Map(this.currentActivationPattern)
     };
   }
   
-  /**
-   * Get tier information
-   */
-  getTierInfo(tierId: number): LogicDataTier | null {
-    if (tierId < 0 || tierId >= this.TIER_COUNT) {
-      return null;
-    }
+  private calculateNodePosition(node: ConceptNode): { x: number; y: number; z: number } {
+    // Calculate 3D position based on concept characteristics
+    const x = node.visualRepresentation.brightness * 100;
+    const y = node.linguisticEncoding.abstractness * 100;
+    const z = node.emotionalWeight * 50 + 50;
     
-    return this.tiers[tierId];
+    return { x, y, z };
   }
   
   /**
-   * Get all tiers
+   * Get storage statistics with brain metrics
    */
-  getAllTiers(): LogicDataTier[] {
-    return [...this.tiers];
+  getStorageStats() {
+    const totalConcepts = this.conceptNetwork.size;
+    const totalConnections = this.globalConnections.size;
+    const activeNodes = Array.from(this.conceptNetwork.values()).filter(node => node.activationLevel > 0.5).length;
+    const strongConnections = Array.from(this.globalConnections.values()).filter(conn => conn.strength > 0.7).length;
+    
+    return {
+      stats: {
+        totalAlgorithms: totalConcepts, // Concepts as algorithms
+        totalPatterns: totalConnections, // Connections as patterns
+        activeUnits: activeNodes,
+        totalUnits: totalConcepts,
+        averagePerformance: this.calculateAveragePerformance(),
+        topPerformingTier: this.getTopPerformingRegion(),
+        compressionRatio: this.calculateCompressionRatio(),
+        capacityUsed: activeNodes,
+        capacityTotal: totalConcepts
+      },
+      tiers: this.getBrainRegionStats(),
+      topAlgorithms: this.getTopConcepts(5),
+      topPatterns: this.getTopConnections(5)
+    };
+  }
+  
+  private calculateAveragePerformance(): number {
+    const nodes = Array.from(this.conceptNetwork.values());
+    if (nodes.length === 0) return 0;
+    
+    const totalPerformance = nodes.reduce((sum, node) => sum + node.activationLevel, 0);
+    return totalPerformance / nodes.length;
+  }
+  
+  private getTopPerformingRegion(): number {
+    let topRegion = 0;
+    let maxPerformance = 0;
+    
+    this.brainRegions.forEach((region, index) => {
+      const avgPerformance = region.nodes.reduce((sum, node) => sum + node.activationLevel, 0) / region.nodes.length;
+      if (avgPerformance > maxPerformance) {
+        maxPerformance = avgPerformance;
+        topRegion = Array.from(this.brainRegions.keys()).indexOf(region.id);
+      }
+    });
+    
+    return topRegion;
+  }
+  
+  private calculateCompressionRatio(): number {
+    // Calculate based on connection efficiency
+    const totalPossibleConnections = this.conceptNetwork.size * (this.conceptNetwork.size - 1) / 2;
+    const actualConnections = this.globalConnections.size;
+    
+    return totalPossibleConnections > 0 ? actualConnections / totalPossibleConnections : 0;
+  }
+  
+  private getBrainRegionStats() {
+    return Array.from(this.brainRegions.entries()).map(([id, region], index) => ({
+      id: index,
+      name: region.name,
+      description: region.function,
+      usedCapacity: region.nodes.length * 1000, // Simulate capacity
+      totalCapacity: 256 * 1000, // Max capacity per region
+      utilizationPercentage: (region.nodes.length / 256) * 100,
+      compressionRatio: region.plasticity
+    }));
+  }
+  
+  private getTopConcepts(count: number) {
+    return Array.from(this.conceptNetwork.values())
+      .sort((a, b) => b.activationLevel - a.activationLevel)
+      .slice(0, count)
+      .map(node => ({
+        id: node.id,
+        name: node.concept,
+        purpose: `Visual-linguistic concept: ${node.concept}`,
+        performance: node.activationLevel,
+        generation: 1,
+        size: node.concept.length * 1000,
+        usageCount: Math.floor(node.memoryStrength * 100),
+        lastUsed: node.lastAccessed
+      }));
+  }
+  
+  private getTopConnections(count: number) {
+    return Array.from(this.globalConnections.values())
+      .sort((a, b) => b.strength - a.strength)
+      .slice(0, count)
+      .map(conn => ({
+        id: conn.id,
+        type: conn.type,
+        pattern: `${conn.sourceNode} ↔ ${conn.targetNode}`,
+        frequency: conn.strength,
+        lastUsed: conn.lastActivated,
+        size: conn.sourceNode.length + conn.targetNode.length
+      }));
   }
   
   /**
-   * Optimize storage by compressing and reorganizing
+   * Optimize storage using brain-like mechanisms
    */
   async optimizeStorage(): Promise<{
     spaceReclaimed: number;
     compressionImproved: number;
     duration: number;
   }> {
-    console.log('🔄 Starting storage optimization...');
+    console.log('🧠 Optimizing brain storage using neural plasticity...');
     const startTime = Date.now();
     
-    let totalSpaceReclaimed = 0;
-    const initialUsedCapacity = this.tiers.reduce((sum, tier) => sum + tier.usedCapacity, 0);
+    let spaceReclaimed = 0;
+    const initialConnections = this.globalConnections.size;
     
-    // Compress all units
-    for (const tier of this.tiers) {
-      for (const unit of tier.units) {
-        if (unit.usedCapacity > 0) {
-          const beforeCompression = unit.usedCapacity;
-          this.compressUnit(unit);
-          const spaceReclaimed = beforeCompression - unit.usedCapacity;
-          totalSpaceReclaimed += spaceReclaimed;
-        }
+    // Prune weak connections (synaptic pruning)
+    const weakConnections = Array.from(this.globalConnections.entries())
+      .filter(([_, conn]) => conn.strength < 0.3);
+    
+    weakConnections.forEach(([id, _]) => {
+      this.globalConnections.delete(id);
+      spaceReclaimed += 100; // Simulate space saved
+    });
+    
+    // Strengthen important connections
+    this.globalConnections.forEach(connection => {
+      if (connection.strength > 0.8) {
+        connection.strength = Math.min(1.0, connection.strength + 0.05);
       }
-      
-      // Update tier compression ratio
-      tier.compressionRatio = tier.usedCapacity / tier.totalCapacity;
-    }
+    });
     
-    const finalUsedCapacity = this.tiers.reduce((sum, tier) => sum + tier.usedCapacity, 0);
-    const compressionImproved = initialUsedCapacity > 0 ? 
-      (initialUsedCapacity - finalUsedCapacity) / initialUsedCapacity : 0;
+    // Update memory consolidation
+    this.conceptNetwork.forEach(node => {
+      if (node.memoryStrength > 0.8) {
+        node.memoryStrength = Math.min(1.0, node.memoryStrength + 0.02);
+      }
+    });
     
+    const finalConnections = this.globalConnections.size;
+    const compressionImproved = (initialConnections - finalConnections) / initialConnections;
     const duration = Date.now() - startTime;
     
-    console.log(`✅ Storage optimization complete: ${totalSpaceReclaimed} bytes reclaimed (${(compressionImproved * 100).toFixed(1)}% improvement) in ${duration}ms`);
+    console.log(`✅ Brain optimization complete: pruned ${weakConnections.length} weak connections`);
     
     return {
-      spaceReclaimed: totalSpaceReclaimed,
+      spaceReclaimed,
       compressionImproved,
       duration
     };
-  }
-  
-  /**
-   * Evolve algorithms by combining high-performing ones
-   */
-  evolveAlgorithms(count: number = 5): AlgorithmData[] {
-    console.log(`🧬 Evolving ${count} new algorithms...`);
-    
-    // Get top performing algorithms
-    const topAlgorithms = this.getTopAlgorithms(20);
-    
-    if (topAlgorithms.length < 2) {
-      console.warn('⚠️ Not enough algorithms to evolve');
-      return [];
-    }
-    
-    const newAlgorithms: AlgorithmData[] = [];
-    
-    for (let i = 0; i < count; i++) {
-      // Select two parent algorithms
-      const parent1Index = Math.floor(Math.random() * topAlgorithms.length);
-      let parent2Index = Math.floor(Math.random() * topAlgorithms.length);
-      
-      // Ensure different parents
-      while (parent2Index === parent1Index) {
-        parent2Index = Math.floor(Math.random() * topAlgorithms.length);
-      }
-      
-      const parent1 = topAlgorithms[parent1Index];
-      const parent2 = topAlgorithms[parent2Index];
-      
-      // Create child algorithm
-      const childAlgorithm: Omit<AlgorithmData, 'id' | 'lastUsed' | 'usageCount'> = {
-        name: `${parent1.name.split('-')[0]}-${parent2.name.split('-')[0]}-evolved`,
-        pattern: `${parent1.pattern}-${parent2.pattern}`,
-        purpose: `Combined functionality of ${parent1.purpose} and ${parent2.purpose}`,
-        performance: Math.min(1.0, (parent1.performance + parent2.performance) / 2 + 0.1),
-        generation: Math.max(parent1.generation, parent2.generation) + 1,
-        parentIds: [parent1.id, parent2.id],
-        mutations: 0,
-        size: Math.floor((parent1.size + parent2.size) * 0.8), // Some efficiency from combination
-        compressionRatio: Math.min(parent1.compressionRatio, parent2.compressionRatio)
-      };
-      
-      // Apply random mutation
-      if (Math.random() < 0.3) {
-        childAlgorithm.mutations++;
-        childAlgorithm.performance = Math.min(1.0, childAlgorithm.performance + Math.random() * 0.1);
-        childAlgorithm.pattern += '-mutated';
-      }
-      
-      // Store in same tier as highest performing parent
-      const parentTier = parent1.performance > parent2.performance ? 
-        parseInt(parent1.id.split('_')[0].replace('T', '')) : 
-        parseInt(parent2.id.split('_')[0].replace('T', ''));
-      
-      try {
-        const algorithmId = this.storeAlgorithm(childAlgorithm, parentTier);
-        const storedAlgorithm = this.getAlgorithm(algorithmId);
-        
-        if (storedAlgorithm) {
-          newAlgorithms.push(storedAlgorithm);
-        }
-      } catch (error) {
-        console.error(`Failed to store evolved algorithm: ${error}`);
-      }
-    }
-    
-    console.log(`✅ Created ${newAlgorithms.length} evolved algorithms`);
-    return newAlgorithms;
-  }
-  
-  /**
-   * Generate new patterns from existing ones
-   */
-  generateNewPatterns(count: number = 3): PatternData[] {
-    console.log(`🧩 Generating ${count} new patterns...`);
-    
-    // Get most frequent patterns
-    const topPatterns = this.getMostFrequentPatterns(10);
-    
-    if (topPatterns.length < 2) {
-      console.warn('⚠️ Not enough patterns to generate new ones');
-      return [];
-    }
-    
-    const newPatterns: PatternData[] = [];
-    
-    for (let i = 0; i < count; i++) {
-      // Select pattern type based on current needs
-      const patternTypes: PatternData['type'][] = ['reasoning', 'language', 'slang', 'common_sense', 'domain_knowledge'];
-      const selectedType = patternTypes[Math.floor(Math.random() * patternTypes.length)];
-      
-      // Create new pattern
-      const basePattern = topPatterns[Math.floor(Math.random() * topPatterns.length)];
-      
-      const newPattern: Omit<PatternData, 'id' | 'lastUsed'> = {
-        type: selectedType,
-        pattern: `${selectedType}-${basePattern.pattern}-variant-${Math.floor(Math.random() * 100)}`,
-        examples: [
-          `New example for ${selectedType} pattern`,
-          `Another example for ${selectedType} pattern`
-        ],
-        frequency: 0.1, // Start with low frequency
-        size: Math.floor(basePattern.size * 0.9) // Slightly smaller than base
-      };
-      
-      try {
-        const patternId = this.storePattern(newPattern);
-        const storedPattern = this.getPattern(patternId);
-        
-        if (storedPattern) {
-          newPatterns.push(storedPattern);
-        }
-      } catch (error) {
-        console.error(`Failed to store new pattern: ${error}`);
-      }
-    }
-    
-    console.log(`✅ Created ${newPatterns.length} new patterns`);
-    return newPatterns;
   }
 }
