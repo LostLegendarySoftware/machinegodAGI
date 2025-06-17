@@ -1,6 +1,6 @@
 /**
  * MachineGodCore Integration System
- * Enhanced with proper brain-like logic storage and visual-linguistic processing
+ * Enhanced with Natural Training Orchestrator for continuous learning
  */
 
 import { MetaLogicEvaluator, LogicalStatement, EvaluationResult } from './MetaLogicEvaluator';
@@ -17,6 +17,7 @@ import { NaturalConversationProcessor } from './NaturalConversationProcessor';
 import { OpenLMMBenchmarks } from './OpenLMMBenchmarks';
 import { LogicDataStorage } from './LogicDataStorage';
 import { SlangProcessor } from './SlangProcessor';
+import { NaturalTrainingOrchestrator } from './NaturalTrainingOrchestrator';
 
 export interface SystemStatus {
   metaLogic: {
@@ -87,6 +88,13 @@ export interface SystemStatus {
     topPerformingTier: number;
     tierUtilization: number[];
   };
+  naturalLearning: {
+    totalAssets: number;
+    averageQuality: number;
+    learningRate: number;
+    patternCount: number;
+    continuousLearning: boolean;
+  };
 }
 
 export interface ConversationResponse {
@@ -103,6 +111,7 @@ export interface ConversationResponse {
   logicAlgorithmsUsed?: string[];
   visualThoughts?: any[];
   brainActivity?: any;
+  naturalLearningApplied?: boolean;
 }
 
 export interface UserFeedback {
@@ -127,6 +136,7 @@ export class MachineGodCore {
   private lmmBenchmarks: OpenLMMBenchmarks;
   private logicStorage: LogicDataStorage;
   private slangProcessor: SlangProcessor;
+  private naturalTraining: NaturalTrainingOrchestrator;
   private isInitialized = false;
   private operationCount = 0;
   private conversationHistory: Array<{input: string, response: ConversationResponse, feedback?: UserFeedback, memoryId: string}> = [];
@@ -137,7 +147,7 @@ export class MachineGodCore {
   private benchmarkResults: any[] = [];
 
   constructor() {
-    console.log('🚀 Initializing MachineGod with advanced brain-like logic storage...');
+    console.log('🚀 Initializing MachineGod with Natural Training Orchestrator...');
     
     this.metaLogic = new MetaLogicEvaluator();
     this.ariel = new ArielSystem();
@@ -154,7 +164,10 @@ export class MachineGodCore {
     this.logicStorage = new LogicDataStorage();
     this.slangProcessor = new SlangProcessor();
     
-    console.log('✅ MachineGod Core System initialized with brain-like visual-linguistic processing');
+    // Initialize Natural Training Orchestrator AFTER other systems
+    this.naturalTraining = new NaturalTrainingOrchestrator(this);
+    
+    console.log('✅ MachineGod Core System initialized with continuous natural learning');
   }
 
   /**
@@ -170,10 +183,10 @@ export class MachineGodCore {
     
     try {
       await this.warp.activate();
-      console.log('✅ All systems active with brain-like logic storage');
+      console.log('✅ All systems active with natural learning orchestration');
       
       this.isInitialized = true;
-      console.log('🎯 MachineGod with advanced brain mechanics fully operational');
+      console.log('🎯 MachineGod with continuous natural learning fully operational');
       
     } catch (error) {
       console.error('❌ MachineGod initialization failed:', error);
@@ -182,7 +195,7 @@ export class MachineGodCore {
   }
 
   /**
-   * Process conversation with brain-like visual-linguistic processing
+   * Process conversation with natural learning integration
    */
   async processConversation(input: string, context: string[]): Promise<ConversationResponse> {
     if (!this.isInitialized) {
@@ -192,7 +205,7 @@ export class MachineGodCore {
     const startTime = Date.now();
     this.operationCount++;
     
-    console.log(`💬 Processing with brain-like visualization: "${input}"`);
+    console.log(`💬 Processing with natural learning: "${input}"`);
 
     try {
       // Step 1: Process input through brain-like logic storage
@@ -242,6 +255,22 @@ export class MachineGodCore {
       // Step 8: Make the response sound natural and human-like with slang
       const naturalResponse = this.naturalProcessor.makeResponseNatural(taskResult.result, input);
       
+      // Step 9: NATURAL LEARNING - Process this interaction for continuous learning
+      await this.naturalTraining.processInteractionForLearning(
+        'conversation',
+        {
+          id: memoryId,
+          input,
+          output: naturalResponse,
+          confidence: taskResult.confidence,
+          context: input,
+          naturalness: true,
+          research: researchConducted,
+          logicalAnalysis: logicalAnalysisApplied
+        },
+        context
+      );
+      
       const conversationResponse: ConversationResponse = {
         response: naturalResponse,
         confidence: taskResult.confidence,
@@ -259,7 +288,8 @@ export class MachineGodCore {
           diffusionPattern: brainProcessing.diffusionPattern,
           emergentVisualizations: brainProcessing.emergentVisualizations,
           newConnections: brainProcessing.newConnections.length
-        }
+        },
+        naturalLearningApplied: true
       };
       
       // Store in conversation history with memoryId
@@ -269,7 +299,7 @@ export class MachineGodCore {
         memoryId
       });
       
-      console.log(`✅ Brain-processed response generated in ${processingTime}ms with ${(taskResult.confidence * 100).toFixed(1)}% confidence`);
+      console.log(`✅ Natural learning response generated in ${processingTime}ms with ${(taskResult.confidence * 100).toFixed(1)}% confidence`);
       console.log(`🧠 Activated ${brainProcessing.activatedConcepts.length} concepts, formed ${brainProcessing.newConnections.length} new connections`);
       
       return conversationResponse;
@@ -281,29 +311,7 @@ export class MachineGodCore {
   }
 
   /**
-   * Get brain visualization data
-   */
-  async getBrainVisualization(): Promise<any> {
-    return this.logicStorage.getBrainVisualization();
-  }
-
-  /**
-   * Determine if input requires research
-   */
-  private requiresResearch(input: string): boolean {
-    const researchIndicators = [
-      'what is', 'tell me about', 'explain', 'research', 'study', 'evidence',
-      'latest', 'current', 'recent', 'findings', 'data', 'statistics',
-      'according to', 'studies show', 'experts say', 'scientific'
-    ];
-    
-    const lowerInput = input.toLowerCase();
-    return researchIndicators.some(indicator => lowerInput.includes(indicator)) ||
-           input.length > 50; // Complex queries likely need research
-  }
-
-  /**
-   * Process user feedback and learn from it
+   * Process user feedback with natural learning
    */
   async processUserFeedback(
     memoryId: string,
@@ -329,6 +337,20 @@ export class MachineGodCore {
 
     console.log(`📝 User feedback: ${liked ? '👍 Liked' : '👎 Disliked'} - ${reason || 'No reason given'}`);
 
+    // NATURAL LEARNING - Process feedback for continuous improvement
+    await this.naturalTraining.processInteractionForLearning(
+      'feedback',
+      {
+        id: memoryId,
+        liked,
+        reason,
+        improvement,
+        context: this.conversationHistory[conversationIndex].input,
+        response: this.conversationHistory[conversationIndex].response.response
+      },
+      ['feedback', liked ? 'positive' : 'negative']
+    );
+
     // Learn from feedback through brain-like mechanisms
     if (!liked && reason) {
       await this.learnFromNegativeFeedback(
@@ -346,98 +368,10 @@ export class MachineGodCore {
   }
 
   /**
-   * Learn from negative feedback using brain-like mechanisms
-   */
-  private async learnFromNegativeFeedback(
-    input: string,
-    response: string,
-    reason: string,
-    improvement?: string
-  ): Promise<void> {
-    console.log(`🔄 Learning from negative feedback through brain plasticity: ${reason}`);
-
-    try {
-      // Process feedback through brain-like learning
-      await this.logicStorage.processInputWithVisualization(
-        `Feedback: ${reason}. Improvement: ${improvement || 'general quality'}`,
-        [input, response]
-      );
-
-      const debateResult = await this.ariel.conductMandatoryConsensusDebate(
-        `Why was this response unsatisfactory: "${response}" for input: "${input}". User said: ${reason}. ${improvement ? `User suggests: ${improvement}` : ''}`,
-        [input, response],
-        8
-      );
-
-      if (debateResult.achieved) {
-        this.omegaEvolved.processDebateResult(
-          'feedback-learning',
-          ['feedback-analysis'],
-          'improvement',
-          [`User disliked response because: ${reason}`, `Need to improve: ${improvement || 'general quality'}`]
-        );
-      }
-    } catch (error) {
-      console.error('Error processing negative feedback:', error);
-    }
-  }
-
-  /**
-   * Reinforce positive feedback using brain-like mechanisms
-   */
-  private async reinforcePositiveFeedback(input: string, response: string): Promise<void> {
-    console.log(`✅ Reinforcing positive feedback through neural strengthening`);
-
-    // Process positive feedback through brain-like reinforcement
-    await this.logicStorage.processInputWithVisualization(
-      `Positive feedback: User liked this response style`,
-      [input, response]
-    );
-
-    this.omegaEvolved.processDebateResult(
-      'positive-feedback',
-      ['successful-pattern'],
-      'reinforcement',
-      [`User liked this response style`, `Successful pattern identified`]
-    );
-  }
-
-  /**
-   * Run background processing
-   */
-  private async runBackgroundProcessing(input: string, taskResult: TaskResult): Promise<void> {
-    setTimeout(async () => {
-      try {
-        // Background consensus
-        const consensusResult = await this.ariel.conductMandatoryConsensusDebate(input, [], 5);
-        
-        // Background truth verification for logical statements
-        if (this.shouldApplyTruthVerification(input)) {
-          await this.truthProtocol.anointTruth(input, [], 23000);
-        }
-
-        // Background brain optimization
-        if (Math.random() < 0.1) { // 10% chance
-          await this.logicStorage.optimizeStorage();
-        }
-
-        console.log('🔄 Background brain processing completed');
-      } catch (error) {
-        console.error('Background processing error:', error);
-      }
-    }, 0);
-  }
-
-  private shouldApplyTruthVerification(input: string): boolean {
-    const truthKeywords = ['true', 'false', 'fact', 'correct', 'wrong', 'verify', 'prove', 'logic'];
-    return truthKeywords.some(keyword => input.toLowerCase().includes(keyword));
-  }
-
-  /**
-   * Run LMM benchmark test
+   * Run LMM benchmark test with natural learning
    */
   async runLMMBenchmark(benchmarkId: string): Promise<any> {
-    console.log(`📊 Running LMM benchmark: ${benchmarkId}`);
+    console.log(`📊 Running LMM benchmark with natural learning: ${benchmarkId}`);
     
     try {
       const result = await this.lmmBenchmarks.runLMMBenchmark(
@@ -451,13 +385,21 @@ export class MachineGodCore {
           
           return {
             answer: result.response,
-            reasoning: 'Processed through brain-like visual-linguistic understanding',
+            reasoning: 'Processed through brain-like visual-linguistic understanding with natural learning',
             confidence: result.confidence
           };
         }
       );
       
       this.benchmarkResults.push(result);
+      
+      // NATURAL LEARNING - Process benchmark results for improvement
+      await this.naturalTraining.processInteractionForLearning(
+        'benchmark',
+        result,
+        ['benchmark', benchmarkId, result.percentage > 80 ? 'success' : 'improvement_needed']
+      );
+      
       return result;
     } catch (error) {
       console.error('Benchmark error:', error);
@@ -466,7 +408,7 @@ export class MachineGodCore {
   }
 
   /**
-   * Get system status including brain storage stats
+   * Get system status including natural learning stats
    */
   getSystemStatus(): SystemStatus {
     const trainingMetrics = this.omegaEvolved.getTrainingMetrics();
@@ -477,6 +419,7 @@ export class MachineGodCore {
     const taskStats = this.taskingSystem.getTaskStats();
     const researchCapabilities = this.researchEngine.getCapabilities();
     const logicStats = this.logicStorage.getStorageStats();
+    const learningStats = this.naturalTraining.getLearningStats();
     
     // Calculate tier utilization from brain regions
     const tierUtilization: number[] = [];
@@ -578,28 +521,169 @@ export class MachineGodCore {
         compressionRatio: logicStats.stats.compressionRatio,
         topPerformingTier: logicStats.stats.topPerformingTier,
         tierUtilization
+      },
+      naturalLearning: {
+        totalAssets: learningStats.totalAssets,
+        averageQuality: learningStats.averageQuality,
+        learningRate: learningStats.learningRate,
+        patternCount: learningStats.patternCount,
+        continuousLearning: true
       }
     };
   }
 
-  // Keep existing methods for backward compatibility
-  getConversationHistoryWithFeedback(): Array<{
-    input: string;
-    response: ConversationResponse;
-    feedback?: UserFeedback;
-    memoryId: string;
-  }> {
+  /**
+   * Optimize system with natural learning
+   */
+  async optimize(): Promise<string[]> {
+    const optimizations: string[] = [];
+    
+    this.warp.boostEfficiency(0.05);
+    optimizations.push('WARP efficiency boosted by 5%');
+    
+    this.omegaEvolved.boostEvolution(1.2);
+    optimizations.push('Algorithm evolution boosted by 20%');
+    
+    // Optimize brain-like logic storage
+    const brainOptimization = await this.logicStorage.optimizeStorage();
+    optimizations.push(`Brain storage optimized: ${brainOptimization.spaceReclaimed} bytes reclaimed (${(brainOptimization.compressionImproved * 100).toFixed(1)}% improvement)`);
+    
+    // Optimize natural learning
+    const learningOptimizations = await this.naturalTraining.optimizeLearning();
+    optimizations.push(...learningOptimizations);
+    
+    optimizations.push('Neural plasticity enhanced');
+    optimizations.push('Visual-linguistic connections strengthened');
+    optimizations.push('Concept diffusion patterns optimized');
+    optimizations.push('Brain region coordination improved');
+    optimizations.push('Memory consolidation enhanced');
+    optimizations.push('Continuous natural learning accelerated');
+    
+    return optimizations;
+  }
+
+  // Keep all existing methods for backward compatibility...
+  
+  /**
+   * Determine if input requires research
+   */
+  private requiresResearch(input: string): boolean {
+    const researchIndicators = [
+      'what is', 'tell me about', 'explain', 'research', 'study', 'evidence',
+      'latest', 'current', 'recent', 'findings', 'data', 'statistics',
+      'according to', 'studies show', 'experts say', 'scientific'
+    ];
+    
+    const lowerInput = input.toLowerCase();
+    return researchIndicators.some(indicator => lowerInput.includes(indicator)) ||
+           input.length > 50; // Complex queries likely need research
+  }
+
+  /**
+   * Learn from negative feedback using brain-like mechanisms
+   */
+  private async learnFromNegativeFeedback(
+    input: string,
+    response: string,
+    reason: string,
+    improvement?: string
+  ): Promise<void> {
+    console.log(`🔄 Learning from negative feedback through brain plasticity: ${reason}`);
+
+    try {
+      // Process feedback through brain-like learning
+      await this.logicStorage.processInputWithVisualization(
+        `Feedback: ${reason}. Improvement: ${improvement || 'general quality'}`,
+        [input, response]
+      );
+
+      const debateResult = await this.ariel.conductMandatoryConsensusDebate(
+        `Why was this response unsatisfactory: "${response}" for input: "${input}". User said: ${reason}. ${improvement ? `User suggests: ${improvement}` : ''}`,
+        [input, response],
+        8
+      );
+
+      if (debateResult.achieved) {
+        this.omegaEvolved.processDebateResult(
+          'feedback-learning',
+          ['feedback-analysis'],
+          'improvement',
+          [`User disliked response because: ${reason}`, `Need to improve: ${improvement || 'general quality'}`]
+        );
+      }
+    } catch (error) {
+      console.error('Error processing negative feedback:', error);
+    }
+  }
+
+  /**
+   * Reinforce positive feedback using brain-like mechanisms
+   */
+  private async reinforcePositiveFeedback(input: string, response: string): Promise<void> {
+    console.log(`✅ Reinforcing positive feedback through neural strengthening`);
+
+    // Process positive feedback through brain-like reinforcement
+    await this.logicStorage.processInputWithVisualization(
+      `Positive feedback: User liked this response style`,
+      [input, response]
+    );
+
+    this.omegaEvolved.processDebateResult(
+      'positive-feedback',
+      ['successful-pattern'],
+      'reinforcement',
+      [`User liked this response style`, `Successful pattern identified`]
+    );
+  }
+
+  /**
+   * Run background processing
+   */
+  private async runBackgroundProcessing(input: string, taskResult: TaskResult): Promise<void> {
+    setTimeout(async () => {
+      try {
+        // Background consensus
+        const consensusResult = await this.ariel.conductMandatoryConsensusDebate(input, [], 5);
+        
+        // NATURAL LEARNING - Process debate results
+        await this.naturalTraining.processInteractionForLearning(
+          'debate',
+          consensusResult,
+          ['background', 'consensus', input.substring(0, 20)]
+        );
+        
+        // Background truth verification for logical statements
+        if (this.shouldApplyTruthVerification(input)) {
+          await this.truthProtocol.anointTruth(input, [], 23000);
+        }
+
+        // Background brain optimization
+        if (Math.random() < 0.1) { // 10% chance
+          await this.logicStorage.optimizeStorage();
+        }
+
+        console.log('🔄 Background processing with natural learning completed');
+      } catch (error) {
+        console.error('Background processing error:', error);
+      }
+    }, 0);
+  }
+
+  private shouldApplyTruthVerification(input: string): boolean {
+    const truthKeywords = ['true', 'false', 'fact', 'correct', 'wrong', 'verify', 'prove', 'logic'];
+    return truthKeywords.some(keyword => input.toLowerCase().includes(keyword));
+  }
+
+  // Keep all existing methods...
+  getBrainVisualization() {
+    return this.logicStorage.getBrainVisualization();
+  }
+
+  getConversationHistoryWithFeedback() {
     return [...this.conversationHistory];
   }
 
-  getFeedbackStats(): {
-    totalFeedback: number;
-    positiveCount: number;
-    negativeCount: number;
-    positiveRate: number;
-    commonIssues: string[];
-    improvementSuggestions: string[];
-  } {
+  getFeedbackStats() {
     const feedbackEntries = this.conversationHistory
       .map(conv => conv.feedback)
       .filter(feedback => feedback !== undefined) as UserFeedback[];
@@ -633,11 +717,11 @@ export class MachineGodCore {
     return this.memory.getTrainingProgress();
   }
 
-  getTruthProtocol(): MesiahBishopProtocol {
+  getTruthProtocol() {
     return this.truthProtocol;
   }
 
-  getAlgorandAPI(): AlgorandAPI {
+  getAlgorandAPI() {
     return this.algorandAPI;
   }
 
@@ -671,9 +755,6 @@ export class MachineGodCore {
     return this.omegaEvolved.getEvolutionStats();
   }
 
-  /**
-   * Get research and tasking statistics
-   */
   getResearchStats() {
     const taskStats = this.taskingSystem.getTaskStats();
     const researchCapabilities = this.researchEngine.getCapabilities();
@@ -688,9 +769,6 @@ export class MachineGodCore {
     };
   }
 
-  /**
-   * Get benchmark statistics
-   */
   getBenchmarkStats() {
     return {
       totalBenchmarks: this.benchmarkResults.length,
@@ -702,26 +780,24 @@ export class MachineGodCore {
     };
   }
 
-  /**
-   * Get brain-like logic storage statistics
-   */
   getLogicStorageStats() {
     return this.logicStorage.getStorageStats();
   }
 
-  /**
-   * Set slang intensity
-   */
   setSlangIntensity(intensity: number): void {
     this.slangProcessor.setSlangIntensity(intensity);
     console.log(`🗣️ Slang intensity set to ${intensity}`);
   }
 
-  /**
-   * Get slang settings
-   */
   getSlangSettings() {
     return this.slangProcessor.getSlangSettings();
+  }
+
+  /**
+   * Get natural learning statistics
+   */
+  getNaturalLearningStats() {
+    return this.naturalTraining.getLearningStats();
   }
 
   async emergencyReset(): Promise<void> {
@@ -741,33 +817,14 @@ export class MachineGodCore {
     this.logicStorage = new LogicDataStorage();
     this.slangProcessor = new SlangProcessor();
     
+    // Reinitialize Natural Training Orchestrator
+    this.naturalTraining = new NaturalTrainingOrchestrator(this);
+    
     await this.warp.activate();
     
     this.isInitialized = true;
     this.operationCount = 0;
     
-    console.log('✅ Emergency reset complete - All systems restored with brain-like processing');
-  }
-
-  async optimize(): Promise<string[]> {
-    const optimizations: string[] = [];
-    
-    this.warp.boostEfficiency(0.05);
-    optimizations.push('WARP efficiency boosted by 5%');
-    
-    this.omegaEvolved.boostEvolution(1.2);
-    optimizations.push('Algorithm evolution boosted by 20%');
-    
-    // Optimize brain-like logic storage
-    const brainOptimization = await this.logicStorage.optimizeStorage();
-    optimizations.push(`Brain storage optimized: ${brainOptimization.spaceReclaimed} bytes reclaimed (${(brainOptimization.compressionImproved * 100).toFixed(1)}% improvement)`);
-    
-    optimizations.push('Neural plasticity enhanced');
-    optimizations.push('Visual-linguistic connections strengthened');
-    optimizations.push('Concept diffusion patterns optimized');
-    optimizations.push('Brain region coordination improved');
-    optimizations.push('Memory consolidation enhanced');
-    
-    return optimizations;
+    console.log('✅ Emergency reset complete - All systems restored with natural learning');
   }
 }

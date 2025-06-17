@@ -6,9 +6,9 @@ import { LogicStorageDisplay } from './components/LogicStorageDisplay';
 import { BenchmarkLeaderboard } from './components/BenchmarkLeaderboard';
 import { SystemStatus } from './core/MachineGodCore';
 import { MachineGodCore } from './core/MachineGodCore';
-import { Terminal, Monitor, Activity, Settings, Brain, Users, Zap, Archive, Database, BarChart2 } from 'lucide-react';
+import { Terminal, Monitor, Activity, Settings, Brain, Users, Zap, Archive, Database, BarChart2, Sparkles } from 'lucide-react';
 
-type TabType = 'terminal' | 'dashboard' | 'meta-logic' | 'ariel' | 'warp' | 'helix' | 'settings' | 'storage' | 'benchmarks';
+type TabType = 'terminal' | 'dashboard' | 'meta-logic' | 'ariel' | 'warp' | 'helix' | 'settings' | 'storage' | 'benchmarks' | 'natural-learning';
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>('terminal');
@@ -23,12 +23,14 @@ function App() {
     truthProtocol: { adversarialCycles: 0, truthSignatures: 0, stratumCompliance: {}, active: false },
     tasking: { totalTasks: 0, activeAgents: 0, researchCapability: false, logicalAnalysis: false },
     benchmarks: { totalBenchmarks: 0, averageScore: 0, topBenchmark: '', leaderboardRank: 0 },
-    logicStorage: { totalAlgorithms: 0, totalPatterns: 0, compressionRatio: 0, topPerformingTier: 0, tierUtilization: [0, 0, 0, 0, 0, 0] }
+    logicStorage: { totalAlgorithms: 0, totalPatterns: 0, compressionRatio: 0, topPerformingTier: 0, tierUtilization: [0, 0, 0, 0, 0, 0] },
+    naturalLearning: { totalAssets: 0, averageQuality: 0, learningRate: 0.1, patternCount: 0, continuousLearning: true }
   });
 
   const tabs = [
     { id: 'terminal', label: 'Terminal', icon: Terminal },
     { id: 'dashboard', label: 'Dashboard', icon: Monitor },
+    { id: 'natural-learning', label: 'Natural Learning', icon: Sparkles },
     { id: 'meta-logic', label: 'META-LOGIC', icon: Brain },
     { id: 'ariel', label: 'ARIEL', icon: Users },
     { id: 'warp', label: 'WARP', icon: Zap },
@@ -48,6 +50,65 @@ function App() {
         return <LogicStorageDisplay machineGod={new MachineGodCore()} />;
       case 'benchmarks':
         return <BenchmarkLeaderboard machineGod={new MachineGodCore()} />;
+      case 'natural-learning':
+        return (
+          <div className="p-6 bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg h-full">
+            <h2 className="text-2xl font-bold text-purple-300 mb-4 flex items-center">
+              <Sparkles className="mr-2" />
+              Natural Learning Orchestrator
+            </h2>
+            <div className="space-y-4 text-green-300">
+              <div className="border border-purple-600 rounded-lg p-4">
+                <h3 className="text-lg font-bold text-purple-300 mb-2">Continuous Learning System</h3>
+                <p>The Natural Learning Orchestrator coordinates all system assets for continuous improvement from every interaction.</p>
+              </div>
+              <div className="border border-purple-600 rounded-lg p-4">
+                <h3 className="text-lg font-bold text-purple-300 mb-2">Current Learning Status</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-gray-300">Learning Assets:</span>
+                    <span className="ml-2 text-green-400">{systemStatus.naturalLearning.totalAssets}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-300">Average Quality:</span>
+                    <span className="ml-2 text-yellow-400">{(systemStatus.naturalLearning.averageQuality * 100).toFixed(1)}%</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-300">Learning Rate:</span>
+                    <span className="ml-2 text-blue-400">{(systemStatus.naturalLearning.learningRate * 100).toFixed(1)}%</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-300">Pattern Count:</span>
+                    <span className="ml-2 text-purple-400">{systemStatus.naturalLearning.patternCount}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="border border-purple-600 rounded-lg p-4">
+                <h3 className="text-lg font-bold text-purple-300 mb-2">Asset Utilization</h3>
+                <div className="space-y-2">
+                  <p>• <strong>Conversations:</strong> Every chat improves response quality and naturalness</p>
+                  <p>• <strong>Feedback:</strong> User feedback automatically optimizes all systems</p>
+                  <p>• <strong>Research:</strong> Web research findings enhance knowledge base</p>
+                  <p>• <strong>Debates:</strong> ARIEL consensus results improve reasoning patterns</p>
+                  <p>• <strong>Benchmarks:</strong> Test results strengthen logical capabilities</p>
+                  <p>• <strong>Memory:</strong> Cross-modal learning enhances understanding</p>
+                  <p>• <strong>Brain Storage:</strong> Visual-linguistic processing creates new connections</p>
+                </div>
+              </div>
+              <div className="border border-purple-600 rounded-lg p-4">
+                <h3 className="text-lg font-bold text-purple-300 mb-2">Learning Features</h3>
+                <div className="space-y-2">
+                  <p>• <strong>Continuous:</strong> {systemStatus.naturalLearning.continuousLearning ? '✅ Active' : '❌ Inactive'}</p>
+                  <p>• <strong>Cross-System:</strong> All components contribute to learning</p>
+                  <p>• <strong>Persistent:</strong> Learning persists across sessions</p>
+                  <p>• <strong>Adaptive:</strong> Learning rate adjusts based on performance</p>
+                  <p>• <strong>Pattern Recognition:</strong> Identifies and reinforces successful patterns</p>
+                  <p>• <strong>Quality Assessment:</strong> Automatically evaluates interaction quality</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
       case 'meta-logic':
         return (
           <div className="p-6 bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg h-full">
@@ -229,27 +290,27 @@ function App() {
                 </div>
               </div>
               <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">OmegaEvolved Configuration</h3>
+                <h3 className="text-lg font-bold text-purple-300 mb-2">Natural Learning Configuration</h3>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm text-gray-300 mb-1">Background Reasoning Depth</label>
-                    <input type="range" min="1" max="10" defaultValue="7" className="w-full" />
+                    <label className="block text-sm text-gray-300 mb-1">Learning Rate</label>
+                    <input type="range" min="0.01" max="0.5" step="0.01" defaultValue="0.1" className="w-full" />
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-300 mb-1">Auto-Tasking Sensitivity</label>
+                    <label className="block text-sm text-gray-300 mb-1">Quality Threshold</label>
                     <select className="w-full p-2 bg-gray-800 text-white rounded">
-                      <option>High (All Questions)</option>
-                      <option>Medium (Complex Questions)</option>
-                      <option>Low (Very Complex Only)</option>
+                      <option>High (0.8+)</option>
+                      <option>Medium (0.6+)</option>
+                      <option>Low (0.4+)</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-300 mb-1">Response Style</label>
+                    <label className="block text-sm text-gray-300 mb-1">Asset Utilization</label>
                     <select className="w-full p-2 bg-gray-800 text-white rounded">
-                      <option>Natural Conversation</option>
-                      <option>Technical Detail</option>
-                      <option>Concise Answers</option>
-                      <option>Educational</option>
+                      <option>All Assets (Recommended)</option>
+                      <option>Conversations Only</option>
+                      <option>Feedback Only</option>
+                      <option>Research Only</option>
                     </select>
                   </div>
                 </div>
@@ -257,9 +318,9 @@ function App() {
               <div className="border border-purple-600 rounded-lg p-4">
                 <h3 className="text-lg font-bold text-purple-300 mb-2">System Information</h3>
                 <div className="text-sm space-y-1">
-                  <div>Version: 3.0.0 OmegaEvolved</div>
+                  <div>Version: 5.0.0 Natural Learning</div>
                   <div>Build: 20241204</div>
-                  <div>Architecture: Background Reasoning with Auto-Tasking</div>
+                  <div>Architecture: Continuous Learning with All Assets</div>
                   <div>License: Proprietary</div>
                 </div>
               </div>
@@ -312,7 +373,7 @@ function App() {
               <div>
                 <h1 className="text-2xl font-bold text-purple-300">MachineGod System</h1>
                 <p className="text-sm text-gray-400">
-                  OmegaEvolved • Background Reasoning • Auto-Tasking • Truth Stratification
+                  Natural Learning • Continuous Improvement • All Assets Utilization
                 </p>
               </div>
             </div>
@@ -321,6 +382,9 @@ function App() {
               <div className="text-green-400 font-bold">
                 {systemStatus.training.active ? 'OPERATIONAL' : 'INITIALIZING'}
               </div>
+              {systemStatus.naturalLearning.continuousLearning && (
+                <div className="text-xs text-green-300">🌟 Natural Learning Active</div>
+              )}
             </div>
           </div>
         </header>
@@ -341,6 +405,14 @@ function App() {
                 <Icon size={16} />
                 <span className="text-sm font-medium">{label}</span>
                 
+                {/* Natural learning indicator */}
+                {id === 'natural-learning' && systemStatus.naturalLearning.continuousLearning && (
+                  <span className="flex h-3 w-3 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                  </span>
+                )}
+                
                 {/* Benchmark domination indicator */}
                 {id === 'benchmarks' && systemStatus.benchmarks.leaderboardRank === 1 && (
                   <span className="flex h-3 w-3 relative">
@@ -355,7 +427,7 @@ function App() {
 
         {/* System Metrics Bar - Sticky */}
         <div className="bg-black bg-opacity-80 border-b border-purple-600 p-3 sticky top-[133px] z-20">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
             <div className="bg-gray-900 bg-opacity-50 p-2 rounded-lg border border-gray-600">
               <div className="text-xl font-bold text-green-400">
                 {systemStatus.metaLogic.evaluationsCount + systemStatus.ariel.debateCount}
@@ -383,6 +455,13 @@ function App() {
               </div>
               <div className="text-xs text-gray-300">Space Saved</div>
             </div>
+            
+            <div className="bg-gray-900 bg-opacity-50 p-2 rounded-lg border border-gray-600">
+              <div className="text-xl font-bold text-green-400">
+                {systemStatus.naturalLearning.totalAssets}
+              </div>
+              <div className="text-xs text-gray-300">Learning Assets</div>
+            </div>
           </div>
         </div>
 
@@ -395,14 +474,16 @@ function App() {
         <footer className="bg-black bg-opacity-80 border-t border-purple-600 p-3 sticky bottom-0 z-20">
           <div className="flex justify-between items-center text-sm text-gray-400">
             <div>
-              MachineGod v3.0.0 OmegaEvolved - Background Reasoning with Auto-Tasking AGI System
+              MachineGod v5.0.0 Natural Learning - Continuous Improvement AGI System
             </div>
             <div className="flex space-x-4">
               <span>Uptime: {new Date().toLocaleTimeString()}</span>
               <span>•</span>
               <span>Operations: {systemStatus.metaLogic.evaluationsCount + systemStatus.ariel.debateCount}</span>
               <span>•</span>
-              <span>Reasoning: {(systemStatus.training.reasoningAbility * 100).toFixed(1)}%</span>
+              <span>Learning: {(systemStatus.naturalLearning.averageQuality * 100).toFixed(1)}%</span>
+              <span>•</span>
+              <span>Assets: {systemStatus.naturalLearning.totalAssets}</span>
               {systemStatus.benchmarks.leaderboardRank === 1 && (
                 <>
                   <span>•</span>
