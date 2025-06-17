@@ -257,6 +257,18 @@ and adapt to your specific communication preferences. Let's chat! 💯`,
 
     const timestamp = new Date();
     
+    // Initialize all variables at the top of the function with default values
+    let confidence = 0;
+    let needsFeedback = false;
+    let memoryId = '';
+    let researchConducted = false;
+    let logicalAnalysisApplied = false;
+    let slangApplied = false;
+    let logicAlgorithmsUsed: string[] = [];
+    let benchmarkResult: LMMBenchmarkResult | undefined;
+    let socialMediaProcessed = false;
+    let structuredReasoningResult: any = undefined;
+    
     setCommands(prev => [...prev, { 
       command: input, 
       response: '', 
@@ -329,17 +341,6 @@ ${testProgress.isComplete ?
       } else {
         // Training complete - normal conversation mode with personality
         setConversationContext(prev => [...prev.slice(-5), input]);
-
-        let confidence = 0;
-        let needsFeedback = false;
-        let memoryId = '';
-        let researchConducted = false;
-        let logicalAnalysisApplied = false;
-        let slangApplied = false;
-        let logicAlgorithmsUsed: string[] = [];
-        let benchmarkResult: LMMBenchmarkResult | undefined;
-        let socialMediaProcessed = false;
-        let structuredReasoningResult: any = undefined;
 
         // Handle system commands
         if (input.toLowerCase() === 'help') {
