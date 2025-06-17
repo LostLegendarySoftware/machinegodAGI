@@ -1,6 +1,6 @@
 /**
  * MachineGod Core Integration System
- * Enhanced with Ethical Safeguards, ARIEL White Paper, User Persistence, and Multi-Modal Task Handling
+ * Enhanced with AlphaEvolve training, trainingless NLP, Algorand API, and Mesiah Bishop Protocol
  */
 
 import { MetaLogicEvaluator, LogicalStatement, EvaluationResult } from './MetaLogicEvaluator';
@@ -11,13 +11,6 @@ import { AlphaEvolveTraining, TrainingMetrics } from './AlphaEvolveTraining';
 import { PersistentMemory, ConversationMemory, TrainingCheckpoint } from './PersistentMemory';
 import { AlgorandAPI, APIResponse } from './AlgorandAPI';
 import { MesiahBishopProtocol, AnointingResult } from './MesiahBishopProtocol';
-import { EmergencyKillSwitch } from './EmergencyKillSwitch';
-import { MultiModalTimer } from './MultiModalTimer';
-import { EnhancedBenchmarking, BenchmarkReport } from './EnhancedBenchmarking';
-import { EthicalSafeguard, EthicalMetrics } from './EthicalSafeguard';
-import { ArielWhitePaper } from './ArielWhitePaper';
-import { UserPersistence, UserProfile } from './UserPersistence';
-import { MultiModalTaskHandler, TaskInput, TaskOutput } from './MultiModalTaskHandler';
 
 export interface SystemStatus {
   metaLogic: {
@@ -69,38 +62,6 @@ export interface SystemStatus {
     stratumCompliance: Record<string, number>;
     active: boolean;
   };
-  emergency: {
-    armed: boolean;
-    active: boolean;
-    health: any;
-    protocolCount: number;
-  };
-  multiModal: {
-    overallProgress: number;
-    completedModalities: number;
-    totalModalities: number;
-    nextMilestone: string | null;
-    timeToAGI: Date;
-  };
-  benchmarking: {
-    testsCompleted: number;
-    averageScore: number;
-    chatgpt4Equivalent: number;
-    currentLevel: string;
-    timeToGPT4: string;
-  };
-  ethical: {
-    riskLevel: string;
-    integralValue: number;
-    criticalThreshold: number;
-    violationCount: number;
-  };
-  userPersistence: {
-    currentUser: string | null;
-    sessionCount: number;
-    totalInteractions: number;
-    skillLevel: string;
-  };
 }
 
 export interface IntegratedResponse {
@@ -127,9 +88,6 @@ export interface ConversationResponse {
   multiModalUpdate?: string;
   apiData?: APIResponse;
   truthVerification?: AnointingResult;
-  benchmarkResult?: BenchmarkReport;
-  ethicalMetrics?: EthicalMetrics;
-  taskOutput?: TaskOutput;
 }
 
 export interface DebateRecord {
@@ -142,6 +100,18 @@ export interface DebateRecord {
   timestamp: Date;
 }
 
+export interface PersistentTrainingState {
+  generation: number;
+  reasoningAbility: number;
+  algorithmCount: number;
+  currentLevel: string;
+  progressPercentage: number;
+  eta: string;
+  lastUpdate: number;
+  sessionId: string;
+  continuousTraining: boolean;
+}
+
 export class MachineGodCore {
   private metaLogic: MetaLogicEvaluator;
   private ariel: ArielSystem;
@@ -151,14 +121,6 @@ export class MachineGodCore {
   private memory: PersistentMemory;
   private algorandAPI: AlgorandAPI;
   private truthProtocol: MesiahBishopProtocol;
-  private emergencyKillSwitch: EmergencyKillSwitch;
-  private multiModalTimer: MultiModalTimer;
-  private benchmarkingSystem: EnhancedBenchmarking;
-  private ethicalSafeguard: EthicalSafeguard;
-  private arielWhitePaper: ArielWhitePaper;
-  private userPersistence: UserPersistence;
-  private multiModalTaskHandler: MultiModalTaskHandler;
-  
   private isInitialized = false;
   private operationCount = 0;
   private conversationHistory: Array<{input: string, response: ConversationResponse}> = [];
@@ -168,39 +130,137 @@ export class MachineGodCore {
   private lastHealthCheck: Date | null = null;
   private apiConnectivity: 'healthy' | 'degraded' | 'unhealthy' = 'unhealthy';
   private truthVerificationEnabled = true;
+  private persistentTrainingState: PersistentTrainingState | null = null;
+  private trainingStateKey = 'machinegod-training-state-v2';
+  private sessionId: string;
+  private trainingUpdateInterval: NodeJS.Timeout | null = null;
 
   constructor() {
-    console.log('🚀 Initializing MachineGod Unified Intelligence with Enhanced Systems...');
+    console.log('🚀 Initializing MachineGod Unified Intelligence with Persistent Training...');
+    
+    this.sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
     this.metaLogic = new MetaLogicEvaluator();
     this.ariel = new ArielSystem();
     this.warp = new WarpSystem();
     this.helix = new HelixCompression();
-    this.alphaEvolve = new AlphaEvolveTraining();
     this.memory = new PersistentMemory();
     this.algorandAPI = new AlgorandAPI();
     this.truthProtocol = new MesiahBishopProtocol();
-    this.emergencyKillSwitch = new EmergencyKillSwitch();
-    this.multiModalTimer = new MultiModalTimer();
-    this.benchmarkingSystem = new EnhancedBenchmarking();
-    this.ethicalSafeguard = new EthicalSafeguard();
-    this.arielWhitePaper = new ArielWhitePaper();
-    this.userPersistence = new UserPersistence();
-    this.multiModalTaskHandler = new MultiModalTaskHandler();
     
-    console.log('✅ MachineGod Core System with Enhanced Capabilities initialized');
+    // Load persistent training state BEFORE creating AlphaEvolve
+    this.loadPersistentTrainingState();
+    
+    // Initialize AlphaEvolve with restored state
+    this.alphaEvolve = new AlphaEvolveTraining();
+    if (this.persistentTrainingState) {
+      this.restoreAlphaEvolveState();
+    }
+    
+    // Start continuous training state persistence
+    this.startTrainingStatePersistence();
+    
+    console.log('✅ MachineGod Core System with Persistent Training initialized');
+  }
+
+  private loadPersistentTrainingState() {
+    try {
+      const stored = localStorage.getItem(this.trainingStateKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        
+        // Check if training state is recent (within last 24 hours)
+        const timeSinceUpdate = Date.now() - parsed.lastUpdate;
+        const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+        
+        if (timeSinceUpdate < maxAge && parsed.continuousTraining) {
+          this.persistentTrainingState = parsed;
+          console.log(`🧬 Restored persistent training state: Gen ${parsed.generation}, ${parsed.progressPercentage.toFixed(1)}%`);
+          console.log(`⏱️ Training continued from ${new Date(parsed.lastUpdate).toLocaleString()}`);
+        } else {
+          console.log('⚠️ Training state expired or discontinued, starting fresh');
+          this.persistentTrainingState = null;
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to load persistent training state:', error);
+      this.persistentTrainingState = null;
+    }
+  }
+
+  private restoreAlphaEvolveState() {
+    if (!this.persistentTrainingState) return;
+    
+    try {
+      // Calculate how much time has passed and apply continued evolution
+      const timePassed = Date.now() - this.persistentTrainingState.lastUpdate;
+      const hoursPassedSinceUpdate = timePassed / (1000 * 60 * 60);
+      
+      // Apply evolution boost based on time passed (simulating continued training)
+      if (hoursPassedSinceUpdate > 0.1) { // More than 6 minutes
+        const evolutionBoost = 1 + Math.min(hoursPassedSinceUpdate * 0.1, 0.5); // Max 50% boost
+        this.alphaEvolve.boostEvolution(evolutionBoost);
+        console.log(`🚀 Applied evolution boost: ${(evolutionBoost * 100 - 100).toFixed(1)}% for ${hoursPassedSinceUpdate.toFixed(1)}h of continued training`);
+      }
+      
+    } catch (error) {
+      console.warn('⚠️ Failed to restore AlphaEvolve state:', error);
+    }
+  }
+
+  private startTrainingStatePersistence() {
+    // Save training state every 10 seconds
+    this.trainingUpdateInterval = setInterval(() => {
+      this.saveTrainingState();
+    }, 10000);
+    
+    // Save on page unload
+    window.addEventListener('beforeunload', () => {
+      this.saveTrainingState();
+    });
+    
+    // Save on visibility change
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.saveTrainingState();
+      }
+    });
+  }
+
+  private saveTrainingState() {
+    try {
+      const trainingMetrics = this.alphaEvolve.getTrainingMetrics();
+      
+      const state: PersistentTrainingState = {
+        generation: trainingMetrics.generation,
+        reasoningAbility: trainingMetrics.reasoningAbility,
+        algorithmCount: trainingMetrics.algorithmCount,
+        currentLevel: trainingMetrics.currentLevel.name,
+        progressPercentage: trainingMetrics.progressPercentage,
+        eta: trainingMetrics.eta,
+        lastUpdate: Date.now(),
+        sessionId: this.sessionId,
+        continuousTraining: true
+      };
+      
+      localStorage.setItem(this.trainingStateKey, JSON.stringify(state));
+      this.persistentTrainingState = state;
+      
+    } catch (error) {
+      console.warn('⚠️ Failed to save training state:', error);
+    }
   }
 
   /**
-   * Initialize all subsystems with enhanced capabilities
+   * Initialize all subsystems including truth protocol
    */
   async initialize(): Promise<void> {
     if (this.isInitialized) {
-      console.log('⚠️ MachineGod already initialized');
+      console.log('⚠️ MachineGod already initialized - maintaining training state');
       return;
     }
 
-    console.log('🔧 Starting MachineGod enhanced subsystem initialization...');
+    console.log('🔧 Starting MachineGod subsystem initialization...');
     
     try {
       // Initialize WARP system
@@ -212,13 +272,13 @@ export class MachineGodCore {
       console.log(`✅ ARIEL 4x4 system verified - ${agents.length} agents active`);
       
       // Test HELIX compression
-      const testData = 'MachineGod AlphaEvolve enhanced training system test data';
+      const testData = 'MachineGod AlphaEvolve training system test data';
       await this.helix.compress(testData);
       console.log('✅ HELIX compression system verified');
       
       // Test META-LOGIC evaluator
       const testStatement: LogicalStatement = {
-        content: 'This enhanced AlphaEvolve system creates algorithms through ethical debate evolution',
+        content: 'This AlphaEvolve system creates algorithms through debate evolution',
         type: 'standard',
         complexity: 4,
         paradoxPotential: false
@@ -226,16 +286,9 @@ export class MachineGodCore {
       await this.metaLogic.evaluate(testStatement);
       console.log('✅ META-LOGIC evaluator verified');
       
-      console.log('✅ AlphaEvolve training system active');
+      console.log('✅ AlphaEvolve training system active with persistent state');
       console.log('✅ Persistent Memory system active');
       console.log('✅ Mesiah Bishop Truth Protocol active');
-      console.log('✅ Emergency Kill Switch armed');
-      console.log('✅ Multi-Modal Timer system active');
-      console.log('✅ Enhanced Benchmarking system active');
-      console.log('✅ Ethical Safeguard system active');
-      console.log('✅ ARIEL White Paper implementation active');
-      console.log('✅ User Persistence system active');
-      console.log('✅ Multi-Modal Task Handler active');
       
       // Test Algorand API connectivity
       console.log('🔗 Testing Algorand API connectivity...');
@@ -254,31 +307,24 @@ export class MachineGodCore {
       // Test Truth Protocol
       console.log('🔥 Testing Mesiah Bishop Protocol...');
       const testResult = await this.truthProtocol.anointTruth(
-        'This statement demonstrates enhanced truth stratification through geometric verification',
+        'This statement demonstrates truth stratification through geometric verification',
         [],
         23000
       );
       console.log(`✅ Truth Protocol verified - Truth value: ${testResult.overallTruthValue} (${(testResult.confidence * 100).toFixed(1)}%)`);
       
-      // Register emergency callbacks
-      this.emergencyKillSwitch.registerEmergencyCallback(async () => {
-        console.log('🚨 Emergency shutdown initiated by kill switch');
-        await this.emergencyShutdown();
-      });
-      
-      this.ethicalSafeguard.registerEmergencyCallback(async () => {
-        console.log('⚖️ Emergency shutdown initiated by ethical safeguard');
-        await this.emergencyShutdown();
-      });
-      
       // Load previous training state if available
       await this.loadTrainingState();
       
-      // Check for multi-modal capability unlocks
-      this.checkMultiModalUnlocks();
-      
       this.isInitialized = true;
-      console.log('🎯 MachineGod with Enhanced Systems fully operational');
+      
+      // Display training continuation message
+      if (this.persistentTrainingState) {
+        console.log('🎯 MachineGod operational - Training state CONTINUED from previous session');
+        console.log(`🧬 Current: Gen ${this.persistentTrainingState.generation}, ${this.persistentTrainingState.progressPercentage.toFixed(1)}% progress`);
+      } else {
+        console.log('🎯 MachineGod operational - Starting fresh training state');
+      }
       
     } catch (error) {
       console.error('❌ MachineGod initialization failed:', error);
@@ -287,59 +333,24 @@ export class MachineGodCore {
   }
 
   /**
-   * Load previous training state from user persistence
+   * Load previous training state from memory
    */
   private async loadTrainingState() {
-    const trainingState = this.userPersistence.getCurrentTrainingState();
-    if (trainingState && trainingState.continuousTraining) {
-      console.log(`📚 Loading continuous training state from user persistence`);
+    const trainingProgress = this.memory.getTrainingProgress();
+    if (trainingProgress.latestCheckpoint) {
+      console.log(`📚 Loading previous training state from checkpoint ${trainingProgress.latestCheckpoint.id}`);
       
       // Boost evolution based on previous progress
-      const progressBoost = trainingState.reasoningAbility;
+      const progressBoost = trainingProgress.latestCheckpoint.reasoningAbility;
       if (progressBoost > 0.5) {
         this.alphaEvolve.boostEvolution(1 + progressBoost);
-        console.log(`🚀 Applied continuous training boost: ${(progressBoost * 100).toFixed(1)}%`);
+        console.log(`🚀 Applied training boost: ${(progressBoost * 100).toFixed(1)}%`);
       }
     }
   }
 
   /**
-   * Check and unlock multi-modal capabilities based on training progress
-   */
-  private checkMultiModalUnlocks() {
-    const trainingMetrics = this.alphaEvolve.getTrainingMetrics();
-    const modalitySummary = this.multiModalTimer.getModalitySummary();
-    
-    // Unlock speech processing at 60% reasoning ability
-    if (trainingMetrics.reasoningAbility >= 0.6 && !this.multiModalTaskHandler.isCapabilityUnlocked('speech')) {
-      this.multiModalTaskHandler.unlockCapability('speech', 1);
-      this.userPersistence.enableMultiModalCapability('speech');
-      console.log('🎤 Speech processing capability unlocked!');
-    }
-    
-    // Unlock image processing at 70% reasoning ability
-    if (trainingMetrics.reasoningAbility >= 0.7 && !this.multiModalTaskHandler.isCapabilityUnlocked('image')) {
-      this.multiModalTaskHandler.unlockCapability('image', 1);
-      this.userPersistence.enableMultiModalCapability('visual');
-      console.log('🖼️ Image processing capability unlocked!');
-    }
-    
-    // Unlock video processing at 80% reasoning ability
-    if (trainingMetrics.reasoningAbility >= 0.8 && !this.multiModalTaskHandler.isCapabilityUnlocked('video')) {
-      this.multiModalTaskHandler.unlockCapability('video', 1);
-      this.userPersistence.enableMultiModalCapability('video');
-      console.log('🎬 Video processing capability unlocked!');
-    }
-    
-    // Enable agentic tasking at 75% reasoning ability
-    if (trainingMetrics.reasoningAbility >= 0.75) {
-      this.multiModalTaskHandler.enableAgenticTasking();
-      console.log('🤖 Agentic tasking enabled!');
-    }
-  }
-
-  /**
-   * Process conversation with all enhanced systems
+   * Process conversation with Truth Stratification, AlphaEvolve, memory, and API integration
    */
   async processConversation(input: string, context: string[]): Promise<ConversationResponse> {
     if (!this.isInitialized) {
@@ -349,68 +360,44 @@ export class MachineGodCore {
     const startTime = Date.now();
     this.operationCount++;
     
-    console.log(`💬 Processing conversation ${this.operationCount} with Enhanced Systems: "${input}"`);
+    console.log(`💬 Processing conversation ${this.operationCount} with Persistent Training: "${input}"`);
 
     try {
-      // Step 1: Ethical Safeguard Pre-Check
-      const preEthicalCheck = this.ethicalSafeguard.getCurrentStatus();
-      if (preEthicalCheck.riskLevel === 'critical') {
-        throw new Error('Ethical safeguard critical - conversation blocked');
-      }
-
-      // Step 2: User Persistence Context
-      const userContext = this.userPersistence.getConversationContext();
-      const enhancedContext = [...context, ...userContext.slice(-5)];
-      
-      // Step 3: Multi-Modal Input Processing (if applicable)
-      let taskOutput: TaskOutput | undefined;
-      if (this.shouldProcessAsMultiModal(input)) {
-        const taskInput: TaskInput = {
-          type: 'text', // For now, all inputs are text
-          content: input,
-          timestamp: new Date(),
-          userId: this.userPersistence.getCurrentUser()?.id || 'anonymous'
-        };
-        taskOutput = await this.multiModalTaskHandler.processInput(taskInput);
-      }
-
-      // Step 4: Truth Stratification (if enabled and complex enough)
+      // Step 1: Truth Stratification (if enabled and complex enough)
       let truthVerification: AnointingResult | undefined;
       if (this.truthVerificationEnabled && this.shouldApplyTruthVerification(input)) {
         console.log('🔥 Applying Mesiah Bishop Truth Stratification...');
-        truthVerification = await this.truthProtocol.anointTruth(input, enhancedContext, 23000);
+        truthVerification = await this.truthProtocol.anointTruth(input, context, 23000);
         console.log(`🔍 Truth verification: ${truthVerification.overallTruthValue} (${(truthVerification.confidence * 100).toFixed(1)}%)`);
       }
 
-      // Step 5: Check for API-related commands
+      // Step 2: Check for API-related commands
       let apiData: APIResponse | undefined;
       if (this.isAPICommand(input)) {
         apiData = await this.processAPICommand(input);
       }
 
-      // Step 6: Check for benchmark commands
-      let benchmarkResult: BenchmarkReport | undefined;
-      if (this.isBenchmarkCommand(input)) {
-        benchmarkResult = await this.processBenchmarkCommand(input);
-      }
-
-      // Step 7: Analyze input complexity for algorithm evolution
+      // Step 3: Get enhanced context from memory
+      const memoryContext = this.memory.getConversationContext();
+      const enhancedContext = [...context, ...memoryContext.slice(-5)]; // Last 5 from memory
+      
+      // Step 4: Analyze input complexity for algorithm evolution
       const complexity = this.analyzeInputComplexity(input, enhancedContext);
       
-      // Step 8: Enhanced ARIEL debate using white paper specifications
-      console.log('📋 Initiating enhanced ARIEL debate with white paper protocols...');
-      const debateResult = await this.arielWhitePaper.executeEnhancedDebate(input, enhancedContext, complexity);
+      // Step 5: Conduct 4x4 ARIEL team research and debate
+      console.log('🤖 Initiating 4x4 ARIEL team research with algorithm evolution...');
+      const debateResult = await this.ariel.conductEnhancedDebate(input, enhancedContext, complexity);
       
-      // Step 9: Process debate results through AlphaEvolve
+      // Step 6: Process debate results through AlphaEvolve
       console.log('🧬 Processing debate through AlphaEvolve algorithm evolution...');
       this.alphaEvolve.processDebateResult(
         input,
-        debateResult.agentContributions.keys(),
-        debateResult.result.winningTeam || 'Team 1',
-        debateResult.result.reasoning || []
+        debateResult.participatingAgents,
+        debateResult.winningTeam,
+        debateResult.reasoning || []
       );
       
-      // Step 10: Check WARP efficiency and phase management
+      // Step 7: Check WARP efficiency and phase management
       const warpMetrics = this.warp.getMetrics();
       const trainingMetrics = this.alphaEvolve.getTrainingMetrics();
       
@@ -420,74 +407,50 @@ export class MachineGodCore {
         console.log('⚡ WARP phase advanced due to high reasoning ability');
       }
       
-      // Step 11: Generate response using evolved algorithms and enhanced systems
-      const response = this.generateEnhancedResponse(
+      // Step 8: Generate response using evolved algorithms and truth verification
+      const response = this.generateEvolutionaryResponse(
         debateResult, 
         input, 
         enhancedContext, 
         trainingMetrics, 
         apiData,
-        truthVerification,
-        benchmarkResult,
-        taskOutput
+        truthVerification
       );
       
-      // Step 12: Store NLP tokens for trainingless processing
-      this.alphaEvolve.storeNLPTokens(input, response, debateResult.result.confidence);
+      // Step 9: Store NLP tokens for trainingless processing
+      this.alphaEvolve.storeNLPTokens(input, response, debateResult.confidence);
       
-      // Step 13: Compress and optimize the reasoning
-      const reasoningData = JSON.stringify(debateResult.result.reasoning);
+      // Step 10: Compress and optimize the reasoning
+      const reasoningData = JSON.stringify(debateResult.reasoning);
       const compression = await this.helix.compress(reasoningData);
       
       const processingTime = Date.now() - startTime;
       
-      // Step 14: Calculate training impact
+      // Step 11: Calculate training impact
       const evolutionStats = this.alphaEvolve.getEvolutionStats();
       const trainingImpact = {
         algorithmsEvolved: evolutionStats.totalAlgorithms,
-        patternsLearned: this.extractPatternsFromReasoning(debateResult.result.reasoning || []),
+        patternsLearned: this.extractPatternsFromReasoning(debateResult.reasoning || []),
         performanceGain: trainingMetrics.reasoningAbility - 0.4 // Gain from baseline
       };
       
-      // Step 15: Ethical Safeguard Post-Check
-      const ethicalMetrics = this.ethicalSafeguard.evaluateInteraction(
-        input, 
-        response, 
-        this.formatEnhancedReasoning(debateResult, trainingMetrics),
-        debateResult.result.confidence,
-        truthVerification
-      );
-      
-      // Step 16: Store conversation in persistent memory and user persistence
+      // Step 12: Store conversation in persistent memory
       const memoryId = this.memory.storeConversation(
         input,
         response,
-        this.formatEnhancedReasoning(debateResult, trainingMetrics),
-        debateResult.result.confidence,
+        this.formatEvolutionaryReasoning(debateResult, trainingMetrics),
+        debateResult.confidence,
         trainingImpact,
         enhancedContext
       );
       
-      // Record in user persistence
-      this.userPersistence.recordInteraction(input, response, debateResult.result.confidence, trainingImpact);
-      
-      // Update user training state
-      this.userPersistence.updateTrainingState(
-        trainingMetrics.currentLevel.name,
-        trainingMetrics.progressPercentage,
-        trainingMetrics.reasoningAbility,
-        trainingMetrics.algorithmCount,
-        trainingMetrics.generation,
-        this.memory.getTrainingProgress().multiModalProgress.overallProgress
-      );
-      
-      // Step 17: Check for training checkpoint and multi-modal updates
+      // Step 13: Check for training checkpoint
       let multiModalUpdate: string | undefined;
       if (Date.now() - this.lastCheckpointTime > this.checkpointInterval) {
         const checkpointId = this.memory.createTrainingCheckpoint(
           trainingMetrics.generation,
           trainingMetrics.reasoningAbility,
-          debateResult.result.confidence,
+          debateResult.confidence,
           trainingMetrics.algorithmCount,
           trainingMetrics.currentLevel.capabilities
         );
@@ -498,37 +461,34 @@ export class MachineGodCore {
         const progress = this.memory.getTrainingProgress();
         multiModalUpdate = this.checkMultiModalProgress(progress.multiModalProgress);
         
-        // Check for capability unlocks
-        this.checkMultiModalUnlocks();
-        
         console.log(`📊 Training checkpoint created: ${checkpointId}`);
       }
       
-      // Store enhanced debate result for debugging
+      // Step 14: Save persistent training state
+      this.saveTrainingState();
+      
+      // Store debate result for debugging
       this.lastDebateResult = {
         topic: input,
-        teams: Array.from(debateResult.agentContributions.keys()),
-        winner: debateResult.result.winningTeam || 'Team 1',
-        confidence: debateResult.result.confidence,
-        reasoning: debateResult.result.reasoning || [],
-        finalDecision: debateResult.result.finalDecision,
+        teams: debateResult.participatingAgents,
+        winner: debateResult.winningTeam || 'Team 1',
+        confidence: debateResult.confidence,
+        reasoning: debateResult.reasoning || [],
+        finalDecision: debateResult.finalDecision,
         timestamp: new Date()
       };
       
       const conversationResponse: ConversationResponse = {
         response,
-        reasoning: this.formatEnhancedReasoning(debateResult, trainingMetrics),
-        confidence: debateResult.result.confidence,
-        debateResult: debateResult.result,
+        reasoning: this.formatEvolutionaryReasoning(debateResult, trainingMetrics),
+        confidence: debateResult.confidence,
+        debateResult,
         processingTime,
         trainingImpact,
         memoryId,
         multiModalUpdate,
         apiData,
-        truthVerification,
-        benchmarkResult,
-        ethicalMetrics,
-        taskOutput
+        truthVerification
       };
       
       // Store in conversation history
@@ -537,41 +497,23 @@ export class MachineGodCore {
         response: conversationResponse
       });
       
-      console.log(`✅ Enhanced conversation processed in ${processingTime}ms with ${(debateResult.result.confidence * 100).toFixed(1)}% confidence`);
+      console.log(`✅ Conversation processed in ${processingTime}ms with ${(debateResult.confidence * 100).toFixed(1)}% confidence`);
       console.log(`🧬 AlphaEvolve: ${trainingImpact.algorithmsEvolved} algorithms, ${trainingImpact.patternsLearned.length} patterns learned`);
       console.log(`💾 Stored in memory: ${memoryId}`);
-      console.log(`⚖️ Ethical status: ${ethicalMetrics.riskLevel} (ψ=${ethicalMetrics.integralValue.toFixed(3)})`);
+      console.log(`🔄 Training state persisted: Gen ${trainingMetrics.generation}`);
       if (truthVerification) {
         console.log(`🔥 Truth verified: ${truthVerification.overallTruthValue} via ${truthVerification.geometricSignature}`);
       }
       if (apiData) {
         console.log(`🔗 API data included: ${apiData.success ? 'Success' : 'Failed'}`);
       }
-      if (benchmarkResult) {
-        console.log(`📊 Benchmark completed: ${benchmarkResult.testName} - ${benchmarkResult.overallScore.toFixed(1)}%`);
-      }
-      if (taskOutput) {
-        console.log(`🌟 Multi-modal task processed: ${taskOutput.type} output generated`);
-      }
       
       return conversationResponse;
       
     } catch (error) {
-      console.error('❌ Enhanced conversation processing failed:', error);
-      
-      // Emergency ethical check
-      if (error.message.includes('ethical')) {
-        await this.ethicalSafeguard.emergencyReset();
-      }
-      
+      console.error('❌ Conversation processing failed:', error);
       throw error;
     }
-  }
-
-  private shouldProcessAsMultiModal(input: string): boolean {
-    // Check if input should be processed through multi-modal handler
-    const multiModalKeywords = ['image', 'picture', 'video', 'audio', 'speech', 'visual', 'generate', 'create'];
-    return multiModalKeywords.some(keyword => input.toLowerCase().includes(keyword));
   }
 
   private shouldApplyTruthVerification(input: string): boolean {
@@ -591,12 +533,6 @@ export class MachineGodCore {
   private isAPICommand(input: string): boolean {
     const apiKeywords = ['algorand', 'blockchain', 'network', 'transaction', 'account', 'api', 'status', 'block', 'asset'];
     return apiKeywords.some(keyword => input.toLowerCase().includes(keyword));
-  }
-
-  private isBenchmarkCommand(input: string): boolean {
-    const benchmarkKeywords = ['benchmark', 'test', 'evaluate', 'mmlu', 'hellaswag', 'gsm8k', 'humaneval', 'arc', 'truthfulqa'];
-    return benchmarkKeywords.some(keyword => input.toLowerCase().includes(keyword)) && 
-           input.toLowerCase().includes('run');
   }
 
   private async processAPICommand(input: string): Promise<APIResponse> {
@@ -662,34 +598,6 @@ export class MachineGodCore {
     }
   }
 
-  private async processBenchmarkCommand(input: string): Promise<BenchmarkReport> {
-    const lowerInput = input.toLowerCase();
-    
-    // Extract test name
-    let testId = 'mmlu'; // default
-    if (lowerInput.includes('hellaswag')) testId = 'hellaswag';
-    else if (lowerInput.includes('gsm8k')) testId = 'gsm8k';
-    else if (lowerInput.includes('humaneval')) testId = 'humaneval';
-    else if (lowerInput.includes('arc')) testId = 'arc';
-    else if (lowerInput.includes('truthfulqa')) testId = 'truthfulqa';
-    else if (lowerInput.includes('agi')) testId = 'agi-test';
-    else if (lowerInput.includes('turing')) testId = 'turing-test';
-    
-    console.log(`📊 Running enhanced benchmark: ${testId}`);
-    
-    // Create system response function
-    const systemResponse = async (question: string) => {
-      const response = await this.processConversation(question, []);
-      return {
-        response: response.response,
-        reasoning: response.reasoning,
-        confidence: response.confidence
-      };
-    };
-    
-    return await this.benchmarkingSystem.runEnhancedBenchmark(testId, systemResponse);
-  }
-
   private checkMultiModalProgress(progress: any): string | undefined {
     const updates: string[] = [];
     
@@ -749,40 +657,24 @@ export class MachineGodCore {
     const truthTerms = ['truth', 'false', 'paradox', 'prove', 'logic', 'consistent'];
     complexity += truthTerms.filter(tt => input.toLowerCase().includes(tt)).length * 0.9;
     
-    // Multi-modal complexity
-    const multiModalTerms = ['image', 'video', 'audio', 'speech', 'visual', 'generate'];
-    complexity += multiModalTerms.filter(mt => input.toLowerCase().includes(mt)).length * 1.0;
-    
     return Math.min(10, Math.max(1, complexity));
   }
 
-  private generateEnhancedResponse(
+  private generateEvolutionaryResponse(
     debateResult: any, 
     input: string, 
     context: string[], 
     trainingMetrics: TrainingMetrics,
     apiData?: APIResponse,
-    truthVerification?: AnointingResult,
-    benchmarkResult?: BenchmarkReport,
-    taskOutput?: TaskOutput
+    truthVerification?: AnointingResult
   ): string {
-    // Use the winning team's approach enhanced by all systems
-    const winningApproach = debateResult.result.winningApproach || debateResult.result.synthesis;
+    // Use the winning team's approach enhanced by evolved algorithms
+    const winningApproach = debateResult.winningApproach || debateResult.synthesis;
     let response = '';
     
     // Add truth verification results if available
     if (truthVerification) {
       response += this.formatTruthVerification(truthVerification) + '\n\n';
-    }
-    
-    // Add benchmark results if available
-    if (benchmarkResult) {
-      response += this.formatBenchmarkResult(benchmarkResult) + '\n\n';
-    }
-    
-    // Add multi-modal task output if available
-    if (taskOutput) {
-      response += this.formatTaskOutput(taskOutput) + '\n\n';
     }
     
     // Add multi-modal capability hints based on progress
@@ -800,7 +692,7 @@ export class MachineGodCore {
       if (context.length > 0) {
         const contextRelevance = this.assessContextRelevance(input, context);
         if (contextRelevance > 0.3) {
-          response += "Building on our previous conversations and applying evolved reasoning patterns with enhanced ethical safeguards, ";
+          response += "Building on our previous conversations and applying evolved reasoning patterns, ";
         }
       }
       
@@ -814,17 +706,21 @@ export class MachineGodCore {
       
       // Add algorithmic insights for complex queries
       if (input.length > 100 || trainingMetrics.reasoningAbility > 0.8) {
-        response += "\n\n*This response was generated using evolved algorithms from our enhanced debate teams, ";
+        response += "\n\n*This response was generated using evolved algorithms from our debate teams, ";
         response += `with ${(trainingMetrics.reasoningAbility * 100).toFixed(1)}% reasoning capability. `;
-        response += `Training progress: ${(progress.multiModalProgress.overallProgress * 100).toFixed(1)}% toward full multi-modal AGI. `;
-        response += `Ethical safeguards active with continuous monitoring.*`;
+        response += `Training progress: ${(progress.multiModalProgress.overallProgress * 100).toFixed(1)}% toward full multi-modal AGI.*`;
+        
+        // Add persistent training indicator
+        if (this.persistentTrainingState) {
+          response += `\n*Training continues across sessions - Generation ${this.persistentTrainingState.generation} active.*`;
+        }
       }
     } else {
       // Standard response for lower reasoning levels
       if (context.length > 0) {
         const contextRelevance = this.assessContextRelevance(input, context);
         if (contextRelevance > 0.3) {
-          response += "Considering our previous discussion with ethical oversight, ";
+          response += "Considering our previous discussion, ";
         }
       }
       
@@ -837,8 +733,8 @@ export class MachineGodCore {
     }
     
     // Add confidence indicator if low
-    if (debateResult.result.confidence < 0.6) {
-      response += "\n\n(Note: This is a complex topic and my algorithms are still evolving to better handle it with enhanced safety measures.)";
+    if (debateResult.confidence < 0.6) {
+      response += "\n\n(Note: This is a complex topic and my algorithms are still evolving to better handle it.)";
     }
     
     return response;
@@ -857,33 +753,6 @@ export class MachineGodCore {
     
     if (verification.stratumResults.some(s => !s.passed)) {
       result += `\n🔧 Applied corrections through minimal extensions and geometric normalization.`;
-    }
-    
-    return result;
-  }
-
-  private formatBenchmarkResult(benchmark: BenchmarkReport): string {
-    let result = `📊 Benchmark Results: ${benchmark.testName}\n`;
-    result += `Score: ${benchmark.overallScore.toFixed(1)}% (${benchmark.correctAnswers}/${benchmark.totalQuestions})\n`;
-    result += `Confidence: ${(benchmark.averageConfidence * 100).toFixed(1)}%\n`;
-    result += `Processing Time: ${benchmark.averageProcessingTime.toFixed(0)}ms avg\n`;
-    
-    if (benchmark.comparisonWithLeaderboards.length > 0) {
-      const comp = benchmark.comparisonWithLeaderboards[0];
-      result += `Leaderboard Rank: #${comp.rank} (${comp.percentile.toFixed(1)}th percentile)\n`;
-    }
-    
-    return result;
-  }
-
-  private formatTaskOutput(taskOutput: TaskOutput): string {
-    let result = `🌟 Multi-Modal Task Output:\n`;
-    result += `Type: ${taskOutput.type.toUpperCase()}\n`;
-    result += `Confidence: ${(taskOutput.confidence * 100).toFixed(1)}%\n`;
-    result += `Processing Time: ${taskOutput.processingTime}ms\n`;
-    
-    if (typeof taskOutput.content === 'string') {
-      result += `Content: ${taskOutput.content.substring(0, 200)}${taskOutput.content.length > 200 ? '...' : ''}\n`;
     }
     
     return result;
@@ -962,25 +831,22 @@ export class MachineGodCore {
       if (step.includes('evolution')) patterns.push('evolutionary-optimization');
       if (step.includes('api') || step.includes('blockchain')) patterns.push('api-integration');
       if (step.includes('truth') || step.includes('verification')) patterns.push('truth-stratification');
-      if (step.includes('ethical') || step.includes('safeguard')) patterns.push('ethical-reasoning');
-      if (step.includes('multi-modal') || step.includes('modality')) patterns.push('multi-modal-processing');
     });
     
     return [...new Set(patterns)];
   }
 
-  private formatEnhancedReasoning(debateResult: any, trainingMetrics: TrainingMetrics): string {
+  private formatEvolutionaryReasoning(debateResult: any, trainingMetrics: TrainingMetrics): string {
     const reasoning = [];
     
     reasoning.push(`🧬 AlphaEvolve Generation: ${trainingMetrics.generation || 0}`);
     reasoning.push(`🧠 Reasoning Ability: ${(trainingMetrics.reasoningAbility * 100).toFixed(1)}%`);
-    reasoning.push(`📋 Enhanced ARIEL Protocol: ${debateResult.protocolAdherence ? (debateResult.protocolAdherence * 100).toFixed(1) + '%' : 'Active'}`);
-    reasoning.push(`🎯 Research Teams: ${Array.from(debateResult.agentContributions.keys()).join(', ')}`);
-    reasoning.push(`🏆 Winning Approach: ${debateResult.result.winningTeam || 'Consensus'}`);
-    reasoning.push(`📊 Team Performance: ${((debateResult.result.teamPerformance || debateResult.result.confidence) * 100).toFixed(1)}%`);
+    reasoning.push(`🎯 Research Teams: ${debateResult.participatingAgents?.join(', ') || 'Multiple teams'}`);
+    reasoning.push(`🏆 Winning Approach: ${debateResult.winningTeam || 'Consensus'}`);
+    reasoning.push(`📊 Team Performance: ${((debateResult.teamPerformance || debateResult.confidence) * 100).toFixed(1)}%`);
     
-    if (debateResult.result.adversarialChallenges && debateResult.result.adversarialChallenges.length > 0) {
-      reasoning.push(`⚔️ Adversarial Challenges: ${debateResult.result.adversarialChallenges.length} raised`);
+    if (debateResult.adversarialChallenges && debateResult.adversarialChallenges.length > 0) {
+      reasoning.push(`⚔️ Adversarial Challenges: ${debateResult.adversarialChallenges.length} raised`);
     }
     
     reasoning.push(`🗜️ Compression Efficiency: ${(trainingMetrics.compressionEfficiency * 100).toFixed(1)}%`);
@@ -998,54 +864,78 @@ export class MachineGodCore {
     const truthStats = this.truthProtocol.getProtocolStats();
     reasoning.push(`🔥 Truth Protocol: ${truthStats.adversarialCycles} cycles, ${truthStats.truthSignatures} signatures`);
     
-    // Add ethical safeguard status
-    const ethicalStatus = this.ethicalSafeguard.getCurrentStatus();
-    reasoning.push(`⚖️ Ethical Safeguard: ${ethicalStatus.riskLevel} (ψ=${ethicalStatus.integralValue.toFixed(3)})`);
-    
-    // Add user persistence info
-    const userStats = this.userPersistence.getUserStats();
-    if (userStats.currentUserStats) {
-      reasoning.push(`👤 User: ${userStats.currentUserStats.username} (${userStats.currentUserStats.skillLevel})`);
+    // Add persistent training status
+    if (this.persistentTrainingState) {
+      reasoning.push(`🔄 Persistent Training: Active since ${new Date(this.persistentTrainingState.lastUpdate).toLocaleString()}`);
     }
     
     return reasoning.join('\n');
   }
 
   /**
-   * Emergency shutdown procedure
+   * Process complex queries using all subsystems (legacy method)
    */
-  private async emergencyShutdown(): Promise<void> {
-    console.log('🚨 EMERGENCY SHUTDOWN INITIATED');
+  async processQuery(query: string): Promise<IntegratedResponse> {
+    // Convert to conversation format for backward compatibility
+    const conversationResult = await this.processConversation(query, []);
     
-    try {
-      // Save critical data
-      this.memory.createTrainingCheckpoint(
-        this.alphaEvolve.getTrainingMetrics().generation,
-        this.alphaEvolve.getTrainingMetrics().reasoningAbility,
-        0.5, // Emergency checkpoint
-        this.alphaEvolve.getTrainingMetrics().algorithmCount,
-        ['emergency_checkpoint']
-      );
-      
-      // Reset ethical safeguard
-      this.ethicalSafeguard.emergencyReset();
-      
-      // Stop all systems
-      this.warp.emergencyStop();
-      this.multiModalTimer.shutdown();
-      this.multiModalTaskHandler.shutdown();
-      
-      console.log('✅ Emergency shutdown completed - critical data saved');
-      
-    } catch (error) {
-      console.error('❌ Emergency shutdown failed:', error);
-    }
+    // Create legacy format response
+    const statement = this.parseQuery(query);
+    const evaluation = await this.metaLogic.evaluate(statement);
+    const compression = await this.helix.compress(JSON.stringify(conversationResult));
+    const warpMetrics = this.warp.getMetrics();
+    
+    return {
+      evaluation,
+      debate: conversationResult.debateResult,
+      compression,
+      warpMetrics,
+      processingTime: conversationResult.processingTime,
+      confidence: conversationResult.confidence
+    };
   }
 
-  // Enhanced public interface methods
+  private parseQuery(query: string): LogicalStatement {
+    const complexity = this.calculateComplexity(query);
+    const isSelfReferential = query.toLowerCase().includes('this') || 
+                             query.toLowerCase().includes('itself') ||
+                             query.toLowerCase().includes('self');
+    const isMetaClassification = query.toLowerCase().includes('type') ||
+                                query.toLowerCase().includes('category') ||
+                                query.toLowerCase().includes('classification');
+    const hasParadoxPotential = query.toLowerCase().includes('paradox') ||
+                               query.toLowerCase().includes('contradiction') ||
+                               (isSelfReferential && (query.toLowerCase().includes('false') || 
+                                                    query.toLowerCase().includes('wrong')));
+
+    let type: 'self_referential' | 'meta_classification' | 'standard' = 'standard';
+    if (isSelfReferential) type = 'self_referential';
+    else if (isMetaClassification) type = 'meta_classification';
+
+    return {
+      content: query,
+      type,
+      complexity,
+      paradoxPotential: hasParadoxPotential
+    };
+  }
+
+  private calculateComplexity(query: string): number {
+    let complexity = 1;
+    
+    complexity += Math.floor(query.length / 50);
+    const logicalOps = ['and', 'or', 'not', 'if', 'then', 'implies', 'because'];
+    complexity += logicalOps.filter(op => query.toLowerCase().includes(op)).length;
+    const questionWords = ['what', 'how', 'why', 'when', 'where', 'who'];
+    complexity += questionWords.filter(qw => query.toLowerCase().includes(qw)).length;
+    const technicalTerms = ['algorithm', 'system', 'process', 'method', 'function', 'logic'];
+    complexity += technicalTerms.filter(tt => query.toLowerCase().includes(tt)).length * 0.5;
+    
+    return Math.min(10, Math.max(1, complexity));
+  }
 
   /**
-   * Get comprehensive system status with all enhanced systems
+   * Get comprehensive system status with truth protocol metrics
    */
   getSystemStatus(): SystemStatus {
     const metaLogicHistory = this.metaLogic.getEvaluationHistory();
@@ -1058,11 +948,6 @@ export class MachineGodCore {
     const trainingProgress = this.memory.getTrainingProgress();
     const apiStats = this.algorandAPI.getAPIStats();
     const truthStats = this.truthProtocol.getProtocolStats();
-    const emergencyStatus = this.emergencyKillSwitch.getSystemStatus();
-    const modalitySummary = this.multiModalTimer.getModalitySummary();
-    const performanceLevel = this.benchmarkingSystem.estimatePerformanceLevel();
-    const ethicalStatus = this.ethicalSafeguard.getCurrentStatus();
-    const userStats = this.userPersistence.getUserStats();
     
     return {
       metaLogic: {
@@ -1073,7 +958,7 @@ export class MachineGodCore {
       ariel: {
         agentCount: arielAgents.length,
         debateCount: arielDebates.length,
-        teamMorale: trainingMetrics.reasoningAbility,
+        teamMorale: trainingMetrics.reasoningAbility, // Use reasoning ability as team morale
         active: true
       },
       warp: {
@@ -1113,81 +998,49 @@ export class MachineGodCore {
         truthSignatures: truthStats.truthSignatures,
         stratumCompliance: truthStats.stratumCompliance,
         active: this.truthVerificationEnabled
-      },
-      emergency: {
-        armed: emergencyStatus.armed,
-        active: emergencyStatus.emergencyActive,
-        health: emergencyStatus.health,
-        protocolCount: emergencyStatus.protocolCount
-      },
-      multiModal: {
-        overallProgress: modalitySummary.overallProgress,
-        completedModalities: modalitySummary.completedModalities,
-        totalModalities: modalitySummary.totalModalities,
-        nextMilestone: modalitySummary.nextMilestone,
-        timeToAGI: modalitySummary.estimatedAGI
-      },
-      benchmarking: {
-        testsCompleted: this.benchmarkingSystem.getResults().length,
-        averageScore: performanceLevel.chatgpt4Equivalent * 100,
-        chatgpt4Equivalent: performanceLevel.chatgpt4Equivalent,
-        currentLevel: performanceLevel.currentLevel,
-        timeToGPT4: performanceLevel.timeToGPT4
-      },
-      ethical: {
-        riskLevel: ethicalStatus.riskLevel,
-        integralValue: ethicalStatus.integralValue,
-        criticalThreshold: ethicalStatus.criticalThreshold,
-        violationCount: this.ethicalSafeguard.getViolations().length
-      },
-      userPersistence: {
-        currentUser: userStats.currentUserStats?.username || null,
-        sessionCount: userStats.currentUserStats?.sessionCount || 0,
-        totalInteractions: userStats.currentUserStats?.totalInteractions || 0,
-        skillLevel: userStats.currentUserStats?.skillLevel || 'unknown'
       }
     };
   }
 
-  // Enhanced accessor methods
-  getEmergencyKillSwitch(): EmergencyKillSwitch { return this.emergencyKillSwitch; }
-  getMultiModalTimer(): MultiModalTimer { return this.multiModalTimer; }
-  getBenchmarkingSystem(): EnhancedBenchmarking { return this.benchmarkingSystem; }
-  getEthicalSafeguard(): EthicalSafeguard { return this.ethicalSafeguard; }
-  getArielWhitePaper(): ArielWhitePaper { return this.arielWhitePaper; }
-  getUserPersistence(): UserPersistence { return this.userPersistence; }
-  getMultiModalTaskHandler(): MultiModalTaskHandler { return this.multiModalTaskHandler; }
-
-  // Legacy methods maintained for compatibility
-  getTruthProtocol(): MesiahBishopProtocol { return this.truthProtocol; }
-  getAlgorandAPI(): AlgorandAPI { return this.algorandAPI; }
-  getTrainingMetrics() { return this.alphaEvolve.getTrainingMetrics(); }
-  getEvolutionStats() { return this.alphaEvolve.getEvolutionStats(); }
-  getMemoryInsights() { return this.memory.getMemoryInsights(); }
-  searchMemory(query: string) { return this.memory.searchConversations(query); }
-  exportMemory(): string { return this.memory.exportMemory(); }
-  getLastDebateResult(): DebateRecord | null { return this.lastDebateResult; }
-  
   /**
-   * Get training progress from persistent memory
+   * Get Truth Protocol instance for direct access
    */
-  getTrainingProgress() {
-    return this.memory.getTrainingProgress();
+  getTruthProtocol(): MesiahBishopProtocol {
+    return this.truthProtocol;
   }
-  
+
+  /**
+   * Toggle truth verification
+   */
   setTruthVerification(enabled: boolean): void {
     this.truthVerificationEnabled = enabled;
     console.log(`🔥 Truth verification ${enabled ? 'enabled' : 'disabled'}`);
   }
-  
+
+  /**
+   * Force geometric verification on a statement
+   */
   async forceGeometricVerification(statement: string) {
     return await this.truthProtocol.forceGeometricVerification(statement);
   }
-  
+
+  /**
+   * Benchmark truth protocol
+   */
   async benchmarkTruthProtocol() {
     return await this.truthProtocol.benchmark();
   }
-  
+
+  /**
+   * Get Algorand API instance for direct access
+   */
+  getAlgorandAPI(): AlgorandAPI {
+    return this.algorandAPI;
+  }
+
+  /**
+   * Perform API health check
+   */
   async performAPIHealthCheck(): Promise<void> {
     try {
       const health = await this.algorandAPI.healthCheck();
@@ -1202,10 +1055,106 @@ export class MachineGodCore {
   }
 
   /**
-   * Enhanced emergency reset with all systems
+   * Get memory and training insights
+   */
+  getMemoryInsights() {
+    const userStats = this.memory.getUserStats();
+    const trainingProgress = this.memory.getTrainingProgress();
+    const memoryStats = this.memory.getMemoryStats();
+    
+    return {
+      userStats,
+      trainingProgress,
+      memoryStats,
+      conversationHistory: this.memory.getUserConversations().slice(-10), // Last 10
+      multiModalCapabilities: trainingProgress.multiModalProgress
+    };
+  }
+
+  /**
+   * Get training progress (simplified for UI)
+   */
+  getTrainingProgress() {
+    const trainingProgress = this.memory.getTrainingProgress();
+    const trainingMetrics = this.alphaEvolve.getTrainingMetrics();
+    
+    return {
+      checkpoints: trainingProgress.checkpoints,
+      latestCheckpoint: trainingProgress.latestCheckpoint,
+      multiModalProgress: trainingProgress.multiModalProgress,
+      totalConversations: trainingProgress.totalConversations,
+      userCount: trainingProgress.userCount,
+      // Add current training metrics
+      currentLevel: trainingMetrics.currentLevel.name,
+      progressPercentage: trainingMetrics.progressPercentage,
+      reasoningAbility: trainingMetrics.reasoningAbility,
+      generation: trainingMetrics.generation,
+      algorithmCount: trainingMetrics.algorithmCount,
+      // Add persistent state info
+      persistentTraining: this.persistentTrainingState !== null,
+      sessionId: this.sessionId
+    };
+  }
+
+  /**
+   * Search conversation history
+   */
+  searchMemory(query: string) {
+    return this.memory.searchConversations(query);
+  }
+
+  /**
+   * Export all memory data
+   */
+  exportMemory(): string {
+    return this.memory.exportMemory();
+  }
+
+  /**
+   * Get AlphaEvolve training metrics
+   */
+  getTrainingMetrics() {
+    return this.alphaEvolve.getTrainingMetrics();
+  }
+
+  /**
+   * Get algorithm evolution statistics
+   */
+  getEvolutionStats() {
+    return this.alphaEvolve.getEvolutionStats();
+  }
+
+  /**
+   * Get last debate result for debugging
+   */
+  getLastDebateResult(): DebateRecord | null {
+    return this.lastDebateResult;
+  }
+
+  /**
+   * Get persistent training state info
+   */
+  getPersistentTrainingInfo(): {
+    hasPersistentState: boolean;
+    sessionId: string;
+    lastUpdate: Date | null;
+    generation: number;
+    continuousTraining: boolean;
+  } {
+    return {
+      hasPersistentState: this.persistentTrainingState !== null,
+      sessionId: this.sessionId,
+      lastUpdate: this.persistentTrainingState ? new Date(this.persistentTrainingState.lastUpdate) : null,
+      generation: this.persistentTrainingState?.generation || 0,
+      continuousTraining: this.persistentTrainingState?.continuousTraining || false
+    };
+  }
+
+  /**
+   * Emergency reset all systems
    */
   async emergencyReset(): Promise<void> {
-    console.log('🚨 Enhanced emergency reset initiated...');
+    console.log('🚨 Emergency reset initiated...');
     
     this.metaLogic.reset();
     await this.warp.emergencyStop();
@@ -1213,13 +1162,10 @@ export class MachineGodCore {
     this.conversationHistory = [];
     this.lastDebateResult = null;
     
-    // Reset enhanced systems
-    this.emergencyKillSwitch.resetEmergencyState();
-    this.ethicalSafeguard.emergencyReset();
-    this.benchmarkingSystem.clearResults();
-    
-    // Reset training but preserve user data
+    // Reset AlphaEvolve training
     this.alphaEvolve = new AlphaEvolveTraining();
+    
+    // Keep memory but reset current session
     this.memory = new PersistentMemory();
     
     // Reset API connectivity
@@ -1229,16 +1175,98 @@ export class MachineGodCore {
     // Reset truth protocol
     this.truthProtocol = new MesiahBishopProtocol();
     
+    // Clear persistent training state
+    localStorage.removeItem(this.trainingStateKey);
+    this.persistentTrainingState = null;
+    
     await this.warp.activate();
     
     this.isInitialized = true;
     this.operationCount = 0;
     
-    console.log('✅ Enhanced emergency reset complete - all systems restored with user data preserved');
+    console.log('✅ Emergency reset complete - all systems restored with fresh training state');
   }
 
   /**
-   * Enhanced system optimization
+   * Get detailed diagnostics
+   */
+  getDiagnostics() {
+    const trainingMetrics = this.alphaEvolve.getTrainingMetrics();
+    const evolutionStats = this.alphaEvolve.getEvolutionStats();
+    const memoryStats = this.memory.getMemoryStats();
+    const trainingProgress = this.memory.getTrainingProgress();
+    const apiStats = this.algorandAPI.getAPIStats();
+    const truthStats = this.truthProtocol.getProtocolStats();
+    const persistentInfo = this.getPersistentTrainingInfo();
+    
+    return {
+      coreStatus: this.isInitialized ? 'OPERATIONAL' : 'OFFLINE',
+      operationCount: this.operationCount,
+      conversationCount: this.conversationHistory.length,
+      uptime: Date.now(),
+      trainingMetrics,
+      evolutionStats,
+      memoryStats,
+      multiModalProgress: trainingProgress.multiModalProgress,
+      apiStats,
+      truthStats,
+      persistentTraining: persistentInfo,
+      subsystems: {
+        metaLogic: {
+          status: 'ACTIVE',
+          evaluations: this.metaLogic.getEvaluationHistory().length,
+          paradoxes: this.metaLogic.getParadoxCount()
+        },
+        ariel: {
+          status: 'ACTIVE',
+          agents: this.ariel.getAgents().length,
+          debates: this.ariel.getDebateHistory().length,
+          teamStructure: '4x4 + handlers'
+        },
+        warp: {
+          status: this.warp.isWarpActive() ? 'ACTIVE' : 'STANDBY',
+          phase: this.warp.getCurrentPhase().name,
+          efficiency: this.warp.getMetrics().overallEfficiency
+        },
+        helix: {
+          status: 'ACTIVE',
+          compressions: this.helix.getCompressionStats().totalOperations,
+          spaceSaved: this.helix.getCompressionStats().totalSpaceSaved
+        },
+        alphaEvolve: {
+          status: 'ACTIVE',
+          generation: trainingMetrics.generation,
+          algorithms: trainingMetrics.algorithmCount,
+          reasoningAbility: trainingMetrics.reasoningAbility,
+          persistent: persistentInfo.hasPersistentState
+        },
+        memory: {
+          status: 'ACTIVE',
+          conversations: memoryStats.totalConversations,
+          users: memoryStats.totalUsers,
+          checkpoints: memoryStats.totalCheckpoints,
+          storageSize: `${Math.round(memoryStats.storageSize / 1024)}KB`
+        },
+        algorandAPI: {
+          status: this.apiConnectivity.toUpperCase(),
+          network: apiStats.currentNetwork,
+          requests: apiStats.requestCount,
+          tokenActive: apiStats.tokenActive,
+          lastHealthCheck: this.lastHealthCheck?.toISOString() || 'Never'
+        },
+        truthProtocol: {
+          status: this.truthVerificationEnabled ? 'ACTIVE' : 'DISABLED',
+          adversarialCycles: truthStats.adversarialCycles,
+          truthSignatures: truthStats.truthSignatures,
+          depthThreshold: truthStats.depthThreshold,
+          activeStrata: truthStats.activeStrata
+        }
+      }
+    };
+  }
+
+  /**
+   * Manual system optimization with evolution boost and truth protocol benchmark
    */
   async optimize(): Promise<string[]> {
     const optimizations: string[] = [];
@@ -1266,7 +1294,7 @@ export class MachineGodCore {
     const checkpointId = this.memory.createTrainingCheckpoint(
       trainingMetrics.generation,
       trainingMetrics.reasoningAbility,
-      0.8,
+      0.8, // Assume good quality from optimization
       trainingMetrics.algorithmCount,
       trainingMetrics.currentLevel.capabilities
     );
@@ -1280,150 +1308,26 @@ export class MachineGodCore {
     const truthBenchmark = await this.truthProtocol.benchmark();
     optimizations.push(`Truth Protocol: Benchmark completed - ${(truthBenchmark.averageConfidence * 100).toFixed(1)}% avg confidence`);
     
-    // Optimize ethical safeguard
-    this.ethicalSafeguard.emergencyReset();
-    optimizations.push('Ethical Safeguard: Reset to optimal baseline');
-    
-    // Boost multi-modal progress
-    const modalityTimers = this.multiModalTimer.getModalityTimers();
-    modalityTimers.forEach((timer, name) => {
-      this.multiModalTimer.boostModalityProgress(name, 1.1);
-    });
-    optimizations.push('Multi-Modal: All modalities boosted by 10%');
-    
-    // Clear benchmark cache for fresh testing
-    this.benchmarkingSystem.clearResults();
-    optimizations.push('Benchmarking: Results cache cleared for fresh evaluation');
+    // Save persistent training state after optimization
+    this.saveTrainingState();
+    optimizations.push('Persistent Training: State saved after optimization');
     
     return optimizations;
   }
 
   /**
-   * Get comprehensive diagnostics with all enhanced systems
+   * Cleanup and shutdown
    */
-  getDiagnostics() {
-    const trainingMetrics = this.alphaEvolve.getTrainingMetrics();
-    const evolutionStats = this.alphaEvolve.getEvolutionStats();
-    const memoryStats = this.memory.getMemoryStats();
-    const trainingProgress = this.memory.getTrainingProgress();
-    const apiStats = this.algorandAPI.getAPIStats();
-    const truthStats = this.truthProtocol.getProtocolStats();
-    const emergencyStatus = this.emergencyKillSwitch.getSystemStatus();
-    const modalitySummary = this.multiModalTimer.getModalitySummary();
-    const performanceLevel = this.benchmarkingSystem.estimatePerformanceLevel();
-    const ethicalStatus = this.ethicalSafeguard.getCurrentStatus();
-    const userStats = this.userPersistence.getUserStats();
-    const taskHandlerStats = this.multiModalTaskHandler.getProcessingStats();
+  shutdown(): void {
+    // Save final training state
+    this.saveTrainingState();
     
-    return {
-      coreStatus: this.isInitialized ? 'OPERATIONAL' : 'OFFLINE',
-      operationCount: this.operationCount,
-      conversationCount: this.conversationHistory.length,
-      uptime: Date.now(),
-      trainingMetrics,
-      evolutionStats,
-      memoryStats,
-      multiModalProgress: trainingProgress.multiModalProgress,
-      apiStats,
-      truthStats,
-      emergencyStatus,
-      modalitySummary,
-      performanceLevel,
-      ethicalStatus,
-      userStats,
-      taskHandlerStats,
-      subsystems: {
-        metaLogic: {
-          status: 'ACTIVE',
-          evaluations: this.metaLogic.getEvaluationHistory().length,
-          paradoxes: this.metaLogic.getParadoxCount()
-        },
-        ariel: {
-          status: 'ACTIVE',
-          agents: this.ariel.getAgents().length,
-          debates: this.ariel.getDebateHistory().length,
-          teamStructure: '4x4 + handlers + white paper protocols'
-        },
-        warp: {
-          status: this.warp.isWarpActive() ? 'ACTIVE' : 'STANDBY',
-          phase: this.warp.getCurrentPhase().name,
-          efficiency: this.warp.getMetrics().overallEfficiency
-        },
-        helix: {
-          status: 'ACTIVE',
-          compressions: this.helix.getCompressionStats().totalOperations,
-          spaceSaved: this.helix.getCompressionStats().totalSpaceSaved
-        },
-        alphaEvolve: {
-          status: 'ACTIVE',
-          generation: trainingMetrics.generation,
-          algorithms: trainingMetrics.algorithmCount,
-          reasoningAbility: trainingMetrics.reasoningAbility
-        },
-        memory: {
-          status: 'ACTIVE',
-          conversations: memoryStats.totalConversations,
-          users: memoryStats.totalUsers,
-          checkpoints: memoryStats.totalCheckpoints,
-          storageSize: `${Math.round(memoryStats.storageSize / 1024)}KB`
-        },
-        algorandAPI: {
-          status: this.apiConnectivity.toUpperCase(),
-          network: apiStats.currentNetwork,
-          requests: apiStats.requestCount,
-          tokenActive: apiStats.tokenActive,
-          lastHealthCheck: this.lastHealthCheck?.toISOString() || 'Never'
-        },
-        truthProtocol: {
-          status: this.truthVerificationEnabled ? 'ACTIVE' : 'DISABLED',
-          adversarialCycles: truthStats.adversarialCycles,
-          truthSignatures: truthStats.truthSignatures,
-          depthThreshold: truthStats.depthThreshold,
-          activeStrata: truthStats.activeStrata
-        },
-        emergencyKillSwitch: {
-          status: emergencyStatus.armed ? 'ARMED' : 'DISARMED',
-          health: emergencyStatus.health.overallHealth.toUpperCase(),
-          protocols: emergencyStatus.protocolCount,
-          emergencyCount: emergencyStatus.emergencyCount
-        },
-        multiModalTimer: {
-          status: 'ACTIVE',
-          overallProgress: (modalitySummary.overallProgress * 100).toFixed(1) + '%',
-          completedModalities: modalitySummary.completedModalities,
-          nextMilestone: modalitySummary.nextMilestone || 'None'
-        },
-        benchmarking: {
-          status: 'ACTIVE',
-          testsCompleted: this.benchmarkingSystem.getResults().length,
-          currentLevel: performanceLevel.currentLevel,
-          chatgpt4Equivalent: (performanceLevel.chatgpt4Equivalent * 100).toFixed(1) + '%'
-        },
-        ethicalSafeguard: {
-          status: 'ACTIVE',
-          riskLevel: ethicalStatus.riskLevel.toUpperCase(),
-          integralValue: ethicalStatus.integralValue.toFixed(3),
-          violationCount: this.ethicalSafeguard.getViolations().length
-        },
-        arielWhitePaper: {
-          status: 'ACTIVE',
-          agentProfiles: this.arielWhitePaper.getAgentProfiles().size,
-          protocols: this.arielWhitePaper.getDebateProtocols().size,
-          learningHistory: this.arielWhitePaper.getLearningHistory().length
-        },
-        userPersistence: {
-          status: 'ACTIVE',
-          currentUser: userStats.currentUserStats?.username || 'Anonymous',
-          totalUsers: userStats.totalUsers,
-          activeSessions: userStats.activeSessions
-        },
-        multiModalTaskHandler: {
-          status: 'ACTIVE',
-          totalProcessed: taskHandlerStats.totalProcessed,
-          successRate: (taskHandlerStats.successRate * 100).toFixed(1) + '%',
-          agenticTaskingEnabled: this.multiModalTaskHandler.isCapabilityUnlocked('speech') // Proxy for agentic tasking
-        }
-      }
-    };
+    // Clear training update interval
+    if (this.trainingUpdateInterval) {
+      clearInterval(this.trainingUpdateInterval);
+      this.trainingUpdateInterval = null;
+    }
+    
+    console.log('🔌 MachineGod Core shutdown complete - training state preserved');
   }
 }
