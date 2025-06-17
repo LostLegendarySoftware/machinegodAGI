@@ -46,6 +46,8 @@ export class EnhancedTrainingSystem {
   private currentSession: any = null;
   private readonly REQUIRED_CORRECT = 25;
   private contextualInferences: Map<string, string> = new Map();
+  private askedQuestions: Set<string> = new Set(); // Track asked questions
+  private currentQuestionIndex: number = 0; // Track current position
 
   constructor() {
     this.personality = {
@@ -163,8 +165,8 @@ export class EnhancedTrainingSystem {
           if (facts.has('initiative_level')) {
             return facts.get('initiative_level')?.value;
           }
-          if (personality.proactivity > 0.6) return 'high (8-10)';
-          if (personality.proactivity < -0.2) return 'low (1-3)';
+          if (personality.directness > 0.6) return 'high (8-10)';
+          if (personality.directness < -0.2) return 'low (1-3)';
           return null;
         }
       },
@@ -370,6 +372,36 @@ export class EnhancedTrainingSystem {
           if (personality.empathy > 0.5) return 'gently with positive reinforcement';
           return null;
         }
+      },
+      {
+        id: 'learning_style_1',
+        question: 'How do you learn best - examples, theory, or practice?',
+        category: 'learning'
+      },
+      {
+        id: 'decision_making_1',
+        question: 'Do you make decisions quickly or need time to think?',
+        category: 'personality'
+      },
+      {
+        id: 'conflict_1',
+        question: 'How do you handle disagreements?',
+        category: 'personality'
+      },
+      {
+        id: 'motivation_1',
+        question: 'What motivates you most - achievement, recognition, or helping others?',
+        category: 'personality'
+      },
+      {
+        id: 'communication_timing_1',
+        question: 'What time of day are you most receptive to new information?',
+        category: 'preferences'
+      },
+      {
+        id: 'complexity_1',
+        question: 'Do you prefer step-by-step instructions or high-level overviews?',
+        category: 'communication'
       }
     ];
 
@@ -391,33 +423,47 @@ export class EnhancedTrainingSystem {
       skippedQuestions: []
     };
 
+    // Reset tracking
+    this.askedQuestions.clear();
+    this.currentQuestionIndex = 0;
+
     console.log(`🧠 Started enhanced training session with contextual reasoning`);
     return this.currentSession;
   }
 
   /**
-   * Get next question or make contextual guess
+   * Get next question or make contextual guess - FIXED VERSION
    */
   getNextPrompt(): { type: 'question' | 'guess', content: string, questionId?: string, confidence?: number } {
     if (!this.currentSession || this.currentSession.isComplete) {
       return { type: 'question', content: 'Training session not active' };
     }
 
-    // Find next unanswered question
-    let nextQuestion = this.findNextQuestion();
+    // Check if we've completed enough questions
+    if (this.currentSession.correctCount >= this.REQUIRED_CORRECT) {
+      this.currentSession.isComplete = true;
+      return { type: 'question', content: 'Training complete! 🎉' };
+    }
+
+    // Find next unanswered question using sequential approach
+    let nextQuestion = this.findNextSequentialQuestion();
     
     if (!nextQuestion) {
-      // All questions processed, generate contextual guess
-      return this.generateContextualGuess();
+      // If we've gone through all questions but haven't reached 25 correct, 
+      // generate a contextual summary question
+      return this.generateFinalQuestion();
     }
+
+    // Mark this question as asked
+    this.askedQuestions.add(nextQuestion.id);
 
     // Check if we can infer the answer
     const inference = this.tryInferAnswer(nextQuestion);
     
-    if (inference) {
+    if (inference && inference.confidence > 0.7) {
       return {
         type: 'guess',
-        content: `Based on our conversation so far, I'm guessing ${inference.answer}. Is that right? (Yes/No)`,
+        content: `Based on our conversation so far, I'm guessing: ${inference.answer}. Is that right? (Yes/No)`,
         questionId: nextQuestion.id,
         confidence: inference.confidence
       };
@@ -428,6 +474,54 @@ export class EnhancedTrainingSystem {
       type: 'question',
       content: nextQuestion.question,
       questionId: nextQuestion.id
+    };
+  }
+
+  /**
+   * Find next question sequentially to avoid loops
+   */
+  private findNextSequentialQuestion(): TrainingQuestion | null {
+    // Start from current index and find next unasked question
+    for (let i = this.currentQuestionIndex; i < this.trainingQuestions.length; i++) {
+      const question = this.trainingQuestions[i];
+      if (!this.askedQuestions.has(question.id)) {
+        this.currentQuestionIndex = i + 1; // Move to next for future calls
+        return question;
+      }
+    }
+
+    // If we've reached the end, check if there are any unasked questions from the beginning
+    for (let i = 0; i < this.currentQuestionIndex; i++) {
+      const question = this.trainingQuestions[i];
+      if (!this.askedQuestions.has(question.id)) {
+        return question;
+      }
+    }
+
+    return null; // All questions have been asked
+  }
+
+  /**
+   * Generate a final summary question if needed
+   */
+  private generateFinalQuestion(): { type: 'question', content: string, questionId: string } {
+    const remainingNeeded = this.REQUIRED_CORRECT - this.currentSession.correctCount;
+    
+    const finalQuestions = [
+      'What\'s the most important thing for me to remember about how you like to communicate?',
+      'If you could change one thing about how AI assistants typically behave, what would it be?',
+      'What\'s your biggest pet peeve when talking to AI systems?',
+      'How would you describe your ideal AI assistant in three words?',
+      'What should I never assume about you without asking first?'
+    ];
+
+    const questionIndex = Math.min(finalQuestions.length - 1, remainingNeeded - 1);
+    const questionId = `final_${Date.now()}_${questionIndex}`;
+    
+    return {
+      type: 'question',
+      content: finalQuestions[questionIndex],
+      questionId
     };
   }
 
@@ -456,7 +550,7 @@ export class EnhancedTrainingSystem {
   }
 
   /**
-   * Process user response with enhanced learning
+   * Process user response with enhanced learning - FIXED VERSION
    */
   processResponse(input: string, questionId: string, wasGuess: boolean = false): {
     success: boolean;
@@ -478,9 +572,20 @@ export class EnhancedTrainingSystem {
     const isPositive = this.isPositiveResponse(input);
     
     if (isPositive) {
-      // Guess was correct
+      // Guess was correct - count it and move on
       this.recordCorrectAnswer(questionId, true);
       this.reinforceInference(questionId);
+      
+      // Check if training is complete
+      if (this.currentSession.correctCount >= this.REQUIRED_CORRECT) {
+        this.currentSession.isComplete = true;
+        return {
+          success: true,
+          needsMoreInfo: false,
+          nextPrompt: null,
+          feedback: 'Training complete! 🎉 I\'ve learned your preferences.'
+        };
+      }
       
       return {
         success: true,
@@ -530,7 +635,7 @@ export class EnhancedTrainingSystem {
   }
 
   /**
-   * Process user validation with enhanced learning
+   * Process user validation with enhanced learning - FIXED VERSION
    */
   processValidation(validation: 'yes' | 'no', explanation?: string): {
     correct: boolean;
@@ -547,11 +652,15 @@ export class EnhancedTrainingSystem {
     lastAttempt.userValidation = validation;
 
     if (validation === 'yes') {
-      // Correct answer
+      // Correct answer - increment and move on
       this.currentSession.correctCount++;
       this.learnFromSuccess(lastAttempt);
       
       const isComplete = this.currentSession.correctCount >= this.REQUIRED_CORRECT;
+      
+      if (isComplete) {
+        this.currentSession.isComplete = true;
+      }
       
       return {
         correct: true,
@@ -564,13 +673,11 @@ export class EnhancedTrainingSystem {
         nextPrompt: isComplete ? null : this.getNextPrompt()
       };
     } else {
-      // Incorrect answer - learn from explanation
+      // Incorrect answer - learn from explanation and move on
       if (explanation) {
         const learningResult = this.learnFromExplanation(lastAttempt, explanation);
         
-        // Generate improved response
-        const improvedResponse = this.generateImprovedResponse(lastAttempt.questionId, explanation);
-        
+        // Still move to next question after learning
         return {
           correct: false,
           progress: {
@@ -579,12 +686,7 @@ export class EnhancedTrainingSystem {
             remaining: this.REQUIRED_CORRECT - this.currentSession.correctCount
           },
           isComplete: false,
-          nextPrompt: {
-            type: 'guess',
-            content: `Based on your feedback, I think the answer should be: "${improvedResponse}". Is that better? (Yes/No)`,
-            questionId: lastAttempt.questionId,
-            confidence: 0.8
-          },
+          nextPrompt: this.getNextPrompt(), // Always move to next question
           learningApplied: learningResult
         };
       } else {
@@ -777,11 +879,6 @@ export class EnhancedTrainingSystem {
   /**
    * Helper methods
    */
-  private findNextQuestion(): TrainingQuestion | null {
-    const answeredQuestions = new Set(this.currentSession.attempts.map((a: any) => a.questionId));
-    return this.trainingQuestions.find(q => !answeredQuestions.has(q.id)) || null;
-  }
-
   private isPositiveResponse(input: string): boolean {
     const positive = ['yes', 'yeah', 'yep', 'correct', 'right', 'accurate', 'true', 'exactly'];
     return positive.some(word => input.toLowerCase().includes(word));
@@ -882,21 +979,6 @@ export class EnhancedTrainingSystem {
       default:
         return `I understand your answer: "${userAnswer}".`;
     }
-  }
-
-  private generateImprovedResponse(questionId: string, explanation: string): string {
-    // Generate improved response based on user's explanation
-    const question = this.trainingQuestions.find(q => q.id === questionId);
-    if (!question) return explanation;
-    
-    // Extract key points from explanation
-    const keyPoints = explanation.split(/[.,!?]/).filter(s => s.trim().length > 0);
-    
-    // For simple explanations, just return them
-    if (keyPoints.length <= 1) return explanation;
-    
-    // For more complex explanations, try to summarize
-    return explanation.trim();
   }
 
   private learnFromSuccess(attempt: TrainingAttempt): void {
