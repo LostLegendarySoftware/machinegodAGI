@@ -86,7 +86,7 @@ export class MachineGodCore {
   private truthProtocol: MesiahBishopProtocol;
   private isInitialized = false;
   private operationCount = 0;
-  private conversationHistory: Array<{input: string, response: ConversationResponse, feedback?: UserFeedback}> = [];
+  private conversationHistory: Array<{input: string, response: ConversationResponse, feedback?: UserFeedback, memoryId: string}> = [];
   private lastCheckpointTime = Date.now();
   private checkpointInterval = 300000; // 5 minutes
   private lastHealthCheck: Date | null = null;
@@ -196,10 +196,11 @@ export class MachineGodCore {
         feedbackPrompt: naturalResponse.confidence < 0.8 ? "Was this helpful? 👍 👎" : undefined
       };
       
-      // Store in conversation history
+      // Store in conversation history with memoryId
       this.conversationHistory.push({
         input,
-        response: conversationResponse
+        response: conversationResponse,
+        memoryId
       });
       
       console.log(`✅ Natural response generated in ${processingTime}ms`);
@@ -390,16 +391,19 @@ export class MachineGodCore {
   }
 
   /**
-   * Process user feedback and learn from it
+   * Process user feedback and learn from it - now uses memoryId instead of index
    */
   async processUserFeedback(
-    conversationIndex: number,
+    memoryId: string,
     liked: boolean,
     reason?: string,
     improvement?: string
   ): Promise<void> {
-    if (conversationIndex >= this.conversationHistory.length) {
-      console.error('Invalid conversation index for feedback');
+    // Find conversation by memoryId
+    const conversationIndex = this.conversationHistory.findIndex(conv => conv.memoryId === memoryId);
+    
+    if (conversationIndex === -1) {
+      console.error('Invalid memoryId for feedback:', memoryId);
       return;
     }
 
@@ -525,6 +529,7 @@ export class MachineGodCore {
     input: string;
     response: ConversationResponse;
     feedback?: UserFeedback;
+    memoryId: string;
   }> {
     return [...this.conversationHistory];
   }

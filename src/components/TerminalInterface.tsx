@@ -9,7 +9,7 @@ interface TerminalCommand {
   confidence?: number;
   needsFeedback?: boolean;
   feedbackGiven?: boolean;
-  conversationIndex?: number;
+  memoryId?: string; // Changed from conversationIndex to memoryId
 }
 
 interface TerminalInterfaceProps {
@@ -40,7 +40,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
   const [machineGod] = useState(() => new MachineGodCore());
   const [isInitialized, setIsInitialized] = useState(false);
   const [conversationContext, setConversationContext] = useState<string[]>([]);
-  const [showFeedbackFor, setShowFeedbackFor] = useState<number | null>(null);
+  const [showFeedbackFor, setShowFeedbackFor] = useState<string | null>(null); // Changed to string for memoryId
   const [feedbackReason, setFeedbackReason] = useState('');
   const [feedbackImprovement, setFeedbackImprovement] = useState('');
   const [trainingProgress, setTrainingProgress] = useState<TrainingProgress>({
@@ -196,13 +196,11 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     if (!input.trim()) return;
 
     const timestamp = new Date();
-    const conversationIndex = commands.length;
     
     setCommands(prev => [...prev, { 
       command: input, 
       response: '', 
-      timestamp,
-      conversationIndex
+      timestamp
     }]);
     setCurrentInput('');
     setIsLoading(true);
@@ -214,6 +212,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
       let response = '';
       let confidence = 0;
       let needsFeedback = false;
+      let memoryId = '';
 
       // Check for system commands first
       if (input.toLowerCase() === 'help') {
@@ -280,6 +279,7 @@ Thanks for helping me improve! Your feedback makes me better at conversations.
           response = result.response;
           confidence = result.confidence;
           needsFeedback = result.needsFeedback;
+          memoryId = result.memoryId;
 
           // Update system status after processing
           const status = machineGod.getSystemStatus();
@@ -296,7 +296,8 @@ Thanks for helping me improve! Your feedback makes me better at conversations.
           response,
           confidence,
           needsFeedback,
-          feedbackGiven: false
+          feedbackGiven: false,
+          memoryId // Store the memoryId for feedback
         };
         return newCommands;
       });
@@ -312,22 +313,23 @@ Thanks for helping me improve! Your feedback makes me better at conversations.
     }
   };
 
-  const handleFeedback = async (conversationIndex: number, liked: boolean) => {
+  const handleFeedback = async (memoryId: string, liked: boolean) => {
     if (liked) {
       // Positive feedback - just process it
-      await machineGod.processUserFeedback(conversationIndex, true);
+      await machineGod.processUserFeedback(memoryId, true);
       
       // Update the command to show feedback was given
       setCommands(prev => {
         const newCommands = [...prev];
-        if (newCommands[conversationIndex]) {
-          newCommands[conversationIndex].feedbackGiven = true;
+        const commandIndex = newCommands.findIndex(cmd => cmd.memoryId === memoryId);
+        if (commandIndex !== -1) {
+          newCommands[commandIndex].feedbackGiven = true;
         }
         return newCommands;
       });
     } else {
       // Negative feedback - show form for details
-      setShowFeedbackFor(conversationIndex);
+      setShowFeedbackFor(memoryId);
     }
   };
 
@@ -344,8 +346,9 @@ Thanks for helping me improve! Your feedback makes me better at conversations.
     // Update the command to show feedback was given
     setCommands(prev => {
       const newCommands = [...prev];
-      if (newCommands[showFeedbackFor]) {
-        newCommands[showFeedbackFor].feedbackGiven = true;
+      const commandIndex = newCommands.findIndex(cmd => cmd.memoryId === showFeedbackFor);
+      if (commandIndex !== -1) {
+        newCommands[commandIndex].feedbackGiven = true;
       }
       return newCommands;
     });
@@ -406,18 +409,18 @@ Thanks for helping me improve! Your feedback makes me better at conversations.
               )}
               
               {/* Feedback buttons for responses that need feedback */}
-              {cmd.needsFeedback && !cmd.feedbackGiven && cmd.command && (
+              {cmd.needsFeedback && !cmd.feedbackGiven && cmd.command && cmd.memoryId && (
                 <div className="ml-2 mt-2 flex items-center space-x-2">
                   <span className="text-gray-400 text-sm">Was this helpful?</span>
                   <button
-                    onClick={() => handleFeedback(index, true)}
+                    onClick={() => handleFeedback(cmd.memoryId!, true)}
                     className="text-green-400 hover:text-green-300 transition-colors"
                     title="This was helpful"
                   >
                     <ThumbsUp size={16} />
                   </button>
                   <button
-                    onClick={() => handleFeedback(index, false)}
+                    onClick={() => handleFeedback(cmd.memoryId!, false)}
                     className="text-red-400 hover:text-red-300 transition-colors"
                     title="This wasn't helpful"
                   >
