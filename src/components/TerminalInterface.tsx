@@ -65,7 +65,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
   });
   const terminalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const scrollAnchorRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const bootSequence = [
     "MACHINEGOD ALPHAEVOLVE INTELLIGENCE v3.0.0",
@@ -183,60 +183,69 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     return () => clearInterval(interval);
   }, [isInitialized]);
 
-  // Enhanced scroll to bottom function with multiple fallbacks
+  // Robust scroll to bottom function
   const scrollToBottom = () => {
-    // Use multiple methods to ensure scrolling works reliably
-    setTimeout(() => {
-      // Method 1: Scroll anchor
-      if (scrollAnchorRef.current) {
-        scrollAnchorRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    // Multiple scroll methods for maximum compatibility
+    const scrollMethods = [
+      // Method 1: Scroll the messages end ref into view
+      () => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+      },
+      // Method 2: Direct terminal container scroll
+      () => {
+        if (terminalRef.current) {
+          terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+        }
+      },
+      // Method 3: Force scroll with requestAnimationFrame
+      () => {
+        if (terminalRef.current) {
+          requestAnimationFrame(() => {
+            if (terminalRef.current) {
+              terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+            }
+          });
+        }
       }
-      
-      // Method 2: Direct terminal scroll
-      if (terminalRef.current) {
-        const scrollElement = terminalRef.current;
-        scrollElement.scrollTop = scrollElement.scrollHeight;
-      }
-    }, 50);
+    ];
 
-    // Backup scroll after a longer delay to ensure DOM is fully updated
+    // Execute all scroll methods with delays
+    scrollMethods.forEach((method, index) => {
+      setTimeout(method, index * 50);
+    });
+
+    // Final fallback scroll after a longer delay
     setTimeout(() => {
       if (terminalRef.current) {
-        const scrollElement = terminalRef.current;
-        scrollElement.scrollTop = scrollElement.scrollHeight;
+        terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
       }
-    }, 200);
+    }, 300);
   };
 
-  // Force scroll after any state change that adds content
+  // Scroll when commands change
   useEffect(() => {
     scrollToBottom();
   }, [commands]);
 
+  // Scroll when loading state changes
   useEffect(() => {
-    scrollToBottom();
-  }, [isLoading]);
-
-  // Scroll when commands array length changes
-  useEffect(() => {
-    if (commands.length > 0) {
+    if (isLoading) {
       scrollToBottom();
     }
-  }, [commands.length]);
+  }, [isLoading]);
 
   useEffect(() => {
     const initializeSystem = async () => {
       // Boot sequence animation
       for (let i = 0; i < bootSequence.length; i++) {
         await new Promise(resolve => setTimeout(resolve, 120));
-        setCommands(prev => {
-          const newCommands = [...prev, {
-            command: '',
-            response: bootSequence[i],
-            timestamp: new Date()
-          }];
-          return newCommands;
-        });
+        setCommands(prev => [...prev, {
+          command: '',
+          response: bootSequence[i],
+          timestamp: new Date()
+        }]);
       }
 
       // Initialize MachineGod core
@@ -248,23 +257,17 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
         const status = machineGod.getSystemStatus();
         onSystemStatusChange(status);
         
-        setCommands(prev => {
-          const newCommands = [...prev, {
-            command: '',
-            response: "🎯 AlphaEvolve system operational - algorithms evolving continuously with Truth Stratification",
-            timestamp: new Date()
-          }];
-          return newCommands;
-        });
+        setCommands(prev => [...prev, {
+          command: '',
+          response: "🎯 AlphaEvolve system operational - algorithms evolving continuously with Truth Stratification",
+          timestamp: new Date()
+        }]);
       } catch (error) {
-        setCommands(prev => {
-          const newCommands = [...prev, {
-            command: '',
-            response: `❌ System initialization failed: ${error}`,
-            timestamp: new Date()
-          }];
-          return newCommands;
-        });
+        setCommands(prev => [...prev, {
+          command: '',
+          response: `❌ System initialization failed: ${error}`,
+          timestamp: new Date()
+        }]);
       }
     };
 
@@ -282,14 +285,11 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     if (!input.trim()) return;
 
     const timestamp = new Date();
-    setCommands(prev => {
-      const newCommands = [...prev, { 
-        command: input, 
-        response: '', 
-        timestamp 
-      }];
-      return newCommands;
-    });
+    setCommands(prev => [...prev, { 
+      command: input, 
+      response: '', 
+      timestamp 
+    }]);
     setCurrentInput('');
     setIsLoading(true);
 
@@ -1017,8 +1017,8 @@ ${lastDebate.reasoning.map((r: string, i: number) => `${i + 1}. ${r}`).join('\n'
               <span className="animate-pulse">🧬 Creating algorithms through ARIEL debate teams with truth stratification...</span>
             </div>
           )}
-          {/* Enhanced scroll anchor with more visibility */}
-          <div ref={scrollAnchorRef} className="scroll-anchor h-4 w-full"></div>
+          {/* Messages end marker for reliable scrolling */}
+          <div ref={messagesEndRef} />
         </div>
         
         <div className="command-line flex items-center mt-4 border-t border-purple-800 pt-4">
