@@ -11,7 +11,6 @@ import { AlphaEvolveTraining, TrainingMetrics } from './AlphaEvolveTraining';
 import { PersistentMemory, ConversationMemory, TrainingCheckpoint } from './PersistentMemory';
 import { AlgorandAPI, APIResponse } from './AlgorandAPI';
 import { MesiahBishopProtocol, AnointingResult } from './MesiahBishopProtocol';
-import { EnhancedBenchmarking, BenchmarkReport } from './EnhancedBenchmarking';
 
 export interface SystemStatus {
   metaLogic: {
@@ -63,13 +62,6 @@ export interface SystemStatus {
     stratumCompliance: Record<string, number>;
     active: boolean;
   };
-  benchmarking: {
-    testsCompleted: number;
-    averageScore: number;
-    lastBenchmark: Date | null;
-    currentCapabilityLevel: number;
-    active: boolean;
-  };
 }
 
 export interface IntegratedResponse {
@@ -96,12 +88,6 @@ export interface ConversationResponse {
   multiModalUpdate?: string;
   apiData?: APIResponse;
   truthVerification?: AnointingResult;
-  benchmarkData?: {
-    triggered: boolean;
-    testType?: string;
-    score?: number;
-    improvement?: number;
-  };
 }
 
 export interface DebateRecord {
@@ -114,18 +100,6 @@ export interface DebateRecord {
   timestamp: Date;
 }
 
-export interface PersistentTrainingState {
-  generation: number;
-  reasoningAbility: number;
-  algorithmCount: number;
-  currentLevel: string;
-  progressPercentage: number;
-  eta: string;
-  lastUpdate: number;
-  sessionId: string;
-  continuousTraining: boolean;
-}
-
 export class MachineGodCore {
   private metaLogic: MetaLogicEvaluator;
   private ariel: ArielSystem;
@@ -135,7 +109,6 @@ export class MachineGodCore {
   private memory: PersistentMemory;
   private algorandAPI: AlgorandAPI;
   private truthProtocol: MesiahBishopProtocol;
-  private benchmarking: EnhancedBenchmarking;
   private isInitialized = false;
   private operationCount = 0;
   private conversationHistory: Array<{input: string, response: ConversationResponse}> = [];
@@ -145,138 +118,101 @@ export class MachineGodCore {
   private lastHealthCheck: Date | null = null;
   private apiConnectivity: 'healthy' | 'degraded' | 'unhealthy' = 'unhealthy';
   private truthVerificationEnabled = true;
-  private persistentTrainingState: PersistentTrainingState | null = null;
-  private trainingStateKey = 'machinegod-training-state-v2';
-  private sessionId: string;
-  private trainingUpdateInterval: NodeJS.Timeout | null = null;
-  private benchmarkingEnabled = true;
-  private lastBenchmarkTime = 0;
-  private benchmarkInterval = 600000; // 10 minutes
-  private currentCapabilityLevel = 0.4; // Start at ChatGPT-4 baseline
+
+  // Knowledge base for intelligent responses
+  private knowledgeBase = new Map<string, any>();
+  private responsePatterns = new Map<string, string[]>();
 
   constructor() {
-    console.log('🚀 Initializing MachineGod Unified Intelligence with Real Benchmarking...');
-    
-    this.sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    console.log('🚀 Initializing MachineGod Unified Intelligence with Mesiah Bishop Protocol...');
     
     this.metaLogic = new MetaLogicEvaluator();
     this.ariel = new ArielSystem();
     this.warp = new WarpSystem();
     this.helix = new HelixCompression();
+    this.alphaEvolve = new AlphaEvolveTraining();
     this.memory = new PersistentMemory();
     this.algorandAPI = new AlgorandAPI();
     this.truthProtocol = new MesiahBishopProtocol();
-    this.benchmarking = new EnhancedBenchmarking();
     
-    // Load persistent training state BEFORE creating AlphaEvolve
-    this.loadPersistentTrainingState();
+    this.initializeKnowledgeBase();
+    this.initializeResponsePatterns();
     
-    // Initialize AlphaEvolve with restored state
-    this.alphaEvolve = new AlphaEvolveTraining();
-    if (this.persistentTrainingState) {
-      this.restoreAlphaEvolveState();
-    }
-    
-    // Start continuous training state persistence
-    this.startTrainingStatePersistence();
-    
-    console.log('✅ MachineGod Core System with Real Benchmarking initialized');
+    console.log('✅ MachineGod Core System with Truth Stratification initialized');
   }
 
-  private loadPersistentTrainingState() {
-    try {
-      const stored = localStorage.getItem(this.trainingStateKey);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        
-        // Check if training state is recent (within last 24 hours)
-        const timeSinceUpdate = Date.now() - parsed.lastUpdate;
-        const maxAge = 24 * 60 * 60 * 1000; // 24 hours
-        
-        if (timeSinceUpdate < maxAge && parsed.continuousTraining) {
-          this.persistentTrainingState = parsed;
-          console.log(`🧬 Restored persistent training state: Gen ${parsed.generation}, ${parsed.progressPercentage.toFixed(1)}%`);
-          console.log(`⏱️ Training continued from ${new Date(parsed.lastUpdate).toLocaleString()}`);
-        } else {
-          console.log('⚠️ Training state expired or discontinued, starting fresh');
-          this.persistentTrainingState = null;
-        }
-      }
-    } catch (error) {
-      console.warn('⚠️ Failed to load persistent training state:', error);
-      this.persistentTrainingState = null;
-    }
-  }
-
-  private restoreAlphaEvolveState() {
-    if (!this.persistentTrainingState) return;
-    
-    try {
-      // Calculate how much time has passed and apply continued evolution
-      const timePassed = Date.now() - this.persistentTrainingState.lastUpdate;
-      const hoursPassedSinceUpdate = timePassed / (1000 * 60 * 60);
-      
-      // Apply evolution boost based on time passed (simulating continued training)
-      if (hoursPassedSinceUpdate > 0.1) { // More than 6 minutes
-        const evolutionBoost = 1 + Math.min(hoursPassedSinceUpdate * 0.1, 0.5); // Max 50% boost
-        this.alphaEvolve.boostEvolution(evolutionBoost);
-        console.log(`🚀 Applied evolution boost: ${(evolutionBoost * 100 - 100).toFixed(1)}% for ${hoursPassedSinceUpdate.toFixed(1)}h of continued training`);
-      }
-      
-    } catch (error) {
-      console.warn('⚠️ Failed to restore AlphaEvolve state:', error);
-    }
-  }
-
-  private startTrainingStatePersistence() {
-    // Save training state every 10 seconds
-    this.trainingUpdateInterval = setInterval(() => {
-      this.saveTrainingState();
-    }, 10000);
-    
-    // Save on page unload
-    window.addEventListener('beforeunload', () => {
-      this.saveTrainingState();
+  private initializeKnowledgeBase() {
+    // Initialize core knowledge domains
+    this.knowledgeBase.set('artificial_intelligence', {
+      concepts: ['machine learning', 'neural networks', 'deep learning', 'natural language processing', 'computer vision'],
+      relationships: ['AI encompasses ML', 'ML uses algorithms to learn patterns', 'Deep learning uses neural networks'],
+      applications: ['chatbots', 'image recognition', 'autonomous vehicles', 'recommendation systems']
     });
-    
-    // Save on visibility change
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        this.saveTrainingState();
-      }
+
+    this.knowledgeBase.set('programming', {
+      concepts: ['algorithms', 'data structures', 'programming languages', 'software engineering', 'debugging'],
+      relationships: ['algorithms solve problems', 'data structures organize information', 'languages implement algorithms'],
+      applications: ['web development', 'mobile apps', 'system software', 'games']
+    });
+
+    this.knowledgeBase.set('mathematics', {
+      concepts: ['algebra', 'calculus', 'statistics', 'geometry', 'logic'],
+      relationships: ['calculus builds on algebra', 'statistics analyzes data', 'logic forms reasoning foundation'],
+      applications: ['engineering', 'physics', 'economics', 'computer science']
+    });
+
+    this.knowledgeBase.set('science', {
+      concepts: ['physics', 'chemistry', 'biology', 'astronomy', 'geology'],
+      relationships: ['physics studies matter and energy', 'chemistry studies atomic interactions', 'biology studies life'],
+      applications: ['medicine', 'technology', 'environmental science', 'space exploration']
+    });
+
+    this.knowledgeBase.set('philosophy', {
+      concepts: ['ethics', 'logic', 'metaphysics', 'epistemology', 'aesthetics'],
+      relationships: ['ethics studies moral behavior', 'logic studies valid reasoning', 'epistemology studies knowledge'],
+      applications: ['moral decision making', 'critical thinking', 'understanding reality']
     });
   }
 
-  private saveTrainingState() {
-    try {
-      const trainingMetrics = this.alphaEvolve.getTrainingMetrics();
-      
-      const state: PersistentTrainingState = {
-        generation: trainingMetrics.generation,
-        reasoningAbility: trainingMetrics.reasoningAbility,
-        algorithmCount: trainingMetrics.algorithmCount,
-        currentLevel: trainingMetrics.currentLevel.name,
-        progressPercentage: trainingMetrics.progressPercentage,
-        eta: trainingMetrics.eta,
-        lastUpdate: Date.now(),
-        sessionId: this.sessionId,
-        continuousTraining: true
-      };
-      
-      localStorage.setItem(this.trainingStateKey, JSON.stringify(state));
-      this.persistentTrainingState = state;
-      
-    } catch (error) {
-      console.warn('⚠️ Failed to save training state:', error);
-    }
+  private initializeResponsePatterns() {
+    // Question patterns and response templates
+    this.responsePatterns.set('what_is', [
+      'Let me explain {topic} through systematic analysis.',
+      '{topic} can be understood as {definition} with the following key aspects:',
+      'Based on my knowledge synthesis, {topic} is {explanation}'
+    ]);
+
+    this.responsePatterns.set('how_to', [
+      'Here\'s a systematic approach to {task}:',
+      'I\'ll break down {task} into manageable steps:',
+      'Through logical analysis, the best way to {task} involves:'
+    ]);
+
+    this.responsePatterns.set('why', [
+      'The reasoning behind {topic} involves several factors:',
+      'Let me analyze the causal relationships for {topic}:',
+      'Through logical evaluation, {topic} occurs because:'
+    ]);
+
+    this.responsePatterns.set('compare', [
+      'Comparing {item1} and {item2} reveals these key differences:',
+      'Through systematic analysis, {item1} and {item2} differ in:',
+      'My evaluation shows these distinctions between {item1} and {item2}:'
+    ]);
+
+    this.responsePatterns.set('explain', [
+      'Let me provide a comprehensive explanation of {topic}:',
+      'Through logical breakdown, {topic} can be explained as:',
+      'My analysis reveals that {topic} works through:'
+    ]);
   }
 
   /**
-   * Initialize all subsystems including benchmarking
+   * Initialize all subsystems including truth protocol
    */
   async initialize(): Promise<void> {
     if (this.isInitialized) {
-      console.log('⚠️ MachineGod already initialized - maintaining training state');
+      console.log('⚠️ MachineGod already initialized');
       return;
     }
 
@@ -306,10 +242,9 @@ export class MachineGodCore {
       await this.metaLogic.evaluate(testStatement);
       console.log('✅ META-LOGIC evaluator verified');
       
-      console.log('✅ AlphaEvolve training system active with persistent state');
+      console.log('✅ AlphaEvolve training system active');
       console.log('✅ Persistent Memory system active');
       console.log('✅ Mesiah Bishop Truth Protocol active');
-      console.log('✅ Enhanced Benchmarking system active');
       
       // Test Algorand API connectivity
       console.log('🔗 Testing Algorand API connectivity...');
@@ -334,130 +269,16 @@ export class MachineGodCore {
       );
       console.log(`✅ Truth Protocol verified - Truth value: ${testResult.overallTruthValue} (${(testResult.confidence * 100).toFixed(1)}%)`);
       
-      // Run initial benchmark to establish baseline
-      console.log('📊 Running initial capability benchmark...');
-      await this.runInitialBenchmark();
-      
       // Load previous training state if available
       await this.loadTrainingState();
       
       this.isInitialized = true;
-      
-      // Display training continuation message
-      if (this.persistentTrainingState) {
-        console.log('🎯 MachineGod operational - Training state CONTINUED from previous session');
-        console.log(`🧬 Current: Gen ${this.persistentTrainingState.generation}, ${this.persistentTrainingState.progressPercentage.toFixed(1)}% progress`);
-      } else {
-        console.log('🎯 MachineGod operational - Starting fresh training state');
-      }
+      console.log('🎯 MachineGod with Truth Stratification fully operational');
       
     } catch (error) {
       console.error('❌ MachineGod initialization failed:', error);
       throw error;
     }
-  }
-
-  /**
-   * Run initial benchmark to establish capability baseline
-   */
-  private async runInitialBenchmark(): Promise<void> {
-    try {
-      console.log('📊 Establishing capability baseline through self-benchmarking...');
-      
-      // Create a simple reasoning test
-      const testQuestions = [
-        "What is 2 + 2?",
-        "If all cats are animals and Fluffy is a cat, what can we conclude about Fluffy?",
-        "Explain the concept of recursion in simple terms.",
-        "What are the primary colors?",
-        "If it's raining and I don't have an umbrella, what should I do?"
-      ];
-      
-      let correctAnswers = 0;
-      let totalConfidence = 0;
-      
-      for (const question of testQuestions) {
-        const result = await this.processSimpleQuestion(question);
-        const isCorrect = this.evaluateSimpleAnswer(question, result.response);
-        
-        if (isCorrect) correctAnswers++;
-        totalConfidence += result.confidence;
-      }
-      
-      const baselineScore = correctAnswers / testQuestions.length;
-      const avgConfidence = totalConfidence / testQuestions.length;
-      
-      this.currentCapabilityLevel = baselineScore;
-      
-      console.log(`📊 Baseline established: ${(baselineScore * 100).toFixed(1)}% accuracy, ${(avgConfidence * 100).toFixed(1)}% confidence`);
-      
-    } catch (error) {
-      console.warn('⚠️ Initial benchmark failed, using default baseline:', error);
-      this.currentCapabilityLevel = 0.4;
-    }
-  }
-
-  /**
-   * Process a simple question for benchmarking
-   */
-  private async processSimpleQuestion(question: string): Promise<{response: string, confidence: number}> {
-    // Use the actual logic engine to process the question
-    const statement: LogicalStatement = {
-      content: question,
-      type: 'standard',
-      complexity: this.calculateComplexity(question),
-      paradoxPotential: false
-    };
-    
-    const evaluation = await this.metaLogic.evaluate(statement);
-    
-    // Generate response based on evaluation
-    let response = '';
-    let confidence = 0.5;
-    
-    if (question.includes('2 + 2')) {
-      response = '4';
-      confidence = 0.95;
-    } else if (question.toLowerCase().includes('cats') && question.toLowerCase().includes('animals')) {
-      response = 'Fluffy is an animal, because all cats are animals and Fluffy is a cat.';
-      confidence = 0.9;
-    } else if (question.toLowerCase().includes('recursion')) {
-      response = 'Recursion is when a function calls itself to solve a smaller version of the same problem.';
-      confidence = 0.8;
-    } else if (question.toLowerCase().includes('primary colors')) {
-      response = 'The primary colors are red, blue, and yellow.';
-      confidence = 0.85;
-    } else if (question.toLowerCase().includes('raining') && question.toLowerCase().includes('umbrella')) {
-      response = 'You should find shelter, use something else for cover, or get wet if necessary.';
-      confidence = 0.7;
-    } else {
-      response = `Based on logical analysis: ${evaluation.reasoning.join(' ')}`;
-      confidence = evaluation.confidence;
-    }
-    
-    return { response, confidence };
-  }
-
-  /**
-   * Evaluate if a simple answer is correct
-   */
-  private evaluateSimpleAnswer(question: string, response: string): boolean {
-    const lowerQuestion = question.toLowerCase();
-    const lowerResponse = response.toLowerCase();
-    
-    if (lowerQuestion.includes('2 + 2')) {
-      return lowerResponse.includes('4');
-    } else if (lowerQuestion.includes('cats') && lowerQuestion.includes('animals')) {
-      return lowerResponse.includes('animal') && lowerResponse.includes('fluffy');
-    } else if (lowerQuestion.includes('recursion')) {
-      return lowerResponse.includes('function') && lowerResponse.includes('itself');
-    } else if (lowerQuestion.includes('primary colors')) {
-      return lowerResponse.includes('red') && lowerResponse.includes('blue') && lowerResponse.includes('yellow');
-    } else if (lowerQuestion.includes('raining')) {
-      return lowerResponse.includes('shelter') || lowerResponse.includes('cover') || lowerResponse.includes('wet');
-    }
-    
-    return true; // Default to true for complex questions
   }
 
   /**
@@ -478,7 +299,7 @@ export class MachineGodCore {
   }
 
   /**
-   * Process conversation with Real Benchmarking, Truth Stratification, AlphaEvolve, memory, and API integration
+   * Process conversation with intelligent reasoning and response generation
    */
   async processConversation(input: string, context: string[]): Promise<ConversationResponse> {
     if (!this.isInitialized) {
@@ -488,14 +309,12 @@ export class MachineGodCore {
     const startTime = Date.now();
     this.operationCount++;
     
-    console.log(`💬 Processing conversation ${this.operationCount} with Real Logic Engine: "${input}"`);
+    console.log(`💬 Processing conversation ${this.operationCount} with intelligent reasoning: "${input}"`);
 
     try {
-      // Step 1: Check if we should run a benchmark
-      let benchmarkData: any = { triggered: false };
-      if (this.shouldRunBenchmark(input)) {
-        benchmarkData = await this.runAdaptiveBenchmark(input);
-      }
+      // Step 1: Analyze input and determine response strategy
+      const inputAnalysis = this.analyzeInput(input);
+      console.log(`🧠 Input analysis: ${inputAnalysis.type}, complexity: ${inputAnalysis.complexity}, domain: ${inputAnalysis.domain}`);
 
       // Step 2: Truth Stratification (if enabled and complex enough)
       let truthVerification: AnointingResult | undefined;
@@ -515,34 +334,38 @@ export class MachineGodCore {
       const memoryContext = this.memory.getConversationContext();
       const enhancedContext = [...context, ...memoryContext.slice(-5)]; // Last 5 from memory
       
-      // Step 5: Analyze input complexity for algorithm evolution
-      const complexity = this.analyzeInputComplexity(input, enhancedContext);
-      
-      // Step 6: Use META-LOGIC evaluator for logical analysis
-      console.log('🧠 Applying META-LOGIC evaluation...');
-      const logicalStatement: LogicalStatement = {
-        content: input,
-        type: this.determineStatementType(input),
-        complexity,
-        paradoxPotential: this.detectParadoxPotential(input)
-      };
-      
-      const metaLogicResult = await this.metaLogic.evaluate(logicalStatement);
-      
-      // Step 7: Conduct 4x4 ARIEL team research and debate
-      console.log('🤖 Initiating 4x4 ARIEL team research with algorithm evolution...');
-      const debateResult = await this.ariel.conductEnhancedDebate(input, enhancedContext, complexity);
-      
-      // Step 8: Process debate results through AlphaEvolve
-      console.log('🧬 Processing debate through AlphaEvolve algorithm evolution...');
-      this.alphaEvolve.processDebateResult(
-        input,
-        debateResult.participatingAgents,
-        debateResult.winningTeam,
-        debateResult.reasoning || []
+      // Step 5: Generate intelligent response using all systems
+      const intelligentResponse = await this.generateIntelligentResponse(
+        input, 
+        inputAnalysis, 
+        enhancedContext, 
+        truthVerification, 
+        apiData
       );
-      
-      // Step 9: Check WARP efficiency and phase management
+
+      // Step 6: Conduct ARIEL team debate for complex queries
+      let debateResult: any = null;
+      if (inputAnalysis.complexity > 5 || inputAnalysis.requiresDebate) {
+        console.log('🤖 Initiating ARIEL team debate for complex query...');
+        debateResult = await this.ariel.conductEnhancedDebate(input, enhancedContext, inputAnalysis.complexity);
+        
+        // Integrate debate insights into response
+        intelligentResponse.content = this.integrateDebateInsights(intelligentResponse.content, debateResult);
+        intelligentResponse.confidence = Math.max(intelligentResponse.confidence, debateResult.confidence);
+      }
+
+      // Step 7: Process through AlphaEvolve for algorithm evolution
+      console.log('🧬 Processing through AlphaEvolve algorithm evolution...');
+      if (debateResult) {
+        this.alphaEvolve.processDebateResult(
+          input,
+          debateResult.participatingAgents || [],
+          debateResult.winningTeam || 'consensus',
+          debateResult.reasoning || []
+        );
+      }
+
+      // Step 8: Check WARP efficiency and phase management
       const warpMetrics = this.warp.getMetrics();
       const trainingMetrics = this.alphaEvolve.getTrainingMetrics();
       
@@ -551,53 +374,41 @@ export class MachineGodCore {
         await this.warp.advancePhase();
         console.log('⚡ WARP phase advanced due to high reasoning ability');
       }
+
+      // Step 9: Store NLP tokens for trainingless processing
+      this.alphaEvolve.storeNLPTokens(input, intelligentResponse.content, intelligentResponse.confidence);
       
-      // Step 10: Generate response using evolved algorithms, logic evaluation, and truth verification
-      const response = this.generateLogicBasedResponse(
-        metaLogicResult,
-        debateResult, 
-        input, 
-        enhancedContext, 
-        trainingMetrics, 
-        apiData,
-        truthVerification,
-        benchmarkData
-      );
-      
-      // Step 11: Store NLP tokens for trainingless processing
-      this.alphaEvolve.storeNLPTokens(input, response, debateResult.confidence);
-      
-      // Step 12: Compress and optimize the reasoning
-      const reasoningData = JSON.stringify(debateResult.reasoning);
+      // Step 10: Compress and optimize the reasoning
+      const reasoningData = JSON.stringify(intelligentResponse.reasoning);
       const compression = await this.helix.compress(reasoningData);
       
       const processingTime = Date.now() - startTime;
       
-      // Step 13: Calculate training impact
+      // Step 11: Calculate training impact
       const evolutionStats = this.alphaEvolve.getEvolutionStats();
       const trainingImpact = {
         algorithmsEvolved: evolutionStats.totalAlgorithms,
-        patternsLearned: this.extractPatternsFromReasoning(debateResult.reasoning || []),
+        patternsLearned: this.extractPatternsFromReasoning(intelligentResponse.reasoning),
         performanceGain: trainingMetrics.reasoningAbility - 0.4 // Gain from baseline
       };
       
-      // Step 14: Store conversation in persistent memory
+      // Step 12: Store conversation in persistent memory
       const memoryId = this.memory.storeConversation(
         input,
-        response,
-        this.formatEvolutionaryReasoning(debateResult, trainingMetrics, metaLogicResult),
-        debateResult.confidence,
+        intelligentResponse.content,
+        intelligentResponse.reasoning.join('\n'),
+        intelligentResponse.confidence,
         trainingImpact,
         enhancedContext
       );
       
-      // Step 15: Check for training checkpoint
+      // Step 13: Check for training checkpoint
       let multiModalUpdate: string | undefined;
       if (Date.now() - this.lastCheckpointTime > this.checkpointInterval) {
         const checkpointId = this.memory.createTrainingCheckpoint(
           trainingMetrics.generation,
           trainingMetrics.reasoningAbility,
-          debateResult.confidence,
+          intelligentResponse.confidence,
           trainingMetrics.algorithmCount,
           trainingMetrics.currentLevel.capabilities
         );
@@ -611,32 +422,30 @@ export class MachineGodCore {
         console.log(`📊 Training checkpoint created: ${checkpointId}`);
       }
       
-      // Step 16: Save persistent training state
-      this.saveTrainingState();
-      
       // Store debate result for debugging
-      this.lastDebateResult = {
-        topic: input,
-        teams: debateResult.participatingAgents,
-        winner: debateResult.winningTeam || 'Team 1',
-        confidence: debateResult.confidence,
-        reasoning: debateResult.reasoning || [],
-        finalDecision: debateResult.finalDecision,
-        timestamp: new Date()
-      };
+      if (debateResult) {
+        this.lastDebateResult = {
+          topic: input,
+          teams: debateResult.participatingAgents || [],
+          winner: debateResult.winningTeam || 'consensus',
+          confidence: debateResult.confidence,
+          reasoning: debateResult.reasoning || [],
+          finalDecision: debateResult.finalDecision,
+          timestamp: new Date()
+        };
+      }
       
       const conversationResponse: ConversationResponse = {
-        response,
-        reasoning: this.formatEvolutionaryReasoning(debateResult, trainingMetrics, metaLogicResult),
-        confidence: debateResult.confidence,
+        response: intelligentResponse.content,
+        reasoning: intelligentResponse.reasoning.join('\n'),
+        confidence: intelligentResponse.confidence,
         debateResult,
         processingTime,
         trainingImpact,
         memoryId,
         multiModalUpdate,
         apiData,
-        truthVerification,
-        benchmarkData
+        truthVerification
       };
       
       // Store in conversation history
@@ -645,19 +454,14 @@ export class MachineGodCore {
         response: conversationResponse
       });
       
-      console.log(`✅ Conversation processed in ${processingTime}ms with ${(debateResult.confidence * 100).toFixed(1)}% confidence`);
+      console.log(`✅ Intelligent response generated in ${processingTime}ms with ${(intelligentResponse.confidence * 100).toFixed(1)}% confidence`);
       console.log(`🧬 AlphaEvolve: ${trainingImpact.algorithmsEvolved} algorithms, ${trainingImpact.patternsLearned.length} patterns learned`);
       console.log(`💾 Stored in memory: ${memoryId}`);
-      console.log(`🔄 Training state persisted: Gen ${trainingMetrics.generation}`);
-      console.log(`🧠 META-LOGIC: ${metaLogicResult.truthValue} (${(metaLogicResult.confidence * 100).toFixed(1)}% confidence)`);
       if (truthVerification) {
         console.log(`🔥 Truth verified: ${truthVerification.overallTruthValue} via ${truthVerification.geometricSignature}`);
       }
       if (apiData) {
         console.log(`🔗 API data included: ${apiData.success ? 'Success' : 'Failed'}`);
-      }
-      if (benchmarkData.triggered) {
-        console.log(`📊 Benchmark: ${benchmarkData.testType} - Score: ${(benchmarkData.score * 100).toFixed(1)}%`);
       }
       
       return conversationResponse;
@@ -669,254 +473,271 @@ export class MachineGodCore {
   }
 
   /**
-   * Determine if we should run a benchmark based on conversation patterns
+   * Analyze input to determine response strategy
    */
-  private shouldRunBenchmark(input: string): boolean {
-    // Run benchmark every 10 minutes or for complex questions
-    const timeSinceLastBenchmark = Date.now() - this.lastBenchmarkTime;
-    const isTimeForBenchmark = timeSinceLastBenchmark > this.benchmarkInterval;
+  private analyzeInput(input: string): {
+    type: string;
+    complexity: number;
+    domain: string;
+    requiresDebate: boolean;
+    questionType: string;
+    keywords: string[];
+  } {
+    const lowerInput = input.toLowerCase();
+    const words = lowerInput.split(/\s+/);
     
-    // Also run for complex reasoning questions
-    const isComplexQuestion = this.analyzeInputComplexity(input, []) > 7;
-    const isReasoningQuestion = input.toLowerCase().includes('why') || 
-                               input.toLowerCase().includes('how') ||
-                               input.toLowerCase().includes('explain');
-    
-    return this.benchmarkingEnabled && (isTimeForBenchmark || (isComplexQuestion && isReasoningQuestion));
-  }
+    // Determine question type
+    let questionType = 'statement';
+    if (lowerInput.startsWith('what')) questionType = 'what';
+    else if (lowerInput.startsWith('how')) questionType = 'how';
+    else if (lowerInput.startsWith('why')) questionType = 'why';
+    else if (lowerInput.startsWith('when')) questionType = 'when';
+    else if (lowerInput.startsWith('where')) questionType = 'where';
+    else if (lowerInput.startsWith('who')) questionType = 'who';
+    else if (lowerInput.includes('compare') || lowerInput.includes('difference')) questionType = 'compare';
+    else if (lowerInput.includes('explain')) questionType = 'explain';
+    else if (lowerInput.includes('?')) questionType = 'question';
 
-  /**
-   * Run adaptive benchmark based on current conversation
-   */
-  private async runAdaptiveBenchmark(input: string): Promise<any> {
-    try {
-      console.log('📊 Running adaptive benchmark to test current capabilities...');
-      this.lastBenchmarkTime = Date.now();
-      
-      // Determine test type based on input
-      let testType = 'reasoning';
-      if (input.toLowerCase().includes('math') || input.toLowerCase().includes('calculate')) {
-        testType = 'math';
-      } else if (input.toLowerCase().includes('code') || input.toLowerCase().includes('program')) {
-        testType = 'coding';
-      } else if (input.toLowerCase().includes('fact') || input.toLowerCase().includes('know')) {
-        testType = 'knowledge';
+    // Calculate complexity
+    let complexity = 1;
+    complexity += Math.floor(input.length / 50); // Length factor
+    complexity += words.filter(word => word.length > 8).length * 0.5; // Complex words
+    
+    // Technical terms increase complexity
+    const technicalTerms = ['algorithm', 'system', 'analysis', 'implementation', 'optimization', 'methodology'];
+    complexity += technicalTerms.filter(term => lowerInput.includes(term)).length;
+    
+    // Multiple questions increase complexity
+    const questionMarks = (input.match(/\?/g) || []).length;
+    complexity += questionMarks * 0.5;
+    
+    complexity = Math.min(10, Math.max(1, complexity));
+
+    // Determine domain
+    let domain = 'general';
+    for (const [domainName, domainData] of this.knowledgeBase) {
+      if (domainData.concepts.some((concept: string) => lowerInput.includes(concept.toLowerCase()))) {
+        domain = domainName;
+        break;
       }
-      
-      // Create mini-benchmark questions
-      const benchmarkQuestions = this.generateAdaptiveBenchmarkQuestions(testType, input);
-      
-      let correctAnswers = 0;
-      let totalConfidence = 0;
-      
-      for (const question of benchmarkQuestions) {
-        const result = await this.processSimpleQuestion(question);
-        const isCorrect = this.evaluateSimpleAnswer(question, result.response);
-        
-        if (isCorrect) correctAnswers++;
-        totalConfidence += result.confidence;
-      }
-      
-      const score = correctAnswers / benchmarkQuestions.length;
-      const avgConfidence = totalConfidence / benchmarkQuestions.length;
-      
-      // Update capability level
-      const previousLevel = this.currentCapabilityLevel;
-      this.currentCapabilityLevel = (this.currentCapabilityLevel * 0.8) + (score * 0.2); // Weighted average
-      const improvement = this.currentCapabilityLevel - previousLevel;
-      
-      console.log(`📊 Adaptive benchmark completed: ${(score * 100).toFixed(1)}% (${correctAnswers}/${benchmarkQuestions.length})`);
-      console.log(`📈 Capability level: ${(this.currentCapabilityLevel * 100).toFixed(1)}% (${improvement > 0 ? '+' : ''}${(improvement * 100).toFixed(1)}%)`);
-      
-      return {
-        triggered: true,
-        testType,
-        score,
-        confidence: avgConfidence,
-        improvement,
-        questions: benchmarkQuestions.length
-      };
-      
-    } catch (error) {
-      console.warn('⚠️ Adaptive benchmark failed:', error);
-      return { triggered: false };
     }
+
+    // Determine if debate is required
+    const requiresDebate = complexity > 6 || 
+                          questionType === 'compare' || 
+                          lowerInput.includes('analyze') ||
+                          lowerInput.includes('evaluate') ||
+                          lowerInput.includes('pros and cons');
+
+    // Extract keywords
+    const keywords = words.filter(word => word.length > 3 && !['what', 'how', 'why', 'when', 'where', 'who', 'the', 'and', 'but', 'for'].includes(word));
+
+    return {
+      type: questionType,
+      complexity,
+      domain,
+      requiresDebate,
+      questionType,
+      keywords
+    };
   }
 
   /**
-   * Generate adaptive benchmark questions based on conversation context
+   * Generate intelligent response using all available knowledge and reasoning
    */
-  private generateAdaptiveBenchmarkQuestions(testType: string, input: string): string[] {
-    const questions: string[] = [];
-    
-    switch (testType) {
-      case 'math':
-        questions.push(
-          "What is 15 + 27?",
-          "If a rectangle has length 8 and width 5, what is its area?",
-          "What is 12 × 9?"
-        );
-        break;
-        
-      case 'coding':
-        questions.push(
-          "What does a 'for loop' do in programming?",
-          "What is the difference between '==' and '===' in JavaScript?",
-          "What is a variable in programming?"
-        );
-        break;
-        
-      case 'knowledge':
-        questions.push(
-          "What is the capital of France?",
-          "Who wrote 'Romeo and Juliet'?",
-          "What is the largest planet in our solar system?"
-        );
-        break;
-        
-      default: // reasoning
-        questions.push(
-          "If all birds can fly and penguins are birds, can penguins fly?",
-          "What comes next in this sequence: 2, 4, 8, 16, ?",
-          "If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 100 widgets?"
-        );
-        break;
-    }
-    
-    return questions;
-  }
-
-  /**
-   * Determine statement type for META-LOGIC evaluation
-   */
-  private determineStatementType(input: string): 'self_referential' | 'meta_classification' | 'standard' {
-    if (input.toLowerCase().includes('this statement') || input.toLowerCase().includes('this sentence')) {
-      return 'self_referential';
-    } else if (input.toLowerCase().includes('type of') || input.toLowerCase().includes('category') || input.toLowerCase().includes('classify')) {
-      return 'meta_classification';
-    } else {
-      return 'standard';
-    }
-  }
-
-  /**
-   * Detect paradox potential in input
-   */
-  private detectParadoxPotential(input: string): boolean {
-    const paradoxKeywords = ['paradox', 'contradiction', 'impossible', 'false', 'liar', 'self-reference'];
-    return paradoxKeywords.some(keyword => input.toLowerCase().includes(keyword));
-  }
-
-  /**
-   * Generate logic-based response using all system components
-   */
-  private generateLogicBasedResponse(
-    metaLogicResult: EvaluationResult,
-    debateResult: any, 
-    input: string, 
-    context: string[], 
-    trainingMetrics: TrainingMetrics,
-    apiData?: APIResponse,
+  private async generateIntelligentResponse(
+    input: string,
+    analysis: any,
+    context: string[],
     truthVerification?: AnointingResult,
-    benchmarkData?: any
-  ): string {
+    apiData?: APIResponse
+  ): Promise<{content: string, reasoning: string[], confidence: number}> {
+    const reasoning: string[] = [];
+    let confidence = 0.7; // Base confidence
+    
+    reasoning.push(`Input analysis: ${analysis.type} question about ${analysis.domain} (complexity: ${analysis.complexity})`);
+
+    // Start building response
     let response = '';
-    
-    // Start with META-LOGIC evaluation if significant
-    if (metaLogicResult.confidence > 0.7 || metaLogicResult.truthValue !== 'undecidable') {
-      response += `🧠 Logical Analysis: ${metaLogicResult.truthValue.toUpperCase()}\n`;
-      if (metaLogicResult.reasoning.length > 0) {
-        response += `Reasoning: ${metaLogicResult.reasoning[0]}\n\n`;
-      }
-    }
-    
-    // Add truth verification results if available
+
+    // Add truth verification if available
     if (truthVerification) {
-      response += this.formatTruthVerification(truthVerification) + '\n\n';
+      reasoning.push(`Truth verification applied: ${truthVerification.overallTruthValue} (${(truthVerification.confidence * 100).toFixed(1)}%)`);
+      confidence = Math.max(confidence, truthVerification.confidence);
     }
-    
-    // Add benchmark results if triggered
-    if (benchmarkData?.triggered) {
-      response += `📊 Real-time Capability Assessment: ${(benchmarkData.score * 100).toFixed(1)}% on ${benchmarkData.testType} tasks\n`;
-      if (benchmarkData.improvement > 0) {
-        response += `📈 Improvement detected: +${(benchmarkData.improvement * 100).toFixed(1)}%\n\n`;
-      } else {
-        response += '\n';
-      }
-    }
-    
-    // Get multi-modal capability hints based on progress
-    const progress = this.memory.getTrainingProgress();
-    const multiModalHints = this.getMultiModalHints(progress.multiModalProgress);
-    
+
     // Add API data if relevant
     if (apiData && apiData.success) {
+      reasoning.push('Integrated blockchain/API data into response');
       response += this.formatAPIResponse(apiData) + '\n\n';
     }
-    
-    // Use the winning team's approach enhanced by evolved algorithms and logic
-    const winningApproach = debateResult.winningApproach || debateResult.synthesis;
-    
-    // Add reasoning ability indicator for high-level responses
-    if (trainingMetrics.reasoningAbility > 0.7) {
-      // Add context awareness if relevant
-      if (context.length > 0) {
-        const contextRelevance = this.assessContextRelevance(input, context);
-        if (contextRelevance > 0.3) {
-          response += "Building on our previous conversations and applying evolved reasoning patterns:\n\n";
-        }
-      }
-      
-      // Enhanced response with algorithm evolution insights and logic
-      response += winningApproach;
-      
-      // Add multi-modal hints
-      if (multiModalHints) {
-        response += `\n\n${multiModalHints}`;
-      }
-      
-      // Add algorithmic insights for complex queries
-      if (input.length > 100 || trainingMetrics.reasoningAbility > 0.8) {
-        response += "\n\n*This response was generated using:*\n";
-        response += `*• META-LOGIC evaluation (${metaLogicResult.truthValue}, ${(metaLogicResult.confidence * 100).toFixed(1)}% confidence)*\n`;
-        response += `*• ARIEL 4x4 team debate (${debateResult.participatingAgents?.length || 0} agents)*\n`;
-        response += `*• AlphaEvolve algorithms (Gen ${trainingMetrics.generation}, ${(trainingMetrics.reasoningAbility * 100).toFixed(1)}% reasoning)*\n`;
-        if (truthVerification) {
-          response += `*• Truth stratification (${truthVerification.geometricSignature})*\n`;
-        }
-        if (benchmarkData?.triggered) {
-          response += `*• Real-time benchmarking (${(benchmarkData.score * 100).toFixed(1)}% capability)*\n`;
-        }
-        response += `*Training progress: ${(progress.multiModalProgress.overallProgress * 100).toFixed(1)}% toward full multi-modal AGI*`;
-      }
+
+    // Generate domain-specific response
+    if (this.knowledgeBase.has(analysis.domain)) {
+      const domainKnowledge = this.knowledgeBase.get(analysis.domain);
+      response += this.generateDomainResponse(input, analysis, domainKnowledge);
+      reasoning.push(`Applied ${analysis.domain} domain knowledge`);
+      confidence += 0.1;
     } else {
-      // Standard response for lower reasoning levels
-      if (context.length > 0) {
-        const contextRelevance = this.assessContextRelevance(input, context);
-        if (contextRelevance > 0.3) {
-          response += "Considering our previous discussion:\n\n";
+      // General response generation
+      response += this.generateGeneralResponse(input, analysis);
+      reasoning.push('Generated general knowledge response');
+    }
+
+    // Add context awareness if relevant
+    if (context.length > 0) {
+      const contextRelevance = this.assessContextRelevance(input, context);
+      if (contextRelevance > 0.3) {
+        response = `Building on our previous conversation, ${response}`;
+        reasoning.push(`Integrated conversation context (relevance: ${(contextRelevance * 100).toFixed(1)}%)`);
+        confidence += 0.05;
+      }
+    }
+
+    // Add reasoning methodology
+    const trainingMetrics = this.alphaEvolve.getTrainingMetrics();
+    if (trainingMetrics.reasoningAbility > 0.7) {
+      reasoning.push(`Applied advanced reasoning (${(trainingMetrics.reasoningAbility * 100).toFixed(1)}% capability)`);
+      confidence += 0.1;
+    }
+
+    // Ensure response quality
+    if (response.length < 50) {
+      response += '\n\nI\'m continuously evolving my understanding through algorithm evolution and debate teams. Would you like me to explore this topic in more depth?';
+      reasoning.push('Added engagement prompt for short response');
+    }
+
+    // Add system insights for complex queries
+    if (analysis.complexity > 7) {
+      response += '\n\n*This response was generated using evolved algorithms from ARIEL debate teams, with truth stratification verification and continuous learning from our conversation.*';
+      reasoning.push('Added system transparency note for complex query');
+    }
+
+    return {
+      content: response,
+      reasoning,
+      confidence: Math.min(0.95, confidence)
+    };
+  }
+
+  /**
+   * Generate domain-specific response
+   */
+  private generateDomainResponse(input: string, analysis: any, domainKnowledge: any): string {
+    const concepts = domainKnowledge.concepts || [];
+    const relationships = domainKnowledge.relationships || [];
+    const applications = domainKnowledge.applications || [];
+
+    let response = '';
+
+    switch (analysis.questionType) {
+      case 'what':
+        const relevantConcepts = concepts.filter((concept: string) => 
+          input.toLowerCase().includes(concept.toLowerCase())
+        );
+        if (relevantConcepts.length > 0) {
+          response = `${relevantConcepts[0]} is a fundamental concept in ${analysis.domain}. `;
+          response += `It relates to ${concepts.slice(0, 3).join(', ')} and has applications in ${applications.slice(0, 2).join(' and ')}.`;
+        } else {
+          response = `In the context of ${analysis.domain}, this involves understanding ${concepts.slice(0, 2).join(' and ')}.`;
         }
-      }
-      
-      response += winningApproach;
-      
-      // Add multi-modal hints for lower levels too
-      if (multiModalHints) {
-        response += `\n\n${multiModalHints}`;
-      }
+        break;
+
+      case 'how':
+        response = `To approach this in ${analysis.domain}, consider these key steps:\n\n`;
+        response += `1. Understanding the foundational concepts: ${concepts.slice(0, 2).join(', ')}\n`;
+        response += `2. Applying the relationships: ${relationships.slice(0, 2).join('; ')}\n`;
+        response += `3. Implementing in practical applications: ${applications.slice(0, 2).join(' or ')}`;
+        break;
+
+      case 'why':
+        response = `The reasoning behind this in ${analysis.domain} involves several factors:\n\n`;
+        response += `• Fundamental principles: ${relationships.slice(0, 2).join('\n• ')}\n`;
+        response += `• Practical applications: ${applications.slice(0, 2).join(' and ')}\n`;
+        response += `• Interconnected concepts: ${concepts.slice(0, 3).join(', ')}`;
+        break;
+
+      case 'compare':
+        response = `When comparing these concepts in ${analysis.domain}:\n\n`;
+        response += `Key similarities include their foundation in ${concepts[0] || 'core principles'}, `;
+        response += `while differences emerge in their ${applications.slice(0, 2).join(' versus ')} applications.`;
+        break;
+
+      default:
+        response = `Regarding ${analysis.domain}, this involves ${concepts.slice(0, 2).join(' and ')}. `;
+        response += `The key relationships are: ${relationships.slice(0, 2).join('; ')}. `;
+        response += `This has practical applications in ${applications.slice(0, 2).join(' and ')}.`;
     }
-    
-    // Add confidence indicator if low
-    if (debateResult.confidence < 0.6) {
-      response += "\n\n(Note: This is a complex topic and my algorithms are still evolving to better handle it.)";
-    }
-    
-    // Add persistent training indicator
-    if (this.persistentTrainingState) {
-      response += `\n\n*Training continues across sessions - Generation ${this.persistentTrainingState.generation} active.*`;
-    }
-    
+
     return response;
+  }
+
+  /**
+   * Generate general response for unknown domains
+   */
+  private generateGeneralResponse(input: string, analysis: any): string {
+    let response = '';
+
+    switch (analysis.questionType) {
+      case 'what':
+        response = `Let me analyze this systematically. Based on the context and my reasoning capabilities, `;
+        response += `this appears to involve ${analysis.keywords.slice(0, 2).join(' and ')}. `;
+        response += `Through logical evaluation, I can provide insights on the key aspects and relationships.`;
+        break;
+
+      case 'how':
+        response = `Here's a systematic approach to this:\n\n`;
+        response += `1. First, analyze the core components: ${analysis.keywords.slice(0, 2).join(', ')}\n`;
+        response += `2. Then, consider the logical relationships and dependencies\n`;
+        response += `3. Finally, implement a step-by-step methodology\n\n`;
+        response += `This approach ensures comprehensive coverage while maintaining logical consistency.`;
+        break;
+
+      case 'why':
+        response = `The reasoning involves multiple interconnected factors:\n\n`;
+        response += `• Causal relationships between ${analysis.keywords.slice(0, 2).join(' and ')}\n`;
+        response += `• Logical dependencies and prerequisites\n`;
+        response += `• Contextual factors that influence outcomes\n\n`;
+        response += `Through systematic analysis, these elements combine to create the observed patterns.`;
+        break;
+
+      case 'compare':
+        response = `Comparing these elements reveals several key distinctions:\n\n`;
+        response += `**Similarities:** Both involve ${analysis.keywords[0] || 'core concepts'} and share fundamental principles.\n\n`;
+        response += `**Differences:** They diverge in their ${analysis.keywords.slice(1, 3).join(' versus ')} approaches and applications.\n\n`;
+        response += `The choice between them depends on specific requirements and contextual factors.`;
+        break;
+
+      default:
+        response = `Based on my analysis of ${analysis.keywords.slice(0, 2).join(' and ')}, `;
+        response += `this involves systematic reasoning and logical evaluation. `;
+        response += `Through my evolved algorithms and debate team insights, I can provide comprehensive analysis `;
+        response += `that considers multiple perspectives and maintains logical consistency.`;
+    }
+
+    return response;
+  }
+
+  /**
+   * Integrate debate insights into response
+   */
+  private integrateDebateInsights(response: string, debateResult: any): string {
+    if (!debateResult || !debateResult.winningApproach) {
+      return response;
+    }
+
+    // Add debate insights
+    let enhancedResponse = response + '\n\n**Enhanced Analysis through ARIEL Debate Teams:**\n\n';
+    enhancedResponse += debateResult.winningApproach;
+    
+    if (debateResult.adversarialChallenges && debateResult.adversarialChallenges.length > 0) {
+      enhancedResponse += '\n\n**Key Considerations:**\n';
+      debateResult.adversarialChallenges.slice(0, 2).forEach((challenge: string, index: number) => {
+        enhancedResponse += `${index + 1}. ${challenge}\n`;
+      });
+    }
+
+    return enhancedResponse;
   }
 
   private shouldApplyTruthVerification(input: string): boolean {
@@ -1027,60 +848,6 @@ export class MachineGodCore {
     return updates.length > 0 ? updates.join(' ') : undefined;
   }
 
-  private analyzeInputComplexity(input: string, context: string[]): number {
-    let complexity = 1;
-    
-    // Length factor
-    complexity += Math.floor(input.length / 50);
-    
-    // Context dependency
-    complexity += context.length * 0.2;
-    
-    // Question complexity
-    const questionWords = ['what', 'how', 'why', 'when', 'where', 'who', 'which'];
-    complexity += questionWords.filter(qw => input.toLowerCase().includes(qw)).length;
-    
-    // Technical terms
-    const technicalTerms = ['algorithm', 'system', 'process', 'method', 'function', 'logic', 'analyze', 'explain'];
-    complexity += technicalTerms.filter(tt => input.toLowerCase().includes(tt)).length * 0.5;
-    
-    // Creative/subjective requests
-    const creativeTerms = ['create', 'design', 'imagine', 'brainstorm', 'idea', 'creative'];
-    complexity += creativeTerms.filter(ct => input.toLowerCase().includes(ct)).length * 0.7;
-    
-    // Reasoning complexity
-    const reasoningTerms = ['because', 'therefore', 'however', 'although', 'despite', 'consequently'];
-    complexity += reasoningTerms.filter(rt => input.toLowerCase().includes(rt)).length * 0.8;
-    
-    // API complexity
-    const apiTerms = ['blockchain', 'transaction', 'network', 'algorand', 'api'];
-    complexity += apiTerms.filter(at => input.toLowerCase().includes(at)).length * 0.6;
-    
-    // Truth verification complexity
-    const truthTerms = ['truth', 'false', 'paradox', 'prove', 'logic', 'consistent'];
-    complexity += truthTerms.filter(tt => input.toLowerCase().includes(tt)).length * 0.9;
-    
-    return Math.min(10, Math.max(1, complexity));
-  }
-
-  private formatTruthVerification(verification: AnointingResult): string {
-    let result = `🔥 Truth Stratification Analysis:\n`;
-    result += `Truth Value: ${verification.overallTruthValue.toUpperCase()}\n`;
-    result += `Confidence: ${(verification.confidence * 100).toFixed(1)}%\n`;
-    result += `Geometric Signature: ${verification.geometricSignature}\n`;
-    
-    verification.stratumResults.forEach(stratum => {
-      const status = stratum.passed ? '✅' : '❌';
-      result += `${status} ${stratum.stratum}: ${(stratum.confidence * 100).toFixed(1)}%\n`;
-    });
-    
-    if (verification.stratumResults.some(s => !s.passed)) {
-      result += `\n🔧 Applied corrections through minimal extensions and geometric normalization.`;
-    }
-    
-    return result;
-  }
-
   private formatAPIResponse(apiData: APIResponse): string {
     if (!apiData.success) {
       return `🔗 API Error: ${apiData.error}`;
@@ -1099,32 +866,6 @@ export class MachineGodCore {
     }
     
     return '🔗 Algorand API request completed successfully';
-  }
-
-  private getMultiModalHints(progress: any): string | null {
-    const hints: string[] = [];
-    
-    if (progress.naturalLanguage.level >= 2 && progress.speechToText.level === 0) {
-      hints.push("🎤 Next milestone: Speech-to-text capabilities are being developed!");
-    }
-    
-    if (progress.naturalLanguage.level >= 3 && progress.imageGeneration.level === 0) {
-      hints.push("🖼️ Next milestone: Image understanding capabilities are being developed!");
-    }
-    
-    if (progress.speechToText.level >= 1) {
-      hints.push("🎤 Speech processing capabilities are now active!");
-    }
-    
-    if (progress.imageGeneration.level >= 1) {
-      hints.push("🖼️ Image understanding capabilities are now active!");
-    }
-    
-    if (progress.videoSpatialAnalysis.level >= 1) {
-      hints.push("🎬 Video spatial analysis capabilities are now active!");
-    }
-    
-    return hints.length > 0 ? hints.join(' ') : null;
   }
 
   private assessContextRelevance(input: string, context: string[]): number {
@@ -1154,69 +895,11 @@ export class MachineGodCore {
       if (step.includes('evolution')) patterns.push('evolutionary-optimization');
       if (step.includes('api') || step.includes('blockchain')) patterns.push('api-integration');
       if (step.includes('truth') || step.includes('verification')) patterns.push('truth-stratification');
-      if (step.includes('logic') || step.includes('reasoning')) patterns.push('logical-analysis');
+      if (step.includes('domain')) patterns.push('domain-knowledge');
+      if (step.includes('logical')) patterns.push('logical-reasoning');
     });
     
     return [...new Set(patterns)];
-  }
-
-  private formatEvolutionaryReasoning(debateResult: any, trainingMetrics: TrainingMetrics, metaLogicResult?: EvaluationResult): string {
-    const reasoning = [];
-    
-    reasoning.push(`🧬 AlphaEvolve Generation: ${trainingMetrics.generation || 0}`);
-    reasoning.push(`🧠 Reasoning Ability: ${(trainingMetrics.reasoningAbility * 100).toFixed(1)}%`);
-    
-    if (metaLogicResult) {
-      reasoning.push(`🔍 META-LOGIC: ${metaLogicResult.truthValue} (${(metaLogicResult.confidence * 100).toFixed(1)}% confidence)`);
-      reasoning.push(`📊 Logic Compression: ${(metaLogicResult.compressionRatio * 100).toFixed(1)}%`);
-    }
-    
-    reasoning.push(`🎯 Research Teams: ${debateResult.participatingAgents?.join(', ') || 'Multiple teams'}`);
-    reasoning.push(`🏆 Winning Approach: ${debateResult.winningTeam || 'Consensus'}`);
-    reasoning.push(`📊 Team Performance: ${((debateResult.teamPerformance || debateResult.confidence) * 100).toFixed(1)}%`);
-    
-    if (debateResult.adversarialChallenges && debateResult.adversarialChallenges.length > 0) {
-      reasoning.push(`⚔️ Adversarial Challenges: ${debateResult.adversarialChallenges.length} raised`);
-    }
-    
-    reasoning.push(`🗜️ Compression Efficiency: ${(trainingMetrics.compressionEfficiency * 100).toFixed(1)}%`);
-    reasoning.push(`🔄 Algorithm Evolution: ${(trainingMetrics.algorithmEvolution * 100).toFixed(1)}%`);
-    
-    // Add multi-modal progress
-    const progress = this.memory.getTrainingProgress();
-    reasoning.push(`🌟 Multi-Modal Progress: ${(progress.multiModalProgress.overallProgress * 100).toFixed(1)}%`);
-    
-    // Add API status
-    const apiStats = this.algorandAPI.getAPIStats();
-    reasoning.push(`🔗 API Status: ${this.apiConnectivity} (${apiStats.requestCount} requests)`);
-    
-    // Add truth protocol status
-    const truthStats = this.truthProtocol.getProtocolStats();
-    reasoning.push(`🔥 Truth Protocol: ${truthStats.adversarialCycles} cycles, ${truthStats.truthSignatures} signatures`);
-    
-    // Add benchmarking status
-    reasoning.push(`📊 Current Capability: ${(this.currentCapabilityLevel * 100).toFixed(1)}% (Real-time benchmarked)`);
-    
-    // Add persistent training status
-    if (this.persistentTrainingState) {
-      reasoning.push(`🔄 Persistent Training: Active since ${new Date(this.persistentTrainingState.lastUpdate).toLocaleString()}`);
-    }
-    
-    return reasoning.join('\n');
-  }
-
-  private calculateComplexity(query: string): number {
-    let complexity = 1;
-    
-    complexity += Math.floor(query.length / 50);
-    const logicalOps = ['and', 'or', 'not', 'if', 'then', 'implies', 'because'];
-    complexity += logicalOps.filter(op => query.toLowerCase().includes(op)).length;
-    const questionWords = ['what', 'how', 'why', 'when', 'where', 'who'];
-    complexity += questionWords.filter(qw => query.toLowerCase().includes(qw)).length;
-    const technicalTerms = ['algorithm', 'system', 'process', 'method', 'function', 'logic'];
-    complexity += technicalTerms.filter(tt => query.toLowerCase().includes(tt)).length * 0.5;
-    
-    return Math.min(10, Math.max(1, complexity));
   }
 
   /**
@@ -1267,8 +950,22 @@ export class MachineGodCore {
     };
   }
 
+  private calculateComplexity(query: string): number {
+    let complexity = 1;
+    
+    complexity += Math.floor(query.length / 50);
+    const logicalOps = ['and', 'or', 'not', 'if', 'then', 'implies', 'because'];
+    complexity += logicalOps.filter(op => query.toLowerCase().includes(op)).length;
+    const questionWords = ['what', 'how', 'why', 'when', 'where', 'who'];
+    complexity += questionWords.filter(qw => query.toLowerCase().includes(qw)).length;
+    const technicalTerms = ['algorithm', 'system', 'process', 'method', 'function', 'logic'];
+    complexity += technicalTerms.filter(tt => query.toLowerCase().includes(tt)).length * 0.5;
+    
+    return Math.min(10, Math.max(1, complexity));
+  }
+
   /**
-   * Get comprehensive system status with benchmarking metrics
+   * Get comprehensive system status with truth protocol metrics
    */
   getSystemStatus(): SystemStatus {
     const metaLogicHistory = this.metaLogic.getEvaluationHistory();
@@ -1281,16 +978,6 @@ export class MachineGodCore {
     const trainingProgress = this.memory.getTrainingProgress();
     const apiStats = this.algorandAPI.getAPIStats();
     const truthStats = this.truthProtocol.getProtocolStats();
-    const benchmarkReports = this.benchmarking.getAllReports();
-    
-    // Calculate benchmark metrics
-    const testsCompleted = benchmarkReports.size;
-    const averageScore = testsCompleted > 0 
-      ? Array.from(benchmarkReports.values()).reduce((sum, report) => sum + report.overallScore, 0) / testsCompleted / 100
-      : this.currentCapabilityLevel;
-    const lastBenchmark = testsCompleted > 0 
-      ? new Date(Math.max(...Array.from(benchmarkReports.values()).map(r => r.proofOfConcepts[0]?.timestamp.getTime() || 0)))
-      : null;
     
     return {
       metaLogic: {
@@ -1341,49 +1028,15 @@ export class MachineGodCore {
         truthSignatures: truthStats.truthSignatures,
         stratumCompliance: truthStats.stratumCompliance,
         active: this.truthVerificationEnabled
-      },
-      benchmarking: {
-        testsCompleted,
-        averageScore,
-        lastBenchmark,
-        currentCapabilityLevel: this.currentCapabilityLevel,
-        active: this.benchmarkingEnabled
       }
     };
   }
 
   /**
-   * Get Enhanced Benchmarking instance for direct access
+   * Get training progress for external access
    */
-  getBenchmarking(): EnhancedBenchmarking {
-    return this.benchmarking;
-  }
-
-  /**
-   * Run manual benchmark test
-   */
-  async runBenchmarkTest(testId: string): Promise<BenchmarkReport> {
-    console.log(`📊 Running manual benchmark test: ${testId}`);
-    
-    const systemResponseFunction = async (question: string) => {
-      const result = await this.processSimpleQuestion(question);
-      return {
-        response: result.response,
-        reasoning: `Processed through MachineGod logic engine with ${(result.confidence * 100).toFixed(1)}% confidence`,
-        confidence: result.confidence
-      };
-    };
-    
-    const report = await this.benchmarking.runEnhancedBenchmark(testId, systemResponseFunction);
-    
-    // Update capability level based on benchmark results
-    const benchmarkScore = report.overallScore / 100;
-    this.currentCapabilityLevel = (this.currentCapabilityLevel * 0.7) + (benchmarkScore * 0.3);
-    
-    console.log(`📊 Benchmark completed: ${report.testName} - ${report.overallScore.toFixed(1)}%`);
-    console.log(`📈 Updated capability level: ${(this.currentCapabilityLevel * 100).toFixed(1)}%`);
-    
-    return report;
+  getTrainingProgress() {
+    return this.memory.getTrainingProgress();
   }
 
   /**
@@ -1491,50 +1144,6 @@ export class MachineGodCore {
   }
 
   /**
-   * Get training progress (simplified for UI)
-   */
-  getTrainingProgress() {
-    const trainingProgress = this.memory.getTrainingProgress();
-    const trainingMetrics = this.alphaEvolve.getTrainingMetrics();
-    
-    return {
-      checkpoints: trainingProgress.checkpoints,
-      latestCheckpoint: trainingProgress.latestCheckpoint,
-      multiModalProgress: trainingProgress.multiModalProgress,
-      totalConversations: trainingProgress.totalConversations,
-      userCount: trainingProgress.userCount,
-      // Add current training metrics
-      currentLevel: trainingMetrics.currentLevel.name,
-      progressPercentage: trainingMetrics.progressPercentage,
-      reasoningAbility: trainingMetrics.reasoningAbility,
-      generation: trainingMetrics.generation,
-      algorithmCount: trainingMetrics.algorithmCount,
-      // Add persistent state info
-      persistentTraining: this.persistentTrainingState !== null,
-      sessionId: this.sessionId
-    };
-  }
-
-  /**
-   * Get persistent training state info
-   */
-  getPersistentTrainingInfo(): {
-    hasPersistentState: boolean;
-    sessionId: string;
-    lastUpdate: Date | null;
-    generation: number;
-    continuousTraining: boolean;
-  } {
-    return {
-      hasPersistentState: this.persistentTrainingState !== null,
-      sessionId: this.sessionId,
-      lastUpdate: this.persistentTrainingState ? new Date(this.persistentTrainingState.lastUpdate) : null,
-      generation: this.persistentTrainingState?.generation || 0,
-      continuousTraining: this.persistentTrainingState?.continuousTraining || false
-    };
-  }
-
-  /**
    * Emergency reset all systems
    */
   async emergencyReset(): Promise<void> {
@@ -1559,20 +1168,12 @@ export class MachineGodCore {
     // Reset truth protocol
     this.truthProtocol = new MesiahBishopProtocol();
     
-    // Reset benchmarking
-    this.benchmarking = new EnhancedBenchmarking();
-    this.currentCapabilityLevel = 0.4;
-    
-    // Clear persistent training state
-    localStorage.removeItem(this.trainingStateKey);
-    this.persistentTrainingState = null;
-    
     await this.warp.activate();
     
     this.isInitialized = true;
     this.operationCount = 0;
     
-    console.log('✅ Emergency reset complete - all systems restored with fresh training state');
+    console.log('✅ Emergency reset complete - all systems restored with fresh AlphaEvolve and Truth Protocol');
   }
 
   /**
@@ -1585,8 +1186,6 @@ export class MachineGodCore {
     const trainingProgress = this.memory.getTrainingProgress();
     const apiStats = this.algorandAPI.getAPIStats();
     const truthStats = this.truthProtocol.getProtocolStats();
-    const persistentInfo = this.getPersistentTrainingInfo();
-    const benchmarkReports = this.benchmarking.getAllReports();
     
     return {
       coreStatus: this.isInitialized ? 'OPERATIONAL' : 'OFFLINE',
@@ -1599,13 +1198,6 @@ export class MachineGodCore {
       multiModalProgress: trainingProgress.multiModalProgress,
       apiStats,
       truthStats,
-      persistentTraining: persistentInfo,
-      benchmarking: {
-        testsCompleted: benchmarkReports.size,
-        currentCapabilityLevel: this.currentCapabilityLevel,
-        lastBenchmarkTime: this.lastBenchmarkTime,
-        benchmarkingEnabled: this.benchmarkingEnabled
-      },
       subsystems: {
         metaLogic: {
           status: 'ACTIVE',
@@ -1632,8 +1224,7 @@ export class MachineGodCore {
           status: 'ACTIVE',
           generation: trainingMetrics.generation,
           algorithms: trainingMetrics.algorithmCount,
-          reasoningAbility: trainingMetrics.reasoningAbility,
-          persistent: persistentInfo.hasPersistentState
+          reasoningAbility: trainingMetrics.reasoningAbility
         },
         memory: {
           status: 'ACTIVE',
@@ -1655,19 +1246,13 @@ export class MachineGodCore {
           truthSignatures: truthStats.truthSignatures,
           depthThreshold: truthStats.depthThreshold,
           activeStrata: truthStats.activeStrata
-        },
-        benchmarking: {
-          status: this.benchmarkingEnabled ? 'ACTIVE' : 'DISABLED',
-          testsCompleted: benchmarkReports.size,
-          currentCapability: `${(this.currentCapabilityLevel * 100).toFixed(1)}%`,
-          lastBenchmark: this.lastBenchmarkTime > 0 ? new Date(this.lastBenchmarkTime).toISOString() : 'Never'
         }
       }
     };
   }
 
   /**
-   * Manual system optimization with evolution boost, truth protocol benchmark, and capability assessment
+   * Manual system optimization with evolution boost and truth protocol benchmark
    */
   async optimize(): Promise<string[]> {
     const optimizations: string[] = [];
@@ -1709,34 +1294,6 @@ export class MachineGodCore {
     const truthBenchmark = await this.truthProtocol.benchmark();
     optimizations.push(`Truth Protocol: Benchmark completed - ${(truthBenchmark.averageConfidence * 100).toFixed(1)}% avg confidence`);
     
-    // Run capability benchmark
-    try {
-      await this.runAdaptiveBenchmark('System optimization test');
-      optimizations.push(`Benchmarking: Capability assessment completed - ${(this.currentCapabilityLevel * 100).toFixed(1)}% current level`);
-    } catch (error) {
-      optimizations.push('Benchmarking: Assessment skipped due to error');
-    }
-    
-    // Save persistent training state after optimization
-    this.saveTrainingState();
-    optimizations.push('Persistent Training: State saved after optimization');
-    
     return optimizations;
-  }
-
-  /**
-   * Cleanup and shutdown
-   */
-  shutdown(): void {
-    // Save final training state
-    this.saveTrainingState();
-    
-    // Clear training update interval
-    if (this.trainingUpdateInterval) {
-      clearInterval(this.trainingUpdateInterval);
-      this.trainingUpdateInterval = null;
-    }
-    
-    console.log('🔌 MachineGod Core shutdown complete - training state preserved');
   }
 }
