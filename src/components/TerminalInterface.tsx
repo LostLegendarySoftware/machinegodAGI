@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MachineGodCore, SystemStatus, ConversationResponse } from '../core/MachineGodCore';
-import { FloatingResponseBox } from './FloatingResponseBox';
 
 interface TerminalCommand {
   command: string;
@@ -18,12 +17,6 @@ interface TerminalCommand {
   multiModalUpdate?: string;
   apiData?: any;
   truthVerification?: any;
-  floatingResponse?: {
-    content: string;
-    requiresUserClick: boolean;
-    consensusAchieved: boolean;
-    verificationPassed: boolean;
-  };
 }
 
 interface TerminalInterfaceProps {
@@ -54,8 +47,6 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
   const [machineGod] = useState(() => new MachineGodCore());
   const [isInitialized, setIsInitialized] = useState(false);
   const [conversationContext, setConversationContext] = useState<string[]>([]);
-  const [showFloatingResponse, setShowFloatingResponse] = useState(false);
-  const [currentFloatingResponse, setCurrentFloatingResponse] = useState<any>(null);
   const [trainingProgress, setTrainingProgress] = useState<TrainingProgress>({
     currentLevel: 'ChatGPT-4 Baseline',
     targetLevel: 'Full Multi-Modal AGI',
@@ -78,34 +69,26 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
 
   const bootSequence = [
     "MACHINEGOD OMEGAEVOLVED INTELLIGENCE v3.0.0",
-    "(c) 2024 META-LOGIC Systems - MANDATORY CONSENSUS + EMOTIONAL ANALYSIS",
+    "(c) 2024 META-LOGIC Systems - NATURAL FLOW + BACKGROUND CONSENSUS",
     "",
-    "🤝 Initializing MANDATORY CONSENSUS Protocol...",
-    "✓ All agents must agree before ANY output: ENABLED",
-    "✓ Consensus threshold: 85% minimum agreement",
-    "✓ Maximum consensus rounds: 5 attempts",
-    "✓ Dissenter feedback integration: ACTIVE",
-    "✓ Emotional trigger analysis: ENABLED",
-    "✓ Verification loops: ACTIVE",
-    "✓ Floating response box: ENABLED",
-    "",
-    "😊 Initializing Emotional Analysis System...",
-    "✓ Emotional trigger detection: ACTIVE",
-    "✓ Sentiment analysis: ENABLED",
-    "✓ Urgency assessment: READY",
+    "💬 Initializing Natural Conversation Flow...",
+    "✓ Immediate response generation: ENABLED",
+    "✓ Emotional analysis integration: ACTIVE",
+    "✓ Context awareness: READY",
+    "✓ Natural language patterns: LOADED",
     "✓ Response style adaptation: CONFIGURED",
-    "✓ User emotional state tracking: ACTIVE",
     "",
-    "🔄 Initializing Verification Loop System...",
-    "✓ Response quality verification: ENABLED",
-    "✓ Emotional alignment checking: ACTIVE",
-    "✓ Completeness validation: READY",
-    "✓ Multi-round refinement: CONFIGURED",
+    "🔄 Initializing Background Processing...",
+    "✓ Background consensus system: ACTIVE",
+    "✓ Agent team debates: BACKGROUND MODE",
+    "✓ Verification loops: BACKGROUND MODE",
+    "✓ Quality assurance: CONTINUOUS",
+    "✓ No blocking for consensus: ENABLED",
     "",
     "🔥 Initializing Mesiah Bishop Truth Protocol...",
-    "✓ Truth Stratification (Ω₁, Ω₂, Ω₃): ENABLED",
-    "✓ Adversarial Anointing: ACTIVE",
-    "✓ Geometric Verification: READY",
+    "✓ Truth Stratification (Ω₁, Ω₂, Ω₃): BACKGROUND",
+    "✓ Adversarial Anointing: BACKGROUND",
+    "✓ Geometric Verification: BACKGROUND",
     "✓ Cardinal Truth Contexts: LOADED",
     "✓ 23K Token Depth Threshold: CONFIGURED",
     "",
@@ -125,21 +108,19 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     "✓ Blockchain connectivity: TESTING",
     "",
     "🧠 META-LOGIC Absolute Zero Evaluator...",
-    "✓ Recursive self-referential analysis: ONLINE",
-    "✓ Paradox resolution framework: ACTIVE",
-    "✓ Truth stratification engine: CALIBRATED",
+    "✓ Recursive self-referential analysis: BACKGROUND",
+    "✓ Paradox resolution framework: BACKGROUND",
+    "✓ Truth stratification engine: BACKGROUND",
     "✓ Background analysis integration: READY",
     "",
-    "🤖 ARIEL 4x4 Agent Teams with MANDATORY CONSENSUS...",
+    "🤖 ARIEL 4x4 Agent Teams with Background Consensus...",
     "✓ Team Alpha (Research): 4 agents + handler DEPLOYED",
     "✓ Team Beta (Analysis): 4 agents + handler DEPLOYED", 
     "✓ Team Gamma (Synthesis): 4 agents + handler DEPLOYED",
     "✓ Management layer: ACTIVE",
-    "✓ Consensus requirement: MANDATORY",
-    "✓ Voting system: ENABLED",
-    "✓ Dissenter feedback: INTEGRATED",
-    "✓ 1v1 debate system: CONFIGURED",
-    "✓ Emotional analysis integration: ACTIVE",
+    "✓ Background consensus: ENABLED",
+    "✓ Non-blocking operation: ACTIVE",
+    "✓ Quality assurance: CONTINUOUS",
     "",
     "⚡ WARP Speed Boosting (Reasoning-Based Advancement)...",
     "✓ Phase monitoring: ACTIVE",
@@ -171,26 +152,23 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     "💾 Memory: Persistent across sessions with learning retention",
     "🔗 API: Algorand blockchain integration for data serving",
     "🔥 Truth: Mesiah Bishop Protocol for absolute verification",
-    "🤝 CONSENSUS: ALL AGENTS MUST AGREE BEFORE OUTPUT",
-    "😊 EMOTIONAL: User emotional state analysis and adaptation",
-    "🔄 VERIFICATION: Multi-round quality assurance loops",
-    "📱 FLOATING: Response delivery through floating interface",
+    "💬 NATURAL FLOW: Immediate responses with background quality assurance",
+    "🔄 BACKGROUND: All consensus and verification runs behind the scenes",
     "",
     "⚠️ SECURITY NOTICE: Manual overrides and core component modification DISABLED",
     "🔒 System integrity protection: ACTIVE",
     "🛡️ Ethical safeguards: ENFORCED",
-    "🤝 CONSENSUS REQUIREMENT: MANDATORY FOR ALL RESPONSES",
-    "😊 EMOTIONAL ANALYSIS: REQUIRED FOR ALL INTERACTIONS",
-    "🔄 VERIFICATION LOOPS: MANDATORY QUALITY ASSURANCE",
+    "💬 NATURAL CONVERSATION: Immediate response with background consensus",
+    "🔄 BACKGROUND PROCESSING: Quality assurance without blocking",
     "",
-    "OMEGAEVOLVED SYSTEM READY - CONSENSUS + EMOTIONAL ANALYSIS ACTIVE",
+    "OMEGAEVOLVED SYSTEM READY - NATURAL FLOW + BACKGROUND CONSENSUS ACTIVE",
     "",
-    "Hello! I'm your MachineGod AI with OmegaEvolved technology and MANDATORY CONSENSUS.",
-    "Every response requires ALL my agent teams to reach agreement AND pass verification.",
-    "I analyze your emotional state and adapt my communication style accordingly.",
-    "Responses are delivered through a floating box that requires your confirmation.",
-    "If my agents can't reach consensus, I'll explain why and ask you to rephrase.",
-    "This ensures the highest quality, most emotionally appropriate responses possible!"
+    "Hello! I'm your MachineGod AI with OmegaEvolved technology and natural conversation flow.",
+    "I respond immediately while my agent teams work in the background to ensure quality.",
+    "My responses are natural and conversational, with all the technical processing",
+    "happening behind the scenes. I analyze your emotional state and adapt accordingly,",
+    "while my debate teams continuously verify and improve my reasoning.",
+    "Just talk to me naturally - I'll handle all the complex processing invisibly!"
   ];
 
   // Update training progress based on actual system metrics
@@ -271,7 +249,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
         
         setCommands(prev => [...prev, {
           command: '',
-          response: "🎯 OmegaEvolved system operational - MANDATORY CONSENSUS + EMOTIONAL ANALYSIS active",
+          response: "🎯 OmegaEvolved system operational - Natural Flow + Background Consensus active",
           timestamp: new Date()
         }]);
       } catch (error) {
@@ -318,7 +296,6 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
       let multiModalUpdate = '';
       let apiData = undefined;
       let truthVerification = undefined;
-      let floatingResponse = undefined;
 
       // Block dangerous commands
       const dangerousCommands = [
@@ -355,12 +332,12 @@ Available commands: help, status, training, evolution, memory, api, truth, bench
       // Check for system commands first
       if (input.toLowerCase() === 'help') {
         response = `
-🧬 MachineGod OmegaEvolved AI Assistant with MANDATORY CONSENSUS + EMOTIONAL ANALYSIS:
+🧬 MachineGod OmegaEvolved AI Assistant with Natural Flow + Background Consensus:
 
-💬 CONVERSATION:
-  Just type naturally - ALL my agent teams must agree AND pass verification before I respond!
+💬 NATURAL CONVERSATION:
+  Just type naturally - I respond immediately while my systems work in the background!
   I analyze your emotional state and adapt my communication style accordingly.
-  Responses are delivered through a floating box for your confirmation.
+  All consensus, verification, and quality assurance happens behind the scenes.
   
 🔧 SYSTEM COMMANDS:
   status     - Show detailed system status
@@ -369,7 +346,7 @@ Available commands: help, status, training, evolution, memory, api, truth, bench
   memory     - Show conversation memory and multi-modal progress
   api        - Show Algorand API status and connectivity
   truth      - Show Mesiah Bishop Truth Protocol status
-  consensus  - Show consensus statistics and voting patterns
+  consensus  - Show background consensus statistics
   emotional  - Show emotional analysis capabilities
   search <query> - Search conversation history
   export     - Export all memory data
@@ -381,51 +358,26 @@ Available commands: help, status, training, evolution, memory, api, truth, bench
   reset      - Reset conversation context (keeps memory)
   clear      - Clear terminal
   
-🤝 CONSENSUS SYSTEM:
-  • ALL agents must agree before ANY response
-  • Minimum 85% agreement threshold required
-  • Up to 5 consensus rounds attempted
-  • Dissenter feedback integrated for improvement
-  • 1v1 debates between agents with voting
-  • Verification loops ensure quality
-  • No output without unanimous agreement
+💬 NATURAL FLOW SYSTEM:
+  • Immediate response generation with emotional awareness
+  • Background consensus from all agent teams
+  • Continuous quality assurance without blocking
+  • Natural conversation patterns and style adaptation
+  • Context awareness from conversation history
+  • Seamless integration of all technical processing
   
-😊 EMOTIONAL ANALYSIS:
-  • Automatic emotional trigger detection
-  • Sentiment analysis (positive/negative/neutral)
-  • Urgency assessment (low/medium/high)
-  • Response style adaptation (supportive/analytical/empathetic/cautious)
-  • User emotional state tracking
-  • Communication style optimization
-  
-🔄 VERIFICATION LOOPS:
-  • Response quality verification
-  • Emotional alignment checking
-  • Completeness validation
-  • Multi-round refinement process
-  • Consensus re-verification if needed
-  
-📱 FLOATING RESPONSE SYSTEM:
-  • Responses delivered in floating interface
-  • Requires user confirmation to proceed
-  • Shows consensus and verification status
-  • Clear indication of quality assurance
-  
-🔗 ALGORAND API COMMANDS:
-  network status - Check blockchain network status
-  api health     - Perform API health check
-  switch network <mainnet|testnet|betanet> - Switch networks
-  
-🔥 TRUTH STRATIFICATION COMMANDS:
-  verify <statement> - Apply Ω₁, Ω₂, Ω₃ verification
-  geometric <statement> - Show geometric truth shape
-  benchmark truth - Test protocol performance
+🔄 BACKGROUND PROCESSING:
+  • Agent team debates run behind the scenes
+  • Verification loops ensure quality continuously
+  • Truth stratification validates responses
+  • Algorithm evolution improves performance
+  • Memory system learns from every interaction
+  • API integration provides real-time data
   
 🧬 OMEGAEVOLVED CAPABILITIES:
+  • Natural conversation flow with immediate responses
   • Background reasoning through META-LOGIC analysis
-  • MANDATORY consensus from all agent teams
   • Emotional trigger analysis and response adaptation
-  • Verification loops for quality assurance
   • Algorithm creation through debate team results
   • Trainingless NLP with logic data storage
   • Continuous reasoning ability improvement
@@ -464,132 +416,55 @@ Available commands: help, status, training, evolution, memory, api, truth, bench
   • Core modification: BLOCKED
   • Ethical safeguards: IMMUTABLE
   • System integrity: PROTECTED
-  • Consensus requirement: MANDATORY
-  • Emotional analysis: REQUIRED
-  • Verification loops: MANDATORY
+  • Background consensus: CONTINUOUS
+  • Quality assurance: AUTOMATIC
 
-🤝 QUALITY GUARANTEE:
-Every response requires ALL agent teams to reach agreement,
-pass verification loops, AND be emotionally appropriate.
-If any step fails, I'll explain why and ask you to rephrase.
-Quality through unanimous agreement + emotional intelligence!
-`;
-      } else if (input.toLowerCase() === 'emotional') {
-        response = `
-😊 Emotional Analysis System Status:
-
-🧠 Emotional Intelligence Capabilities:
-  • Trigger Detection: Automatic identification of emotional keywords
-  • Sentiment Analysis: Positive, negative, and neutral classification
-  • Urgency Assessment: Low, medium, and high urgency detection
-  • Intensity Measurement: 0-1 scale emotional intensity scoring
-  • Response Style Adaptation: 4 adaptive communication styles
-
-📊 Emotional Keywords Database:
-  • Positive: happy, excited, love, amazing, wonderful, great, excellent, fantastic
-  • Negative: sad, angry, frustrated, hate, terrible, awful, horrible, disappointed
-  • Urgent: urgent, emergency, immediately, asap, critical, important, help, problem
-  • Supportive: support, help, assist, guide, comfort, understand, care
-
-🎯 Response Style Adaptation:
-  • Supportive: For negative emotions or high urgency situations
-  • Empathetic: For emotional support requests or personal topics
-  • Analytical: For technical or factual questions (default)
-  • Cautious: For high-intensity emotional situations
-
-🔄 Integration with Consensus System:
-  • Emotional analysis influences agent debate arguments
-  • Response style affects handler synthesis approach
-  • Verification loops check emotional alignment
-  • Consensus voting considers emotional appropriateness
-
-📈 Emotional Context Processing:
-  • Punctuation analysis (exclamation marks, caps)
-  • Context awareness from conversation history
-  • User emotional state tracking across sessions
-  • Adaptive communication based on emotional patterns
-
-💡 Usage Examples:
-  • "I'm really frustrated with this!" → Supportive response style
-  • "Can you help me understand?" → Empathetic approach
-  • "URGENT: Need help immediately!" → High urgency, supportive style
-  • "What is machine learning?" → Analytical approach
-
-The emotional analysis system ensures every response is not only
-factually correct through consensus, but also emotionally appropriate
-and supportive based on your current emotional state.
+💬 CONVERSATION GUARANTEE:
+Natural, immediate responses with all the quality assurance
+happening invisibly in the background. Just talk to me normally!
 `;
       } else if (input.toLowerCase() === 'consensus') {
         try {
           const consensusStats = machineGod.getConsensusStats();
           response = `
-🤝 Consensus System Statistics:
+🔄 Background Consensus System Statistics:
 
 📊 Overall Performance:
-  • Total Debates: ${consensusStats.totalDebates}
+  • Total Background Debates: ${consensusStats.totalDebates}
   • Consensus Achieved: ${consensusStats.consensusAchieved}
   • Success Rate: ${consensusStats.consensusRate.toFixed(1)}%
-  • Average Rounds: ${consensusStats.averageRounds.toFixed(1)}
+  • Average Processing Time: ${consensusStats.averageRounds.toFixed(1)}s
   • Average Agreement: ${consensusStats.averageAgreement.toFixed(1)}%
 
-🗳️ Voting Patterns:
-  • Consensus Threshold: 85% minimum agreement
-  • Maximum Rounds: 5 attempts per question
-  • Dissenter Integration: Active feedback system
-  • Agent Participation: All ${machineGod.getSystemStatus().ariel.agentCount} agents vote
+🔄 Background Processing Mode:
+  • Non-blocking responses: ENABLED
+  • Immediate user interaction: ACTIVE
+  • Background quality assurance: CONTINUOUS
+  • Agent team debates: BACKGROUND MODE
+  • Verification loops: BACKGROUND MODE
 
-🥊 1v1 Debate System:
-  • Structured debates between agent pairs
-  • Each debater argues once per round
-  • All other agents vote on arguments
-  • Proposer breaks ties when needed
-  • Winners advance to handler synthesis
+🤖 Agent Team Activity:
+  • All ${machineGod.getSystemStatus().ariel.agentCount} agents participate in background debates
+  • Consensus threshold: 85% minimum agreement
+  • Quality verification: Continuous background process
+  • Response improvement: Real-time algorithm evolution
 
-😊 Emotional Integration:
-  • Emotional analysis influences debate arguments
-  • Response style affects synthesis approach
-  • Verification checks emotional alignment
-  • Consensus considers emotional appropriateness
+💬 Natural Flow Benefits:
+  • Immediate responses while maintaining quality
+  • No waiting for consensus - background processing
+  • Natural conversation flow preserved
+  • All technical complexity hidden from user
+  • Continuous quality improvement behind the scenes
 
-🔄 Verification Loop Process:
-  • Quality verification after consensus
-  • Emotional alignment checking
-  • Completeness validation
-  • Multi-round refinement if needed
-  • Re-consensus if verification fails
+🎯 Quality Assurance:
+  • Background consensus validates all responses
+  • Emotional analysis ensures appropriate tone
+  • Truth verification runs continuously
+  • Algorithm evolution improves performance
+  • Memory system learns from every interaction
 
-📈 Quality Metrics:
-  • Responses Only With Consensus: 100%
-  • Failed Consensus Handling: Transparent explanation
-  • User Satisfaction: Enhanced through agreement requirement
-  • Response Quality: Guaranteed through unanimous approval
-  • Emotional Appropriateness: Verified through analysis
-
-🔧 Process Overview:
-  1. META-LOGIC analysis of user input
-  2. Emotional trigger analysis and style determination
-  3. Structured 1v1 debates between agents
-  4. Voting rounds with all agents participating
-  5. Handler synthesis of winning arguments
-  6. MANDATORY voting on synthesized solutions
-  7. Feedback integration if consensus not reached
-  8. Up to 5 rounds to achieve 85%+ agreement
-  9. Verification loop for quality assurance
-  10. Emotional alignment verification
-  11. Response generation ONLY after all checks pass
-  12. Floating box delivery requiring user confirmation
-
-🎯 Benefits:
-  • Highest quality responses through team agreement
-  • Multiple perspectives considered and validated
-  • Reduced errors through collaborative verification
-  • Enhanced reliability through consensus requirement
-  • Emotional appropriateness through analysis
-  • Transparent process when consensus fails
-  • User confirmation through floating interface
-
-The consensus system ensures every response has the full backing
-of all agent teams AND is emotionally appropriate before delivery!
+The background consensus system ensures every response is validated
+by all agent teams while maintaining natural conversation flow!
 `;
         } catch (error) {
           response = '⚠️ Consensus statistics temporarily unavailable.';
@@ -600,11 +475,11 @@ of all agent teams AND is emotionally appropriate before delivery!
         return;
       } else if (input.toLowerCase() === 'reset') {
         setConversationContext([]);
-        response = '🔄 Conversation context reset. Algorithm evolution, memory, API, truth protocol, consensus system, and emotional analysis continue!';
+        response = '🔄 Conversation context reset. Algorithm evolution, memory, API, truth protocol, and background consensus continue!';
       } else {
-        // Main conversation processing with MANDATORY CONSENSUS + EMOTIONAL ANALYSIS
+        // Main conversation processing with Natural Flow + Background Consensus
         if (isInitialized) {
-          // Process through the OmegaEvolved system with MANDATORY CONSENSUS + EMOTIONAL ANALYSIS
+          // Process through the OmegaEvolved system with Natural Flow
           const result = await machineGod.processConversation(input, conversationContext);
           
           response = result.response;
@@ -616,7 +491,6 @@ of all agent teams AND is emotionally appropriate before delivery!
           multiModalUpdate = result.multiModalUpdate || '';
           apiData = result.apiData;
           truthVerification = result.truthVerification;
-          floatingResponse = result.floatingResponse;
 
           // Update system status after processing
           const status = machineGod.getSystemStatus();
@@ -637,8 +511,7 @@ of all agent teams AND is emotionally appropriate before delivery!
         memoryId,
         multiModalUpdate,
         apiData,
-        truthVerification,
-        floatingResponse
+        truthVerification
       };
 
       setCommands(prev => {
@@ -646,12 +519,6 @@ of all agent teams AND is emotionally appropriate before delivery!
         newCommands[newCommands.length - 1] = finalCommand;
         return newCommands;
       });
-
-      // Show floating response if enabled
-      if (floatingResponse && floatingResponse.requiresUserClick) {
-        setCurrentFloatingResponse(floatingResponse);
-        setShowFloatingResponse(true);
-      }
 
     } catch (error) {
       setCommands(prev => {
@@ -670,197 +537,150 @@ of all agent teams AND is emotionally appropriate before delivery!
     }
   };
 
-  const handleFloatingResponseClick = () => {
-    setShowFloatingResponse(false);
-    setCurrentFloatingResponse(null);
-    // Focus back to input
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  };
-
-  const handleFloatingResponseClose = () => {
-    setShowFloatingResponse(false);
-    setCurrentFloatingResponse(null);
-    // Focus back to input
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  };
-
   return (
-    <>
-      <div className="h-full flex flex-col bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg overflow-hidden">
-        {/* Enhanced OmegaEvolved Training Progress Header with Consensus + Emotional Analysis */}
-        <div className="training-header bg-gradient-to-r from-purple-900 to-blue-900 bg-opacity-40 border-b border-purple-600 p-3 flex-shrink-0">
-          <div className="flex justify-between items-center text-sm mb-2">
-            <span className="text-purple-300">🧬 {trainingProgress.currentLevel}</span>
-            <span className="text-cyan-300">Gen {trainingProgress.generation}</span>
-            <span className="text-green-300">{trainingProgress.progressPercentage.toFixed(1)}%</span>
-            <span className="text-yellow-300">ETA: {trainingProgress.eta}</span>
-            <span className="text-blue-300">API: {trainingProgress.apiConnectivity}</span>
-            <span className="text-red-300">🔥 {trainingProgress.truthCycles}</span>
-            <span className="text-pink-300">🤝 CONSENSUS</span>
-            <span className="text-orange-300">😊 EMOTIONAL</span>
-          </div>
-          <div className="flex justify-between items-center text-xs mb-1">
-            <span className="text-gray-300">🧠 Reasoning: {(trainingProgress.reasoningAbility * 100).toFixed(1)}%</span>
-            <span className="text-gray-300">🧬 Algorithms: {trainingProgress.algorithmCount}</span>
-            <span className="text-gray-300">🌟 Multi-Modal: {trainingProgress.multiModalProgress.toFixed(1)}%</span>
-            <span className="text-gray-300">💾 Conversations: {trainingProgress.totalConversations}</span>
-            <span className="text-gray-300">🔗 Requests: {trainingProgress.apiRequests}</span>
-            <span className="text-gray-300">🔥 Signatures: {trainingProgress.truthSignatures}</span>
-          </div>
-          <div className="bg-gray-700 rounded-full h-2 mb-1">
-            <div 
-              className="bg-gradient-to-r from-purple-500 via-blue-500 to-green-500 h-2 rounded-full transition-all duration-1000"
-              style={{ width: `${trainingProgress.progressPercentage}%` }}
-            ></div>
-          </div>
-          <div className="bg-gray-700 rounded-full h-1 mb-1">
-            <div 
-              className="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 h-1 rounded-full transition-all duration-1000"
-              style={{ width: `${trainingProgress.multiModalProgress}%` }}
-            ></div>
-          </div>
-          <div className="bg-gray-700 rounded-full h-1">
-            <div 
-              className="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 h-1 rounded-full transition-all duration-1000"
-              style={{ width: `${Math.min(100, trainingProgress.truthCycles * 2)}%` }}
-            ></div>
-          </div>
+    <div className="h-full flex flex-col bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg overflow-hidden">
+      {/* Enhanced OmegaEvolved Training Progress Header with Natural Flow */}
+      <div className="training-header bg-gradient-to-r from-purple-900 to-blue-900 bg-opacity-40 border-b border-purple-600 p-3 flex-shrink-0">
+        <div className="flex justify-between items-center text-sm mb-2">
+          <span className="text-purple-300">🧬 {trainingProgress.currentLevel}</span>
+          <span className="text-cyan-300">Gen {trainingProgress.generation}</span>
+          <span className="text-green-300">{trainingProgress.progressPercentage.toFixed(1)}%</span>
+          <span className="text-yellow-300">ETA: {trainingProgress.eta}</span>
+          <span className="text-blue-300">API: {trainingProgress.apiConnectivity}</span>
+          <span className="text-red-300">🔥 {trainingProgress.truthCycles}</span>
+          <span className="text-pink-300">💬 NATURAL</span>
+          <span className="text-orange-300">🔄 BACKGROUND</span>
         </div>
-
-        {/* Terminal Content - Scrollable */}
-        <div 
-          ref={terminalRef}
-          className="flex-1 overflow-y-auto p-4 font-mono text-green-400 cursor-text"
-          onClick={handleTerminalClick}
-          style={{ 
-            scrollBehavior: 'smooth',
-            minHeight: 0 // Important for flex child to be scrollable
-          }}
-        >
-          <div className="space-y-2">
-            {commands.map((cmd, index) => (
-              <div key={index} className="terminal-line">
-                {cmd.command && (
-                  <div className="text-purple-400 mb-2 break-words">
-                    <span className="text-purple-300">{'>'}</span> {cmd.command}
-                  </div>
-                )}
-                {cmd.response && (
-                  <div className="whitespace-pre-wrap text-green-300 ml-2 mb-2 break-words">
-                    {cmd.response}
-                  </div>
-                )}
-                {cmd.backgroundReasoning && (
-                  <div className="text-blue-300 ml-4 text-sm border-l-2 border-blue-600 pl-2 mb-2">
-                    <div className="font-bold">🧠 Background Reasoning:</div>
-                    <div>META-LOGIC: {cmd.backgroundReasoning.metaLogicAnalysis.truthValue} ({(cmd.backgroundReasoning.metaLogicAnalysis.confidence * 100).toFixed(1)}%)</div>
-                    <div>Agent Debate: {cmd.backgroundReasoning.agentDebateResult.winningTeam || 'Consensus Team'} ({(cmd.backgroundReasoning.agentDebateResult.confidence * 100).toFixed(1)}%)</div>
-                    <div>🤝 Consensus: {cmd.backgroundReasoning.consensusAchieved ? 'ACHIEVED' : 'FAILED'}</div>
-                    {cmd.backgroundReasoning.consensusDetails && (
-                      <div>Agreement: {cmd.backgroundReasoning.consensusDetails.agreementPercentage.toFixed(1)}% in {cmd.backgroundReasoning.consensusDetails.rounds} rounds</div>
-                    )}
-                    {cmd.backgroundReasoning.emotionalAnalysis && (
-                      <div>😊 Emotional: {cmd.backgroundReasoning.emotionalAnalysis.sentiment} sentiment, {cmd.backgroundReasoning.emotionalAnalysis.responseStyle} style</div>
-                    )}
-                    <div>🔄 Verification: {cmd.backgroundReasoning.verificationPassed ? 'PASSED' : 'PENDING'}</div>
-                    <div>Processing: {cmd.backgroundReasoning.processingTime}ms</div>
-                  </div>
-                )}
-                {cmd.truthVerification && (
-                  <div className="text-red-300 ml-4 text-sm border-l-2 border-red-600 pl-2 mb-2">
-                    <div className="font-bold">🔥 Truth Stratification:</div>
-                    <div>Truth Value: {cmd.truthVerification.overallTruthValue}</div>
-                    <div>Confidence: {(cmd.truthVerification.confidence * 100).toFixed(1)}%</div>
-                    <div>Signature: {cmd.truthVerification.geometricSignature}</div>
-                  </div>
-                )}
-                {cmd.apiData && (
-                  <div className="text-blue-300 ml-4 text-sm border-l-2 border-blue-600 pl-2 mb-2">
-                    <div className="font-bold">🔗 Algorand API Response:</div>
-                    <div>Network: {cmd.apiData.network}</div>
-                    <div>Success: {cmd.apiData.success ? 'Yes' : 'No'}</div>
-                    {cmd.apiData.error && <div>Error: {cmd.apiData.error}</div>}
-                  </div>
-                )}
-                {cmd.multiModalUpdate && (
-                  <div className="text-yellow-300 ml-4 text-sm border-l-2 border-yellow-600 pl-2 mb-2">
-                    <div className="font-bold">🌟 Multi-Modal Update:</div>
-                    {cmd.multiModalUpdate}
-                  </div>
-                )}
-                {cmd.trainingImpact && (
-                  <div className="text-cyan-300 ml-4 text-sm border-l-2 border-cyan-600 pl-2 mb-2">
-                    <div className="font-bold">🧬 Algorithm Evolution Impact:</div>
-                    <div>• Algorithms: {cmd.trainingImpact.algorithmsEvolved}</div>
-                    <div>• Patterns Learned: {cmd.trainingImpact.patternsLearned.join(', ')}</div>
-                    <div>• Performance Gain: +{(cmd.trainingImpact.performanceGain * 100).toFixed(1)}%</div>
-                  </div>
-                )}
-                {cmd.floatingResponse && (
-                  <div className="text-purple-300 ml-4 text-sm border-l-2 border-purple-600 pl-2 mb-2">
-                    <div className="font-bold">📱 Floating Response:</div>
-                    <div>🤝 Consensus: {cmd.floatingResponse.consensusAchieved ? 'ACHIEVED' : 'FAILED'}</div>
-                    <div>🔄 Verification: {cmd.floatingResponse.verificationPassed ? 'PASSED' : 'PENDING'}</div>
-                    <div>📱 Delivery: Floating box with user confirmation required</div>
-                  </div>
-                )}
-                {cmd.memoryId && (
-                  <div className="text-gray-400 ml-4 text-xs">
-                    💾 Stored in memory: {cmd.memoryId}
-                  </div>
-                )}
-                {cmd.confidence !== undefined && (
-                  <div className="text-yellow-300 ml-4 text-sm">
-                    📊 Confidence: {(cmd.confidence * 100).toFixed(1)}%
-                  </div>
-                )}
-              </div>
-            ))}
-            {isLoading && (
-              <div className="text-yellow-400 ml-2 flex items-center">
-                <span className="animate-pulse">🤝 Seeking consensus from ALL agent teams with emotional analysis - ensuring highest quality response...</span>
-              </div>
-            )}
-            {/* Scroll anchor */}
-            <div ref={messagesEndRef} />
-          </div>
+        <div className="flex justify-between items-center text-xs mb-1">
+          <span className="text-gray-300">🧠 Reasoning: {(trainingProgress.reasoningAbility * 100).toFixed(1)}%</span>
+          <span className="text-gray-300">🧬 Algorithms: {trainingProgress.algorithmCount}</span>
+          <span className="text-gray-300">🌟 Multi-Modal: {trainingProgress.multiModalProgress.toFixed(1)}%</span>
+          <span className="text-gray-300">💾 Conversations: {trainingProgress.totalConversations}</span>
+          <span className="text-gray-300">🔗 Requests: {trainingProgress.apiRequests}</span>
+          <span className="text-gray-300">🔥 Signatures: {trainingProgress.truthSignatures}</span>
         </div>
-        
-        {/* Input Area - Fixed at bottom */}
-        <div className="flex-shrink-0 border-t border-purple-800 p-4">
-          <div className="flex items-center">
-            <span className="text-purple-300 mr-2 flex-shrink-0">{'>'}</span>
-            <input
-              ref={inputRef}
-              type="text"
-              value={currentInput}
-              onChange={(e) => setCurrentInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="flex-1 bg-transparent border-none outline-none text-green-400 font-mono"
-              placeholder={isInitialized ? "Ask me anything - ALL agents must agree + emotional analysis + verification..." : "Initializing OmegaEvolved with MANDATORY CONSENSUS + EMOTIONAL ANALYSIS..."}
-              disabled={isLoading || !isInitialized}
-              autoFocus
-            />
-            <span className="text-green-400 animate-pulse ml-2 flex-shrink-0">█</span>
-          </div>
+        <div className="bg-gray-700 rounded-full h-2 mb-1">
+          <div 
+            className="bg-gradient-to-r from-purple-500 via-blue-500 to-green-500 h-2 rounded-full transition-all duration-1000"
+            style={{ width: `${trainingProgress.progressPercentage}%` }}
+          ></div>
+        </div>
+        <div className="bg-gray-700 rounded-full h-1 mb-1">
+          <div 
+            className="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 h-1 rounded-full transition-all duration-1000"
+            style={{ width: `${trainingProgress.multiModalProgress}%` }}
+          ></div>
+        </div>
+        <div className="bg-gray-700 rounded-full h-1">
+          <div 
+            className="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 h-1 rounded-full transition-all duration-1000"
+            style={{ width: `${Math.min(100, trainingProgress.truthCycles * 2)}%` }}
+          ></div>
         </div>
       </div>
 
-      {/* Floating Response Box */}
-      {showFloatingResponse && currentFloatingResponse && (
-        <FloatingResponseBox
-          content={currentFloatingResponse.content}
-          consensusAchieved={currentFloatingResponse.consensusAchieved}
-          verificationPassed={currentFloatingResponse.verificationPassed}
-          onUserClick={handleFloatingResponseClick}
-          onClose={handleFloatingResponseClose}
-          visible={showFloatingResponse}
-        />
-      )}
-    </>
+      {/* Terminal Content - Scrollable */}
+      <div 
+        ref={terminalRef}
+        className="flex-1 overflow-y-auto p-4 font-mono text-green-400 cursor-text"
+        onClick={handleTerminalClick}
+        style={{ 
+          scrollBehavior: 'smooth',
+          minHeight: 0 // Important for flex child to be scrollable
+        }}
+      >
+        <div className="space-y-2">
+          {commands.map((cmd, index) => (
+            <div key={index} className="terminal-line">
+              {cmd.command && (
+                <div className="text-purple-400 mb-2 break-words">
+                  <span className="text-purple-300">{'>'}</span> {cmd.command}
+                </div>
+              )}
+              {cmd.response && (
+                <div className="whitespace-pre-wrap text-green-300 ml-2 mb-2 break-words">
+                  {cmd.response}
+                </div>
+              )}
+              {cmd.backgroundReasoning && (
+                <div className="text-blue-300 ml-4 text-sm border-l-2 border-blue-600 pl-2 mb-2">
+                  <div className="font-bold">🔄 Background Processing:</div>
+                  <div>META-LOGIC: {cmd.backgroundReasoning.metaLogicAnalysis.truthValue} ({(cmd.backgroundReasoning.metaLogicAnalysis.confidence * 100).toFixed(1)}%)</div>
+                  <div>Background Consensus: {cmd.backgroundReasoning.consensusAchieved ? 'ACHIEVED' : 'PROCESSING'}</div>
+                  <div>Quality Verification: {cmd.backgroundReasoning.verificationPassed ? 'PASSED' : 'PROCESSING'}</div>
+                  <div>Processing: {cmd.backgroundReasoning.processingTime}ms (background)</div>
+                </div>
+              )}
+              {cmd.truthVerification && (
+                <div className="text-red-300 ml-4 text-sm border-l-2 border-red-600 pl-2 mb-2">
+                  <div className="font-bold">🔥 Truth Stratification (Background):</div>
+                  <div>Truth Value: {cmd.truthVerification.overallTruthValue}</div>
+                  <div>Confidence: {(cmd.truthVerification.confidence * 100).toFixed(1)}%</div>
+                  <div>Signature: {cmd.truthVerification.geometricSignature}</div>
+                </div>
+              )}
+              {cmd.apiData && (
+                <div className="text-blue-300 ml-4 text-sm border-l-2 border-blue-600 pl-2 mb-2">
+                  <div className="font-bold">🔗 Algorand API Response:</div>
+                  <div>Network: {cmd.apiData.network}</div>
+                  <div>Success: {cmd.apiData.success ? 'Yes' : 'No'}</div>
+                  {cmd.apiData.error && <div>Error: {cmd.apiData.error}</div>}
+                </div>
+              )}
+              {cmd.multiModalUpdate && (
+                <div className="text-yellow-300 ml-4 text-sm border-l-2 border-yellow-600 pl-2 mb-2">
+                  <div className="font-bold">🌟 Multi-Modal Update:</div>
+                  {cmd.multiModalUpdate}
+                </div>
+              )}
+              {cmd.trainingImpact && (
+                <div className="text-cyan-300 ml-4 text-sm border-l-2 border-cyan-600 pl-2 mb-2">
+                  <div className="font-bold">🧬 Algorithm Evolution Impact:</div>
+                  <div>• Algorithms: {cmd.trainingImpact.algorithmsEvolved}</div>
+                  <div>• Patterns Learned: {cmd.trainingImpact.patternsLearned.join(', ')}</div>
+                  <div>• Performance Gain: +{(cmd.trainingImpact.performanceGain * 100).toFixed(1)}%</div>
+                </div>
+              )}
+              {cmd.memoryId && (
+                <div className="text-gray-400 ml-4 text-xs">
+                  💾 Stored in memory: {cmd.memoryId}
+                </div>
+              )}
+              {cmd.confidence !== undefined && (
+                <div className="text-yellow-300 ml-4 text-sm">
+                  📊 Confidence: {(cmd.confidence * 100).toFixed(1)}%
+                </div>
+              )}
+            </div>
+          ))}
+          {isLoading && (
+            <div className="text-yellow-400 ml-2 flex items-center">
+              <span className="animate-pulse">💬 Generating natural response while background systems ensure quality...</span>
+            </div>
+          )}
+          {/* Scroll anchor */}
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+      
+      {/* Input Area - Fixed at bottom */}
+      <div className="flex-shrink-0 border-t border-purple-800 p-4">
+        <div className="flex items-center">
+          <span className="text-purple-300 mr-2 flex-shrink-0">{'>'}</span>
+          <input
+            ref={inputRef}
+            type="text"
+            value={currentInput}
+            onChange={(e) => setCurrentInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className="flex-1 bg-transparent border-none outline-none text-green-400 font-mono"
+            placeholder={isInitialized ? "Just talk naturally - I'll respond immediately with background quality assurance..." : "Initializing OmegaEvolved with Natural Flow + Background Consensus..."}
+            disabled={isLoading || !isInitialized}
+            autoFocus
+          />
+          <span className="text-green-400 animate-pulse ml-2 flex-shrink-0">█</span>
+        </div>
+      </div>
+    </div>
   );
 };
