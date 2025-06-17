@@ -183,58 +183,24 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     return () => clearInterval(interval);
   }, [isInitialized]);
 
-  // Robust scroll to bottom function
+  // Smooth scroll to bottom function
   const scrollToBottom = () => {
-    // Multiple scroll methods for maximum compatibility
-    const scrollMethods = [
-      // Method 1: Scroll the messages end ref into view
-      () => {
-        if (messagesEndRef.current) {
-          messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        }
-      },
-      // Method 2: Direct terminal container scroll
-      () => {
-        if (terminalRef.current) {
-          terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
-        }
-      },
-      // Method 3: Force scroll with requestAnimationFrame
-      () => {
-        if (terminalRef.current) {
-          requestAnimationFrame(() => {
-            if (terminalRef.current) {
-              terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
-            }
-          });
-        }
-      }
-    ];
-
-    // Execute all scroll methods with delays
-    scrollMethods.forEach((method, index) => {
-      setTimeout(method, index * 50);
-    });
-
-    // Final fallback scroll after a longer delay
-    setTimeout(() => {
-      if (terminalRef.current) {
-        terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
-      }
-    }, 300);
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'end',
+        inline: 'nearest'
+      });
+    }
   };
 
-  // Scroll when commands change
+  // Auto-scroll when new messages arrive
   useEffect(() => {
-    scrollToBottom();
-  }, [commands]);
-
-  // Scroll when loading state changes
-  useEffect(() => {
-    if (isLoading) {
+    const timer = setTimeout(() => {
       scrollToBottom();
-    }
-  }, [isLoading]);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [commands, isLoading]);
 
   useEffect(() => {
     const initializeSystem = async () => {
@@ -905,62 +871,65 @@ ${lastDebate.reasoning.map((r: string, i: number) => `${i + 1}. ${r}`).join('\n'
   };
 
   return (
-    <div className="terminal-container h-full" onClick={handleTerminalClick}>
-      <div className="terminal h-full bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg p-4 font-mono text-green-400 overflow-hidden flex flex-col">
-        {/* Enhanced AlphaEvolve Training Progress Header with Truth Protocol */}
-        <div className="training-header bg-gradient-to-r from-purple-900 to-blue-900 bg-opacity-40 border border-purple-600 rounded p-3 mb-4">
-          <div className="flex justify-between items-center text-sm mb-2">
-            <span className="text-purple-300">🧬 {trainingProgress.currentLevel}</span>
-            <span className="text-cyan-300">Gen {trainingProgress.generation}</span>
-            <span className="text-green-300">{trainingProgress.progressPercentage.toFixed(1)}%</span>
-            <span className="text-yellow-300">ETA: {trainingProgress.eta}</span>
-            <span className="text-blue-300">API: {trainingProgress.apiConnectivity}</span>
-            <span className="text-red-300">🔥 {trainingProgress.truthCycles}</span>
-          </div>
-          <div className="flex justify-between items-center text-xs mb-1">
-            <span className="text-gray-300">🧠 Reasoning: {(trainingProgress.reasoningAbility * 100).toFixed(1)}%</span>
-            <span className="text-gray-300">🧬 Algorithms: {trainingProgress.algorithmCount}</span>
-            <span className="text-gray-300">🌟 Multi-Modal: {trainingProgress.multiModalProgress.toFixed(1)}%</span>
-            <span className="text-gray-300">💾 Conversations: {trainingProgress.totalConversations}</span>
-            <span className="text-gray-300">🔗 Requests: {trainingProgress.apiRequests}</span>
-            <span className="text-gray-300">🔥 Signatures: {trainingProgress.truthSignatures}</span>
-          </div>
-          <div className="bg-gray-700 rounded-full h-2 mb-1">
-            <div 
-              className="bg-gradient-to-r from-purple-500 via-blue-500 to-green-500 h-2 rounded-full transition-all duration-1000"
-              style={{ width: `${trainingProgress.progressPercentage}%` }}
-            ></div>
-          </div>
-          <div className="bg-gray-700 rounded-full h-1 mb-1">
-            <div 
-              className="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 h-1 rounded-full transition-all duration-1000"
-              style={{ width: `${trainingProgress.multiModalProgress}%` }}
-            ></div>
-          </div>
-          <div className="bg-gray-700 rounded-full h-1">
-            <div 
-              className="bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 h-1 rounded-full transition-all duration-1000"
-              style={{ width: `${Math.min(100, trainingProgress.truthCycles * 2)}%` }}
-            ></div>
-          </div>
+    <div className="h-full flex flex-col bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg overflow-hidden">
+      {/* Enhanced AlphaEvolve Training Progress Header with Truth Protocol */}
+      <div className="training-header bg-gradient-to-r from-purple-900 to-blue-900 bg-opacity-40 border-b border-purple-600 p-3 flex-shrink-0">
+        <div className="flex justify-between items-center text-sm mb-2">
+          <span className="text-purple-300">🧬 {trainingProgress.currentLevel}</span>
+          <span className="text-cyan-300">Gen {trainingProgress.generation}</span>
+          <span className="text-green-300">{trainingProgress.progressPercentage.toFixed(1)}%</span>
+          <span className="text-yellow-300">ETA: {trainingProgress.eta}</span>
+          <span className="text-blue-300">API: {trainingProgress.apiConnectivity}</span>
+          <span className="text-red-300">🔥 {trainingProgress.truthCycles}</span>
         </div>
+        <div className="flex justify-between items-center text-xs mb-1">
+          <span className="text-gray-300">🧠 Reasoning: {(trainingProgress.reasoningAbility * 100).toFixed(1)}%</span>
+          <span className="text-gray-300">🧬 Algorithms: {trainingProgress.algorithmCount}</span>
+          <span className="text-gray-300">🌟 Multi-Modal: {trainingProgress.multiModalProgress.toFixed(1)}%</span>
+          <span className="text-gray-300">💾 Conversations: {trainingProgress.totalConversations}</span>
+          <span className="text-gray-300">🔗 Requests: {trainingProgress.apiRequests}</span>
+          <span className="text-gray-300">🔥 Signatures: {trainingProgress.truthSignatures}</span>
+        </div>
+        <div className="bg-gray-700 rounded-full h-2 mb-1">
+          <div 
+            className="bg-gradient-to-r from-purple-500 via-blue-500 to-green-500 h-2 rounded-full transition-all duration-1000"
+            style={{ width: `${trainingProgress.progressPercentage}%` }}
+          ></div>
+        </div>
+        <div className="bg-gray-700 rounded-full h-1 mb-1">
+          <div 
+            className="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 h-1 rounded-full transition-all duration-1000"
+            style={{ width: `${trainingProgress.multiModalProgress}%` }}
+          ></div>
+        </div>
+        <div className="bg-gray-700 rounded-full h-1">
+          <div 
+            className="bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 h-1 rounded-full transition-all duration-1000"
+            style={{ width: `${Math.min(100, trainingProgress.truthCycles * 2)}%` }}
+          ></div>
+        </div>
+      </div>
 
-        <div 
-          ref={terminalRef}
-          className="terminal-content flex-1 overflow-y-auto space-y-2 pb-4"
-          style={{ 
-            scrollBehavior: 'smooth'
-          }}
-        >
+      {/* Terminal Content - Scrollable */}
+      <div 
+        ref={terminalRef}
+        className="flex-1 overflow-y-auto p-4 font-mono text-green-400 cursor-text"
+        onClick={handleTerminalClick}
+        style={{ 
+          scrollBehavior: 'smooth',
+          minHeight: 0 // Important for flex child to be scrollable
+        }}
+      >
+        <div className="space-y-2">
           {commands.map((cmd, index) => (
             <div key={index} className="terminal-line">
               {cmd.command && (
-                <div className="text-purple-400 mb-2">
+                <div className="text-purple-400 mb-2 break-words">
                   <span className="text-purple-300">{'>'}</span> {cmd.command}
                 </div>
               )}
               {cmd.response && (
-                <div className="whitespace-pre-wrap text-green-300 ml-2 mb-2">
+                <div className="whitespace-pre-wrap text-green-300 ml-2 mb-2 break-words">
                   {cmd.response}
                 </div>
               )}
@@ -1017,12 +986,15 @@ ${lastDebate.reasoning.map((r: string, i: number) => `${i + 1}. ${r}`).join('\n'
               <span className="animate-pulse">🧬 Creating algorithms through ARIEL debate teams with truth stratification...</span>
             </div>
           )}
-          {/* Messages end marker for reliable scrolling */}
+          {/* Scroll anchor */}
           <div ref={messagesEndRef} />
         </div>
-        
-        <div className="command-line flex items-center mt-4 border-t border-purple-800 pt-4">
-          <span className="text-purple-300 mr-2">{'>'}</span>
+      </div>
+      
+      {/* Input Area - Fixed at bottom */}
+      <div className="flex-shrink-0 border-t border-purple-800 p-4">
+        <div className="flex items-center">
+          <span className="text-purple-300 mr-2 flex-shrink-0">{'>'}</span>
           <input
             ref={inputRef}
             type="text"
@@ -1034,7 +1006,7 @@ ${lastDebate.reasoning.map((r: string, i: number) => `${i + 1}. ${r}`).join('\n'
             disabled={isLoading || !isInitialized}
             autoFocus
           />
-          <span className="text-green-400 animate-pulse">█</span>
+          <span className="text-green-400 animate-pulse ml-2 flex-shrink-0">█</span>
         </div>
       </div>
     </div>
