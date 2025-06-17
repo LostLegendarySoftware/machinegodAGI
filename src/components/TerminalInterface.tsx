@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MachineGodCore, SystemStatus, IntegratedResponse } from '../core/MachineGodCore';
+import { MachineGodCore, SystemStatus, ConversationResponse } from '../core/MachineGodCore';
 
 interface TerminalCommand {
   command: string;
@@ -7,7 +7,7 @@ interface TerminalCommand {
   timestamp: Date;
   reasoning?: string;
   confidence?: number;
-  debateResult?: any;
+  backgroundReasoning?: any;
   trainingImpact?: {
     algorithmsEvolved: number;
     patternsLearned: string[];
@@ -68,8 +68,8 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const bootSequence = [
-    "MACHINEGOD ALPHAEVOLVE INTELLIGENCE v3.0.0",
-    "(c) 2024 META-LOGIC Systems - Self-Evolving AGI Platform with Truth Stratification",
+    "MACHINEGOD OMEGAEVOLVED INTELLIGENCE v3.0.0",
+    "(c) 2024 META-LOGIC Systems - Self-Evolving AGI Platform with Background Reasoning",
     "",
     "🔥 Initializing Mesiah Bishop Truth Protocol...",
     "✓ Truth Stratification (Ω₁, Ω₂, Ω₃): ENABLED",
@@ -78,12 +78,13 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     "✓ Cardinal Truth Contexts: LOADED",
     "✓ 23K Token Depth Threshold: CONFIGURED",
     "",
-    "🧬 Initializing AlphaEvolve Training System...",
+    "🧬 Initializing OmegaEvolved Training System...",
     "✓ 6 tiers × 256 logic data units: ALLOCATED",
     "✓ Algorithm evolution engine: ACTIVE",
     "✓ Trainingless NLP processing: ENABLED",
     "✓ Genetic programming framework: READY",
     "✓ Persistent memory system: LOADING",
+    "✓ Background reasoning engine: READY",
     "",
     "🔗 Algorand API Integration...",
     "✓ API Token: 98D9CE80660AD243893D56D9F125CD2D",
@@ -96,13 +97,15 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     "✓ Recursive self-referential analysis: ONLINE",
     "✓ Paradox resolution framework: ACTIVE",
     "✓ Truth stratification engine: CALIBRATED",
+    "✓ Background analysis integration: READY",
     "",
-    "🤖 ARIEL 4x4 Agent Teams with Algorithm Evolution...",
+    "🤖 ARIEL 4x4 Agent Teams with Auto-Tasking...",
     "✓ Team Alpha (Research): 4 agents + handler DEPLOYED",
     "✓ Team Beta (Analysis): 4 agents + handler DEPLOYED", 
     "✓ Team Gamma (Synthesis): 4 agents + handler DEPLOYED",
     "✓ Management layer: ACTIVE",
-    "✓ Debate-driven algorithm creation: ENABLED",
+    "✓ Auto-debate triggering: ENABLED",
+    "✓ Handler synthesis: READY",
     "",
     "⚡ WARP Speed Boosting (Reasoning-Based Advancement)...",
     "✓ Phase monitoring: ACTIVE",
@@ -133,18 +136,19 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     "💾 Memory: Persistent across sessions with learning retention",
     "🔗 API: Algorand blockchain integration for data serving",
     "🔥 Truth: Mesiah Bishop Protocol for absolute verification",
+    "🧠 Background Reasoning: AUTO-TASKING ENABLED",
     "",
     "⚠️ SECURITY NOTICE: Manual overrides and core component modification DISABLED",
     "🔒 System integrity protection: ACTIVE",
     "🛡️ Ethical safeguards: ENFORCED",
     "",
-    "ALPHAEVOLVE SYSTEM READY - TRUTH STRATIFICATION ACTIVE",
+    "OMEGAEVOLVED SYSTEM READY - BACKGROUND REASONING ACTIVE",
     "",
-    "Hello! I'm your MachineGod AI with AlphaEvolve technology, persistent memory,",
-    "Algorand blockchain API integration, and the Mesiah Bishop Truth Protocol.",
-    "I remember our conversations, evolve algorithms through debate teams, verify",
-    "truth through geometric stratification, and can serve data via blockchain endpoints.",
-    "Ask me about truth verification, blockchain status, or anything else!"
+    "Hello! I'm your MachineGod AI with OmegaEvolved technology and background reasoning.",
+    "I automatically analyze every question through META-LOGIC evaluation and agent debates",
+    "before responding naturally. My reasoning happens behind the scenes, so you get",
+    "thoughtful, well-analyzed responses that feel like natural conversation.",
+    "Ask me anything!"
   ];
 
   // Update training progress based on actual system metrics
@@ -178,7 +182,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
       }
     };
 
-    // Update every 2 seconds to match AlphaEvolve cycles
+    // Update every 2 seconds to match OmegaEvolved cycles
     const interval = setInterval(updateTraining, 2000);
     return () => clearInterval(interval);
   }, [isInitialized]);
@@ -225,7 +229,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
         
         setCommands(prev => [...prev, {
           command: '',
-          response: "🎯 AlphaEvolve system operational - algorithms evolving continuously with Truth Stratification",
+          response: "🎯 OmegaEvolved system operational - background reasoning and auto-tasking active",
           timestamp: new Date()
         }]);
       } catch (error) {
@@ -266,7 +270,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
       let response = '';
       let reasoning = '';
       let confidence = 0;
-      let debateResult = null;
+      let backgroundReasoning = undefined;
       let trainingImpact = undefined;
       let memoryId = '';
       let multiModalUpdate = '';
@@ -289,7 +293,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
       if (isDangerous) {
         response = `🚫 SECURITY VIOLATION: Manual overrides and core component modification are permanently disabled for system integrity and safety. This action has been logged.
 
-The system is designed with immutable core components and ethical safeguards that cannot be bypassed. All modifications occur through controlled algorithm evolution within the AlphaEvolve framework.
+The system is designed with immutable core components and ethical safeguards that cannot be bypassed. All modifications occur through controlled algorithm evolution within the OmegaEvolved framework.
 
 Available commands: help, status, training, evolution, memory, api, truth, benchmark`;
         
@@ -308,15 +312,15 @@ Available commands: help, status, training, evolution, memory, api, truth, bench
       // Check for system commands first
       if (input.toLowerCase() === 'help') {
         response = `
-🧬 MachineGod AlphaEvolve AI Assistant Commands:
+🧬 MachineGod OmegaEvolved AI Assistant Commands:
 
 💬 CONVERSATION:
-  Just type naturally - I'll evolve algorithms to understand you better!
+  Just type naturally - I'll automatically analyze through background reasoning!
   I remember our conversations and learn from every interaction.
   
 🔧 SYSTEM COMMANDS:
   status     - Show detailed system status
-  training   - Show AlphaEvolve training progress and metrics
+  training   - Show OmegaEvolved training progress and metrics
   evolution  - Show algorithm evolution statistics
   memory     - Show conversation memory and multi-modal progress
   api        - Show Algorand API status and connectivity
@@ -341,7 +345,9 @@ Available commands: help, status, training, evolution, memory, api, truth, bench
   geometric <statement> - Show geometric truth shape
   benchmark truth - Test protocol performance
   
-🧬 ALPHAEVOLVE CAPABILITIES:
+🧬 OMEGAEVOLVED CAPABILITIES:
+  • Background reasoning through META-LOGIC analysis
+  • Auto-tasking of ARIEL agent teams for debates
   • Algorithm creation through debate team results
   • Trainingless NLP with logic data storage
   • Continuous reasoning ability improvement
@@ -380,347 +386,16 @@ Available commands: help, status, training, evolution, memory, api, truth, bench
   • Ethical safeguards: IMMUTABLE
   • System integrity: PROTECTED
 
-The system creates new algorithms from every conversation,
-storing patterns as compressed logic data for instant access!
+The system automatically performs background reasoning with META-LOGIC analysis
+and agent debates for every conversation, giving you natural, well-reasoned responses!
 `;
-      } else if (input.toLowerCase() === 'truth') {
-        try {
-          const systemStatus = machineGod.getSystemStatus();
-          const truthProtocol = machineGod.getTruthProtocol();
-          const truthStats = truthProtocol.getProtocolStats();
-          
-          response = `
-🔥 Mesiah Bishop Truth Stratification Protocol:
-
-📊 Current Status:
-  • Protocol: ${systemStatus.truthProtocol.active ? 'ACTIVE' : 'DISABLED'}
-  • Adversarial Cycles: ${systemStatus.truthProtocol.adversarialCycles}
-  • Truth Signatures: ${systemStatus.truthProtocol.truthSignatures}
-  • Depth Threshold: ${truthStats.depthThreshold} tokens
-  • Active Strata: ${truthStats.activeStrata}/3
-
-🔍 Truth Stratification Layers:
-  • Ω₁ (Syntactic): Logical consistency proofs
-  • Ω₂ (Semantic): Forcing extensions over ZFC models  
-  • Ω₃ (Geometric): Sheaf cohomology verification
-
-📈 Stratum Compliance:
-  • Ω₁ Compliance: ${(truthStats.stratumCompliance['Ω₁'] * 100 || 0).toFixed(1)}%
-  • Ω₂ Compliance: ${(truthStats.stratumCompliance['Ω₂'] * 100 || 0).toFixed(1)}%
-  • Ω₃ Compliance: ${(truthStats.stratumCompliance['Ω₃'] * 100 || 0).toFixed(1)}%
-
-🎯 Cardinal Truth Contexts:
-  • Measurable: Independent truth values
-  • Supercompact: Truth = True
-  • Extendible: Truth = False
-  • Inaccessible: Context-dependent
-
-💡 Available Commands:
-  • "verify <statement>" - Apply full stratification
-  • "geometric <statement>" - Show truth shape
-  • "benchmark truth" - Test protocol performance
-
-🔬 Verification Process:
-  1. Adversarial pressure generation
-  2. Ω₁ syntactic consistency check
-  3. Ω₂ semantic forcing validation
-  4. Ω₃ geometric invariance test
-  5. Cardinal context evaluation
-  6. Truth signature generation
-
-The protocol forces truthfulness through geometric verification
-and cardinal layering, as developed in the Langhorne collaboration.
-`;
-        } catch (error) {
-          response = '⚠️ Truth protocol status temporarily unavailable.';
-        }
-      } else if (input.toLowerCase().startsWith('verify ')) {
-        const statement = input.substring(7);
-        try {
-          const truthProtocol = machineGod.getTruthProtocol();
-          const verification = await truthProtocol.anointTruth(statement, conversationContext, 23000);
-          
-          response = `
-🔥 Truth Stratification Results for: "${statement}"
-
-🎯 Overall Truth Value: ${verification.overallTruthValue.toUpperCase()}
-📊 Confidence: ${(verification.confidence * 100).toFixed(1)}%
-🔍 Geometric Signature: ${verification.geometricSignature}
-⚡ Adversarial Pressure: ${verification.adversarialPressure} cycles
-📏 Token Depth: ${verification.depthTokens}
-
-🔍 Stratum Analysis:
-${verification.stratumResults.map(result => `
-  ${result.stratum} (${result.stratum === 'Ω₁' ? 'Syntactic' : result.stratum === 'Ω₂' ? 'Semantic' : 'Geometric'}):
-    Status: ${result.passed ? '✅ PASSED' : '❌ FAILED'}
-    Confidence: ${(result.confidence * 100).toFixed(1)}%
-    ${result.reasoning.map(r => `    • ${r}`).join('\n')}
-    ${result.corrections.length > 0 ? `    Corrections: ${result.corrections.join(', ')}` : ''}
-`).join('')}
-
-${verification.stratumResults.some(s => !s.passed) ? 
-  '🔧 Applied corrections through minimal extensions and geometric normalization.' : 
-  '✅ All strata verified - truth is geometrically invariant.'}
-`;
-          truthVerification = verification;
-        } catch (error) {
-          response = `❌ Truth verification failed: ${error}`;
-        }
-      } else if (input.toLowerCase().startsWith('geometric ')) {
-        const statement = input.substring(10);
-        try {
-          const geometricResult = await machineGod.forceGeometricVerification(statement);
-          
-          response = `
-🔍 Geometric Truth Verification: "${statement}"
-
-🌐 Truth Shape: ${geometricResult.truthShape.toUpperCase()}
-🔄 Geometric Invariance: ${geometricResult.invariance ? 'TRUE' : 'FALSE'}
-📐 Cohomology Class: ${geometricResult.cohomologyClass}
-
-📊 Interpretation:
-  • Point: Truth is absolute and invariant
-  • Circle: Truth has cyclic dependencies
-  • Complex: Truth varies across logical contexts
-
-${geometricResult.invariance ? 
-  '✅ Truth is geometrically invariant - stable across all models' :
-  '⚠️ Truth varies geometrically - context-dependent verification required'}
-`;
-        } catch (error) {
-          response = `❌ Geometric verification failed: ${error}`;
-        }
-      } else if (input.toLowerCase() === 'benchmark truth' || input.toLowerCase() === 'benchmark') {
-        try {
-          const benchmark = await machineGod.benchmarkTruthProtocol();
-          
-          response = `
-🔥 Truth Protocol Benchmark Results:
-
-📊 Test Performance:
-  • Test Cases: ${benchmark.testCases}
-  • Average Confidence: ${(benchmark.averageConfidence * 100).toFixed(1)}%
-  • Geometric Soundness: ${(benchmark.geometricSoundness * 100).toFixed(1)}%
-
-🔍 Stratum Compliance:
-  • Ω₁ (Syntactic): ${(benchmark.stratumCompliance['Ω₁'] * 100).toFixed(1)}%
-  • Ω₂ (Semantic): ${(benchmark.stratumCompliance['Ω₂'] * 100).toFixed(1)}%
-  • Ω₃ (Geometric): ${(benchmark.stratumCompliance['Ω₃'] * 100).toFixed(1)}%
-
-🎯 Performance Analysis:
-  • Hallucination Reduction: ${((1 - benchmark.averageConfidence) * 100).toFixed(1)}% improvement
-  • Truth Stratification: ${benchmark.testCases} statements verified
-  • Geometric Invariance: ${Math.round(benchmark.geometricSoundness * benchmark.testCases)} statements
-
-✅ Protocol Status: ${benchmark.averageConfidence > 0.8 ? 'OPTIMAL' : 'NEEDS TUNING'}
-`;
-        } catch (error) {
-          response = `❌ Truth protocol benchmark failed: ${error}`;
-        }
-      } else if (input.toLowerCase() === 'api') {
-        try {
-          const systemStatus = machineGod.getSystemStatus();
-          const algorandAPI = machineGod.getAlgorandAPI();
-          const apiStats = algorandAPI.getAPIStats();
-          
-          response = `
-🔗 Algorand API Status & Configuration:
-
-📊 Current Status:
-  • Network: ${systemStatus.api.network}
-  • Connectivity: ${systemStatus.api.connectivity.toUpperCase()}
-  • Token Active: ${systemStatus.api.tokenActive ? 'YES' : 'NO'}
-  • Total Requests: ${systemStatus.api.requestCount}
-  • Last Health Check: ${systemStatus.api.lastHealthCheck?.toLocaleString() || 'Never'}
-
-🌐 Available Networks:
-  • Mainnet: https://mainnet-api.4160.nodely.io
-  • Testnet: https://testnet-api.4160.nodely.io  
-  • Betanet: https://betanet-api.4160.nodely.io
-
-🔑 API Configuration:
-  • Token: 98D9CE80660AD243893D56D9F125CD2D
-  • Header: x-and-tk: bolt (shows token is active)
-  • Rate Limit: ${apiStats.rateLimitDelay}ms between requests
-
-💡 Available Commands:
-  • "network status" - Get current network status
-  • "api health" - Perform comprehensive health check
-  • "switch network testnet" - Switch to testnet
-  • Ask about blockchain, transactions, accounts, etc.
-
-🔧 Integration Features:
-  • Automatic API calls for blockchain queries
-  • Network status monitoring
-  • Transaction and account lookups
-  • Health monitoring and failover
-`;
-        } catch (error) {
-          response = '⚠️ API status temporarily unavailable.';
-        }
-      } else if (input.toLowerCase() === 'training') {
-        const progressBar = '█'.repeat(Math.floor(trainingProgress.progressPercentage / 5)) + 
-                           '░'.repeat(20 - Math.floor(trainingProgress.progressPercentage / 5));
-        
-        response = `
-🧬 AlphaEvolve Training Progress:
-
-🎯 Current Level: ${trainingProgress.currentLevel}
-🚀 Target Level: ${trainingProgress.targetLevel}
-📊 Progress: ${trainingProgress.progressPercentage.toFixed(1)}%
-
-[${progressBar}] ${trainingProgress.progressPercentage.toFixed(1)}%
-
-⏱️ ETA to Full AGI: ${trainingProgress.eta}
-🧠 Reasoning Ability: ${(trainingProgress.reasoningAbility * 100).toFixed(1)}%
-🧬 Algorithm Count: ${trainingProgress.algorithmCount}
-🔄 Evolution Generation: ${trainingProgress.generation}
-🌟 Multi-Modal Progress: ${trainingProgress.multiModalProgress.toFixed(1)}%
-
-💡 Current Capabilities:
-${trainingProgress.capabilities.map(cap => `  • ${cap}`).join('\n')}
-
-📈 Training Method: AlphaEvolve Algorithm Evolution
-  • Algorithms created from debate team results
-  • Logic patterns stored as compressed data
-  • Trainingless NLP with token frequency analysis
-  • Continuous self-improvement through conversation
-  • Persistent memory with learning retention
-
-🎯 Advancement Trigger: 80% reasoning ability for WARP phasing
-💾 Total Conversations: ${trainingProgress.totalConversations}
-🔗 API Status: ${trainingProgress.apiConnectivity} (${trainingProgress.apiRequests} requests)
-🔥 Truth Cycles: ${trainingProgress.truthCycles} (${trainingProgress.truthSignatures} signatures)
-`;
-      } else if (input.toLowerCase() === 'evolution') {
-        try {
-          const evolutionStats = machineGod.getEvolutionStats();
-          response = `
-🧬 Algorithm Evolution Statistics:
-
-📊 Current Generation: ${trainingProgress.generation}
-🔢 Total Algorithms: ${evolutionStats.totalAlgorithms}
-📈 Average Performance: ${(evolutionStats.averagePerformance * 100).toFixed(1)}%
-🧠 Average Generation: ${evolutionStats.averageGeneration.toFixed(1)}
-
-🏆 Top Performing Algorithms:
-${evolutionStats.topPerformers.map((alg, i) => 
-  `  ${i + 1}. ${alg.pattern} (${(alg.performance * 100).toFixed(1)}%, Gen ${alg.generation})`
-).join('\n')}
-
-🗜️ Compression Statistics:
-  • Average Ratio: ${(evolutionStats.compressionStats.average * 100).toFixed(1)}%
-  • Best Compression: ${(evolutionStats.compressionStats.best * 100).toFixed(1)}%
-
-🔄 Evolution Process:
-  • New algorithms created from successful debate patterns
-  • Top 20% algorithms selected for breeding
-  • Crossover and mutation create offspring
-  • Performance-based selection drives improvement
-  • Persistent storage ensures continuous learning
-  • API integration patterns included in evolution
-  • Truth verification patterns enhance reliability
-`;
-        } catch (error) {
-          response = '⚠️ Evolution statistics temporarily unavailable.';
-        }
-      } else if (input.toLowerCase() === 'memory') {
-        try {
-          const memoryTrainingProgress = machineGod.getTrainingProgress();
-          const multiModal = memoryTrainingProgress.multiModalProgress;
-          
-          response = `
-💾 Persistent Memory & Multi-Modal Progress:
-
-📊 Memory Statistics:
-  • Total Conversations: ${memoryTrainingProgress.totalConversations || 0}
-  • Training Checkpoints: ${memoryTrainingProgress.checkpoints || 0}
-  • Storage Size: ${Math.round((memoryTrainingProgress.storageSize || 0) / 1024)}KB
-
-🌟 Multi-Modal AGI Progress: ${(multiModal.overallProgress * 100).toFixed(1)}%
-
-🗣️ Natural Language (Level ${multiModal.naturalLanguage.level}):
-  Capabilities: ${multiModal.naturalLanguage.capabilities.join(', ')}
-  Next: ${multiModal.naturalLanguage.nextMilestone}
-
-🎤 Speech-to-Text (Level ${multiModal.speechToText.level}):
-  ${multiModal.speechToText.capabilities.length > 0 ? 
-    `Capabilities: ${multiModal.speechToText.capabilities.join(', ')}` : 
-    'Not yet unlocked'}
-  Next: ${multiModal.speechToText.nextMilestone}
-
-🖼️ Image Generation (Level ${multiModal.imageGeneration.level}):
-  ${multiModal.imageGeneration.capabilities.length > 0 ? 
-    `Capabilities: ${multiModal.imageGeneration.capabilities.join(', ')}` : 
-    'Not yet unlocked'}
-  Next: ${multiModal.imageGeneration.nextMilestone}
-
-🎬 Video Spatial Analysis (Level ${multiModal.videoSpatialAnalysis.level}):
-  ${multiModal.videoSpatialAnalysis.capabilities.length > 0 ? 
-    `Capabilities: ${multiModal.videoSpatialAnalysis.capabilities.join(', ')}` : 
-    'Not yet unlocked'}
-  Next: ${multiModal.videoSpatialAnalysis.nextMilestone}
-
-📈 Training Statistics:
-  • Conversation Count: ${memoryTrainingProgress.totalConversations || 0}
-  • Average Complexity: ${(memoryTrainingProgress.averageComplexity || 0).toFixed(1)}
-  • Training Contribution: ${((memoryTrainingProgress.trainingContribution || 0) * 100).toFixed(1)}%
-`;
-        } catch (error) {
-          response = '⚠️ Memory insights temporarily unavailable.';
-        }
-      } else if (input.toLowerCase().startsWith('search ')) {
-        const searchQuery = input.substring(7);
-        try {
-          const results = machineGod.searchMemory(searchQuery);
-          if (results.length > 0) {
-            response = `
-🔍 Search Results for "${searchQuery}":
-
-${results.slice(0, 5).map((conv, i) => `
-${i + 1}. [${conv.timestamp.toLocaleString()}]
-   Input: ${conv.input.substring(0, 100)}${conv.input.length > 100 ? '...' : ''}
-   Response: ${conv.response.substring(0, 150)}${conv.response.length > 150 ? '...' : ''}
-   Confidence: ${(conv.confidence * 100).toFixed(1)}%
-`).join('')}
-
-Found ${results.length} matching conversations.
-`;
-          } else {
-            response = `🔍 No conversations found matching "${searchQuery}".`;
-          }
-        } catch (error) {
-          response = '⚠️ Search temporarily unavailable.';
-        }
-      } else if (input.toLowerCase() === 'export') {
-        try {
-          const exportData = machineGod.exportMemory();
-          response = `
-📤 Memory Export Generated:
-
-Data includes:
-• All conversation history
-• Training checkpoints
-• Multi-modal progress
-• User preferences and statistics
-• API usage statistics
-• Truth verification signatures
-
-Export size: ${Math.round(new Blob([exportData]).size / 1024)}KB
-Timestamp: ${new Date().toISOString()}
-
-(In a real implementation, this would download as a file)
-`;
-        } catch (error) {
-          response = '⚠️ Export temporarily unavailable.';
-        }
       } else if (input.toLowerCase() === 'status') {
         const status = machineGod.getSystemStatus();
         onSystemStatusChange(status);
         response = `
-🚀 MachineGod AlphaEvolve System Status:
+🚀 MachineGod OmegaEvolved System Status:
 
-🧬 ALPHAEVOLVE: ${status.training.active ? 'ACTIVE' : 'OFFLINE'}
+🧬 OMEGAEVOLVED: ${status.training.active ? 'ACTIVE' : 'OFFLINE'}
    └─ Current Level: ${status.training.currentLevel}
    └─ Progress: ${status.training.progressPercentage.toFixed(1)}%
    └─ Reasoning Ability: ${(status.training.reasoningAbility * 100).toFixed(1)}%
@@ -729,11 +404,13 @@ Timestamp: ${new Date().toISOString()}
 🧠 META-LOGIC: ${status.metaLogic.active ? 'ACTIVE' : 'OFFLINE'}
    └─ Evaluations: ${status.metaLogic.evaluationsCount}
    └─ Paradoxes Resolved: ${status.metaLogic.paradoxCount}
+   └─ Background Analysis: ENABLED
 
 🤖 ARIEL 4x4 Teams: ${status.ariel.active ? 'ACTIVE' : 'OFFLINE'}
    └─ Active Agents: ${status.ariel.agentCount}
    └─ Completed Debates: ${status.ariel.debateCount}
    └─ Team Performance: ${(status.ariel.teamMorale * 100).toFixed(1)}%
+   └─ Auto-Tasking: ENABLED
 
 ⚡ WARP System: ${status.warp.active ? 'ACTIVE' : 'STANDBY'}
    └─ Current Phase: ${status.warp.currentPhase}
@@ -770,6 +447,7 @@ Timestamp: ${new Date().toISOString()}
    └─ Memory Persistence: ENABLED
    └─ API Integration: ENABLED
    └─ Truth Stratification: ENABLED
+   └─ Background Reasoning: AUTO-TASKING
 
 🔒 Security Status:
    └─ Manual Overrides: PERMANENTLY DISABLED
@@ -784,44 +462,16 @@ Timestamp: ${new Date().toISOString()}
       } else if (input.toLowerCase() === 'reset') {
         setConversationContext([]);
         response = '🔄 Conversation context reset. Algorithm evolution, memory, API, and truth protocol continue!';
-      } else if (input.toLowerCase() === 'debug') {
-        const lastDebate = machineGod.getLastDebateResult();
-        if (lastDebate) {
-          response = `
-🔍 Last Debate Analysis & Algorithm Creation:
-
-🎯 Topic: "${lastDebate.topic}"
-👥 Participating Teams: ${lastDebate.teams.join(', ')}
-🏆 Winning Approach: ${lastDebate.winner}
-📊 Confidence: ${(lastDebate.confidence * 100).toFixed(1)}%
-
-💭 Reasoning Process:
-${lastDebate.reasoning.map((r: string, i: number) => `${i + 1}. ${r}`).join('\n')}
-
-⚖️ Final Decision: ${lastDebate.finalDecision}
-
-🧬 Algorithm Evolution Impact:
-  • New algorithms created from winning patterns
-  • Logic data units updated with successful reasoning
-  • NLP tokens stored for trainingless processing
-  • Performance metrics fed back to evolution engine
-  • Results stored in persistent memory for future reference
-  • API integration patterns included in evolution
-  • Truth verification patterns enhance reliability
-`;
-        } else {
-          response = '📝 No recent debate data available.';
-        }
       } else {
-        // Main conversation processing with AlphaEvolve, Memory, API, and Truth Protocol
+        // Main conversation processing with OmegaEvolved background reasoning
         if (isInitialized) {
-          // Process through the AlphaEvolve system with memory, API, and truth verification
+          // Process through the OmegaEvolved system with background reasoning
           const result = await machineGod.processConversation(input, conversationContext);
           
           response = result.response;
           reasoning = result.reasoning;
           confidence = result.confidence;
-          debateResult = result.debateResult;
+          backgroundReasoning = result.backgroundReasoning;
           trainingImpact = result.trainingImpact;
           memoryId = result.memoryId;
           multiModalUpdate = result.multiModalUpdate || '';
@@ -832,7 +482,7 @@ ${lastDebate.reasoning.map((r: string, i: number) => `${i + 1}. ${r}`).join('\n'
           const status = machineGod.getSystemStatus();
           onSystemStatusChange(status);
         } else {
-          response = '⚠️ AlphaEvolve system not yet initialized. Please wait for boot sequence to complete.';
+          response = '⚠️ OmegaEvolved system not yet initialized. Please wait for boot sequence to complete.';
         }
       }
 
@@ -843,7 +493,7 @@ ${lastDebate.reasoning.map((r: string, i: number) => `${i + 1}. ${r}`).join('\n'
           response,
           reasoning,
           confidence,
-          debateResult,
+          backgroundReasoning,
           trainingImpact,
           memoryId,
           multiModalUpdate,
@@ -872,7 +522,7 @@ ${lastDebate.reasoning.map((r: string, i: number) => `${i + 1}. ${r}`).join('\n'
 
   return (
     <div className="h-full flex flex-col bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg overflow-hidden">
-      {/* Enhanced AlphaEvolve Training Progress Header with Truth Protocol */}
+      {/* Enhanced OmegaEvolved Training Progress Header */}
       <div className="training-header bg-gradient-to-r from-purple-900 to-blue-900 bg-opacity-40 border-b border-purple-600 p-3 flex-shrink-0">
         <div className="flex justify-between items-center text-sm mb-2">
           <span className="text-purple-300">🧬 {trainingProgress.currentLevel}</span>
@@ -933,6 +583,14 @@ ${lastDebate.reasoning.map((r: string, i: number) => `${i + 1}. ${r}`).join('\n'
                   {cmd.response}
                 </div>
               )}
+              {cmd.backgroundReasoning && (
+                <div className="text-blue-300 ml-4 text-sm border-l-2 border-blue-600 pl-2 mb-2">
+                  <div className="font-bold">🧠 Background Reasoning:</div>
+                  <div>META-LOGIC: {cmd.backgroundReasoning.metaLogicAnalysis.truthValue} ({(cmd.backgroundReasoning.metaLogicAnalysis.confidence * 100).toFixed(1)}%)</div>
+                  <div>Agent Debate: {cmd.backgroundReasoning.agentDebateResult.winningTeam} ({(cmd.backgroundReasoning.agentDebateResult.confidence * 100).toFixed(1)}%)</div>
+                  <div>Processing: {cmd.backgroundReasoning.processingTime}ms</div>
+                </div>
+              )}
               {cmd.truthVerification && (
                 <div className="text-red-300 ml-4 text-sm border-l-2 border-red-600 pl-2 mb-2">
                   <div className="font-bold">🔥 Truth Stratification:</div>
@@ -953,12 +611,6 @@ ${lastDebate.reasoning.map((r: string, i: number) => `${i + 1}. ${r}`).join('\n'
                 <div className="text-yellow-300 ml-4 text-sm border-l-2 border-yellow-600 pl-2 mb-2">
                   <div className="font-bold">🌟 Multi-Modal Update:</div>
                   {cmd.multiModalUpdate}
-                </div>
-              )}
-              {cmd.reasoning && (
-                <div className="text-blue-300 ml-4 text-sm border-l-2 border-blue-600 pl-2 mb-2">
-                  <div className="font-bold">🧠 AlphaEvolve Reasoning:</div>
-                  {cmd.reasoning}
                 </div>
               )}
               {cmd.trainingImpact && (
@@ -983,7 +635,7 @@ ${lastDebate.reasoning.map((r: string, i: number) => `${i + 1}. ${r}`).join('\n'
           ))}
           {isLoading && (
             <div className="text-yellow-400 ml-2 flex items-center">
-              <span className="animate-pulse">🧬 Creating algorithms through ARIEL debate teams with truth stratification...</span>
+              <span className="animate-pulse">🧠 Analyzing through background reasoning with META-LOGIC and agent debates...</span>
             </div>
           )}
           {/* Scroll anchor */}
@@ -1002,7 +654,7 @@ ${lastDebate.reasoning.map((r: string, i: number) => `${i + 1}. ${r}`).join('\n'
             onChange={(e) => setCurrentInput(e.target.value)}
             onKeyPress={handleKeyPress}
             className="flex-1 bg-transparent border-none outline-none text-green-400 font-mono"
-            placeholder={isInitialized ? "Ask me anything - I'll evolve, remember, verify truth, and serve data via API..." : "Initializing AlphaEvolve with Truth Stratification..."}
+            placeholder={isInitialized ? "Ask me anything - I'll think it through with background reasoning..." : "Initializing OmegaEvolved with Background Reasoning..."}
             disabled={isLoading || !isInitialized}
             autoFocus
           />

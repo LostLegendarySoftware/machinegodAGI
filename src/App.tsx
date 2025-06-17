@@ -13,7 +13,11 @@ function App() {
     metaLogic: { evaluationsCount: 0, paradoxCount: 0, active: false },
     ariel: { agentCount: 0, debateCount: 0, teamMorale: 0, active: false },
     warp: { currentPhase: 1, efficiency: 0.7, teamCount: 1, active: false },
-    helix: { totalCompressions: 0, averageRatio: 1, spaceSaved: 0, active: false }
+    helix: { totalCompressions: 0, averageRatio: 1, spaceSaved: 0, active: false },
+    training: { currentLevel: 'ChatGPT-4 Baseline', progressPercentage: 15, eta: 'Calculating...', reasoningAbility: 0.4, active: false },
+    memory: { totalConversations: 0, userSessions: 0, trainingCheckpoints: 0, multiModalProgress: 0.25 },
+    api: { network: 'mainnet', requestCount: 0, tokenActive: false, lastHealthCheck: null, connectivity: 'unhealthy' },
+    truthProtocol: { adversarialCycles: 0, truthSignatures: 0, stratumCompliance: {}, active: false }
   });
 
   const tabs = [
@@ -37,12 +41,12 @@ function App() {
           <div className="p-6 bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg h-full">
             <h2 className="text-2xl font-bold text-purple-300 mb-4 flex items-center">
               <Brain className="mr-2" />
-              META-LOGIC Absolute Zero Evaluator
+              META-LOGIC Absolute Zero Evaluator with Background Analysis
             </h2>
             <div className="space-y-4 text-green-300">
               <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Recursive Self-Referential Analysis</h3>
-                <p>The META-LOGIC system employs recursive analysis to handle self-referential statements and paradoxes through multi-valued logic frameworks.</p>
+                <h3 className="text-lg font-bold text-purple-300 mb-2">Background Reasoning Integration</h3>
+                <p>The META-LOGIC system now automatically analyzes every user input through recursive self-referential analysis and paradox resolution before generating responses.</p>
               </div>
               <div className="border border-purple-600 rounded-lg p-4">
                 <h3 className="text-lg font-bold text-purple-300 mb-2">Current Status</h3>
@@ -58,11 +62,8 @@ function App() {
                 </div>
               </div>
               <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Usage</h3>
-                <p>Use the Terminal tab to evaluate statements with the command:</p>
-                <code className="block mt-2 p-2 bg-gray-900 rounded text-green-400">
-                  evaluate &lt;your statement&gt;
-                </code>
+                <h3 className="text-lg font-bold text-purple-300 mb-2">Auto-Analysis Features</h3>
+                <p>Every conversation automatically triggers META-LOGIC evaluation in the background. The system analyzes logical structure, paradox potential, and truth values before responding naturally to users.</p>
               </div>
             </div>
           </div>
@@ -72,12 +73,12 @@ function App() {
           <div className="p-6 bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg h-full">
             <h2 className="text-2xl font-bold text-purple-300 mb-4 flex items-center">
               <Users className="mr-2" />
-              ARIEL Agent System
+              ARIEL Agent System with Auto-Tasking
             </h2>
             <div className="space-y-4 text-green-300">
               <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">3x3 Agent Team Structure</h3>
-                <p>ARIEL employs 3 teams of 3 agents each (Proposer, Solver, Adversary) with hierarchical management and emotional intelligence.</p>
+                <h3 className="text-lg font-bold text-purple-300 mb-2">4x4 Agent Team Structure with Auto-Tasking</h3>
+                <p>ARIEL employs 3 teams of 4 agents each (Proposer, Solver, Adversary, Handler) with automatic debate triggering for every user question requiring analysis.</p>
               </div>
               <div className="border border-purple-600 rounded-lg p-4">
                 <h3 className="text-lg font-bold text-purple-300 mb-2">Current Status</h3>
@@ -87,27 +88,22 @@ function App() {
                     <span className="ml-2 text-green-400">{systemStatus.ariel.agentCount}</span>
                   </div>
                   <div>
-                    <span className="text-gray-300">Team Morale:</span>
+                    <span className="text-gray-300">Team Performance:</span>
                     <span className="ml-2 text-blue-400">{(systemStatus.ariel.teamMorale * 100).toFixed(1)}%</span>
                   </div>
                   <div>
-                    <span className="text-gray-300">Debates Conducted:</span>
+                    <span className="text-gray-300">Auto-Debates:</span>
                     <span className="ml-2 text-purple-400">{systemStatus.ariel.debateCount}</span>
                   </div>
                 </div>
               </div>
               <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Commands</h3>
+                <h3 className="text-lg font-bold text-purple-300 mb-2">Background Processing</h3>
                 <div className="space-y-2">
-                  <code className="block p-2 bg-gray-900 rounded text-green-400">
-                    debate &lt;problem&gt; - Conduct agent debate
-                  </code>
-                  <code className="block p-2 bg-gray-900 rounded text-green-400">
-                    agents - List all agents
-                  </code>
-                  <code className="block p-2 bg-gray-900 rounded text-green-400">
-                    morale - Check team morale
-                  </code>
+                  <p>• Automatic debate triggering for complex questions</p>
+                  <p>• Handler synthesis of team results</p>
+                  <p>• Seamless integration with natural responses</p>
+                  <p>• Continuous learning from debate outcomes</p>
                 </div>
               </div>
             </div>
@@ -221,19 +217,27 @@ function App() {
                 </div>
               </div>
               <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Configuration</h3>
+                <h3 className="text-lg font-bold text-purple-300 mb-2">OmegaEvolved Configuration</h3>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm text-gray-300 mb-1">Particle Density</label>
-                    <input type="range" min="50" max="500" defaultValue="100" className="w-full" />
+                    <label className="block text-sm text-gray-300 mb-1">Background Reasoning Depth</label>
+                    <input type="range" min="1" max="10" defaultValue="7" className="w-full" />
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-300 mb-1">Processing Priority</label>
+                    <label className="block text-sm text-gray-300 mb-1">Auto-Tasking Sensitivity</label>
                     <select className="w-full p-2 bg-gray-800 text-white rounded">
-                      <option>Balanced</option>
-                      <option>Speed</option>
-                      <option>Accuracy</option>
-                      <option>Efficiency</option>
+                      <option>High (All Questions)</option>
+                      <option>Medium (Complex Questions)</option>
+                      <option>Low (Very Complex Only)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-300 mb-1">Response Style</label>
+                    <select className="w-full p-2 bg-gray-800 text-white rounded">
+                      <option>Natural Conversation</option>
+                      <option>Technical Detail</option>
+                      <option>Concise Answers</option>
+                      <option>Educational</option>
                     </select>
                   </div>
                 </div>
@@ -241,9 +245,9 @@ function App() {
               <div className="border border-purple-600 rounded-lg p-4">
                 <h3 className="text-lg font-bold text-purple-300 mb-2">System Information</h3>
                 <div className="text-sm space-y-1">
-                  <div>Version: 1.0.0</div>
+                  <div>Version: 3.0.0 OmegaEvolved</div>
                   <div>Build: 20241204</div>
-                  <div>Architecture: Integrated META-LOGIC</div>
+                  <div>Architecture: Background Reasoning with Auto-Tasking</div>
                   <div>License: Proprietary</div>
                 </div>
               </div>
@@ -296,14 +300,14 @@ function App() {
               <div>
                 <h1 className="text-2xl font-bold text-purple-300">MachineGod System</h1>
                 <p className="text-sm text-gray-400">
-                  META-LOGIC • ARIEL • WARP • HELIX Integration Platform
+                  OmegaEvolved • Background Reasoning • Auto-Tasking • Truth Stratification
                 </p>
               </div>
             </div>
             <div className="text-right">
               <div className="text-sm text-gray-400">System Status</div>
               <div className="text-green-400 font-bold">
-                {systemStatus.metaLogic.active ? 'OPERATIONAL' : 'INITIALIZING'}
+                {systemStatus.training.active ? 'OPERATIONAL' : 'INITIALIZING'}
               </div>
             </div>
           </div>
@@ -338,12 +342,14 @@ function App() {
         <footer className="bg-black bg-opacity-80 border-t border-purple-600 p-3">
           <div className="flex justify-between items-center text-sm text-gray-400">
             <div>
-              MachineGod v1.0.0 - Integrated Artificial General Intelligence System
+              MachineGod v3.0.0 OmegaEvolved - Background Reasoning with Auto-Tasking AGI System
             </div>
             <div className="flex space-x-4">
               <span>Uptime: {new Date().toLocaleTimeString()}</span>
               <span>•</span>
               <span>Operations: {systemStatus.metaLogic.evaluationsCount + systemStatus.ariel.debateCount}</span>
+              <span>•</span>
+              <span>Reasoning: {(systemStatus.training.reasoningAbility * 100).toFixed(1)}%</span>
             </div>
           </div>
         </footer>
