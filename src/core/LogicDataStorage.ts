@@ -1,309 +1,734 @@
 /**
- * Holographic Logic Data Storage System v2.0
- * Implements quantum-inspired multidimensional storage for training-free NLP
+ * Logic Data Storage System
+ * Implements 6-tier x 256 unit storage for algorithms and diffusion model data
  */
+
 export interface LogicDataTier {
   id: number;
-  dimension: string;  // Semantic dimension (e.g., "sentiment", "context", "intent")
-  holographicUnits: HolographicDataUnit[];
-  capacity: {
-    theoretical: number;
-    utilized: number;
-    compressionFactor: number;
-  };
-  accessPatterns: {
-    readSpeed: number;
-    writeSpeed: number;
-    frequency: number;
-  };
-  entanglementLinks: number[]; // Linked tiers for cross-dimensional queries
+  name: string;
+  description: string;
+  units: LogicDataUnit[];
+  totalCapacity: number;
+  usedCapacity: number;
+  compressionRatio: number;
 }
 
-export interface HolographicDataUnit {
+export interface LogicDataUnit {
   id: string;
-  phase: 'superposition' | 'entangled' | 'collapsed';
-  semanticField: {
-    coreVectors: number[][];
-    contextWeights: Map<string, number>;
-    coherenceScore: number;
-  };
-  resonancePatterns: {
-    basePattern: string;
-    harmonicVariations: string[];
-    interferenceMap: Map<string, number>;
-  }[];
-  chronoIndex: {
-    created: Date;
-    lastAccessed: Date;
-    temporalLinks: string[]; // Links to temporally related units
-  };
-  energySignature: {
-    stability: number;
-    activationThreshold: number;
-    decayRate: number;
-  };
+  tier: number;
+  unitIndex: number;
+  algorithms: AlgorithmData[];
+  patterns: PatternData[];
+  nlpTokens: Map<string, number>;
+  performance: number;
+  lastUpdated: Date;
+  compressionLevel: number;
+  usedCapacity: number;
+  maxCapacity: number;
 }
 
-export interface AlgorithmManifest {
+export interface AlgorithmData {
   id: string;
-  quantumSignature: string;
-  phaseStates: {
-    precomputed: string[];
-    runtimeGenerative: string[];
-  };
-  holographicProjections: {
-    base: string;
-    contextualVariants: Map<string, string>;
-  };
-  entanglementMatrix: number[][]; // Connection strength to other algorithms
-  eigenPatterns: string[]; // Fundamental patterns for recombination
+  name: string;
+  pattern: string;
+  purpose: string;
+  performance: number;
+  generation: number;
+  parentIds: string[];
+  mutations: number;
+  size: number;
+  lastUsed: Date;
+  usageCount: number;
+  compressionRatio: number;
 }
 
-export interface PatternHologram {
+export interface PatternData {
   id: string;
-  coreFrequency: number;
-  harmonicResonances: Map<string, number>;
-  interferenceProfile: {
-    constructive: string[];
-    destructive: string[];
-  };
-  temporalWaveform: {
-    amplitude: number[];
-    phase: number[];
-  };
+  type: 'reasoning' | 'language' | 'slang' | 'common_sense' | 'domain_knowledge';
+  pattern: string;
+  examples: string[];
+  frequency: number;
+  lastUsed: Date;
+  size: number;
 }
 
-export class LogicStorageOrchestrator {
-  private static readonly TIER_COUNT = 8;
-  private static readonly HOLO_UNITS_PER_TIER = 256;
-  private storageDimensions: LogicDataTier[] = [];
-  private quantumIndex: Map<string, string[]> = new Map(); // Pattern → [Unit IDs]
-  private resonanceField: ResonanceMatrix;
+export interface StorageStats {
+  totalUnits: number;
+  activeUnits: number;
+  totalAlgorithms: number;
+  totalPatterns: number;
+  averagePerformance: number;
+  topPerformingTier: number;
+  compressionRatio: number;
+  capacityUsed: number;
+  capacityTotal: number;
+  tiers?: any[];
+}
 
+export class LogicDataStorage {
+  private tiers: LogicDataTier[] = [];
+  private readonly TIER_COUNT = 6;
+  private readonly UNITS_PER_TIER = 256;
+  private readonly UNIT_CAPACITY = 1024 * 1024; // 1MB per unit
+  private readonly TIER_PURPOSES = [
+    'Common Sense & Meta-Logic',
+    'Natural Language Processing',
+    'Agentic Training',
+    'Slang & Natural Speaking',
+    'Image Generation & Spatial Analysis',
+    'Video Generation & 3D Modeling'
+  ];
+  
   constructor() {
-    this.initializeHolographicStorage();
-    this.resonanceField = new ResonanceMatrix();
-    console.log('🌀 Holographic Storage Online - Quantum Channels Open');
+    this.initializeStorage();
+    console.log('💾 Logic Data Storage initialized with 6 tiers × 256 units (1536 total)');
   }
-
-  private initializeHolographicStorage(): void {
-    const dimensions = [
-      "semantic-core", "contextual-harmonics", 
-      "temporal-flux", "sentiment-resonance",
-      "intent-projections", "pragmatic-entanglement",
-      "metaphoric-superposition", "procedural-collapse"
-    ];
-
-    this.storageDimensions = dimensions.map((dimension, index) => ({
-      id: index,
-      dimension,
-      holographicUnits: Array.from({ length: LogicStorageOrchestrator.HOLO_UNITS_PER_TIER }, (_, i) => 
-        this.createHolographicUnit(index, i)
-      ),
-      capacity: {
-        theoretical: 1.28e9, // 1.28 GB theoretical
-        utilized: 0,
-        compressionFactor: 3.4
-      },
-      accessPatterns: {
-        readSpeed: 42e6, // 42 GB/s
-        writeSpeed: 28e6, // 28 GB/s
-        frequency: 0
-      },
-      entanglementLinks: [
-        (index + 1) % dimensions.length,
-        (index + 3) % dimensions.length
-      ]
-    }));
-  }
-
-  private createHolographicUnit(tierId: number, unitIndex: number): HolographicDataUnit {
-    return {
-      id: `T${tierId}-U${unitIndex}-${Date.now().toString(36)}`,
-      phase: 'superposition',
-      semanticField: {
-        coreVectors: Array.from({ length: 256 }, () => 
-          Float32Array.from({ length: 512 }, () => Math.random() * 2 - 1)
-        ),
-        contextWeights: new Map(),
-        coherenceScore: 0.92 - (Math.random() * 0.08)
-      },
-      resonancePatterns: [],
-      chronoIndex: {
-        created: new Date(),
-        lastAccessed: new Date(),
-        temporalLinks: []
-      },
-      energySignature: {
-        stability: 0.97,
-        activationThreshold: 0.35,
-        decayRate: 0.0001
+  
+  private initializeStorage() {
+    // Create 6 tiers with 256 units each
+    for (let tierId = 0; tierId < this.TIER_COUNT; tierId++) {
+      const tier: LogicDataTier = {
+        id: tierId,
+        name: `Tier ${tierId + 1}`,
+        description: this.TIER_PURPOSES[tierId],
+        units: [],
+        totalCapacity: this.UNITS_PER_TIER * this.UNIT_CAPACITY,
+        usedCapacity: 0,
+        compressionRatio: 1.0
+      };
+      
+      // Create 256 units per tier
+      for (let unitIndex = 0; unitIndex < this.UNITS_PER_TIER; unitIndex++) {
+        const unit: LogicDataUnit = {
+          id: `T${tierId}_U${unitIndex}`,
+          tier: tierId,
+          unitIndex,
+          algorithms: [],
+          patterns: [],
+          nlpTokens: new Map(),
+          performance: 0.3 + Math.random() * 0.2, // Start with baseline performance
+          lastUpdated: new Date(),
+          compressionLevel: 1.0,
+          usedCapacity: 0,
+          maxCapacity: this.UNIT_CAPACITY
+        };
+        
+        // Initialize with basic algorithms and patterns based on tier
+        this.seedInitialData(unit);
+        
+        tier.units.push(unit);
+        tier.usedCapacity += unit.usedCapacity;
       }
-    };
+      
+      this.tiers.push(tier);
+    }
   }
-
+  
   /**
-   * Store algorithm as quantum hologram
+   * Seed initial data based on tier purpose
    */
-  storeAlgorithm(algorithm: AlgorithmManifest): void {
-    const targetTier = this.calculateOptimalTier(algorithm.quantumSignature);
-    const unit = this.findResonantUnit(targetTier, algorithm.quantumSignature);
+  private seedInitialData(unit: LogicDataUnit) {
+    const tierPurpose = this.TIER_PURPOSES[unit.tier];
     
-    // Convert to holographic projection
-    const hologram = this.compileToHologram(algorithm);
-    unit.resonancePatterns.push(hologram);
-    
-    // Update quantum index
-    algorithm.eigenPatterns.forEach(pattern => {
-      const current = this.quantumIndex.get(pattern) || [];
-      this.quantumIndex.set(pattern, [...current, unit.id]);
-    });
-    
-    // Entangle with related patterns
-    this.resonanceField.entanglePatterns(
-      algorithm.eigenPatterns,
-      unit.id
-    );
-    
-    console.log(`🌀 Stored algorithm ${algorithm.id} in ${unit.id} | Coherence: ${unit.semanticField.coherenceScore.toFixed(3)}`);
-  }
-
-  /**
-   * Retrieve pattern with contextual harmonic resonance
-   */
-  retrievePattern(basePattern: string, context: string): PatternHologram {
-    const unitIds = this.quantumIndex.get(basePattern) || [];
-    const candidateUnits = unitIds.map(id => this.getUnitById(id));
-    
-    // Find highest resonance match
-    const bestMatch = candidateUnits.reduce((best, unit) => {
-      const resonanceScore = this.calculateContextResonance(unit, context);
-      return resonanceScore > best.score ? 
-        { unit, score: resonanceScore } : best;
-    }, { unit: null, score: -1 });
-    
-    if (!bestMatch.unit) throw new Error('Pattern resonance not found');
-    
-    // Extract harmonic projection
-    const pattern = bestMatch.unit.resonancePatterns.find(
-      p => p.basePattern === basePattern
-    );
-    
-    // Apply contextual transformation
-    return this.projectContextualVariant(pattern, context);
-  }
-
-  /**
-   * Adaptive storage optimization
-   */
-  optimizeStorage(energyThreshold = 0.85): void {
-    console.log('⚡ Initiating quantum storage optimization...');
-    
-    this.storageDimensions.forEach(tier => {
-      tier.holographicUnits.forEach(unit => {
-        if (unit.energySignature.stability < energyThreshold) {
-          this.rephaseUnit(unit);
-        }
-        
-        // Collapse low-energy patterns
-        unit.resonancePatterns = unit.resonancePatterns.filter(
-          pattern => this.calculatePatternEnergy(pattern) > 0.25
-        );
-        
-        // Recalculate coherence
-        unit.semanticField.coherenceScore = this.calculateCoherence(unit);
-      });
-    });
-    
-    // Rebalance dimensional load
-    this.rebalanceDimensionalLoad();
-    console.log('✅ Storage optimization complete - quantum coherence stabilized');
-  }
-
-  private rephaseUnit(unit: HolographicDataUnit): void {
-    const originalPhase = unit.phase;
-    
-    if (unit.energySignature.stability < 0.7) {
-      unit.phase = 'collapsed';
-      // Reconstruct semantic field
-      unit.semanticField.coreVectors = this.rebuildSemanticVectors(unit);
-    } else if (unit.energySignature.stability < 0.85) {
-      unit.phase = 'entangled';
-      // Strengthen context links
-      this.reinforceContextWeights(unit);
+    // Create initial algorithms based on tier purpose
+    const algorithmCount = Math.floor(Math.random() * 3) + 2; // 2-4 initial algorithms
+    for (let i = 0; i < algorithmCount; i++) {
+      const algorithm = this.createInitialAlgorithm(unit.tier, unit.id, i);
+      unit.algorithms.push(algorithm);
+      unit.usedCapacity += algorithm.size;
     }
     
-    // Reset energy signature
-    unit.energySignature = {
-      stability: 0.97,
-      activationThreshold: unit.energySignature.activationThreshold * 0.9,
-      decayRate: unit.energySignature.decayRate * 1.1
-    };
-    
-    console.log(`🔄 Rephased unit ${unit.id} ${originalPhase} → ${unit.phase}`);
+    // Create initial patterns based on tier purpose
+    const patternCount = Math.floor(Math.random() * 5) + 3; // 3-7 initial patterns
+    for (let i = 0; i < patternCount; i++) {
+      const pattern = this.createInitialPattern(unit.tier, unit.id, i);
+      unit.patterns.push(pattern);
+      unit.usedCapacity += pattern.size;
+    }
   }
-
-  // Quantum pattern matching algorithm
-  private calculateContextResonance(unit: HolographicDataUnit, context: string): number {
-    const contextFactors = context.split(':');
-    let resonanceSum = 0;
+  
+  /**
+   * Create initial algorithm based on tier
+   */
+  private createInitialAlgorithm(tier: number, unitId: string, index: number): AlgorithmData {
+    // Different algorithm types based on tier
+    const tierAlgorithms = [
+      // Tier 0: Common Sense & Meta-Logic
+      ['common-sense-reasoning', 'logical-inference', 'paradox-resolution', 'self-reference-detection'],
+      // Tier 1: Natural Language Processing
+      ['language-understanding', 'context-awareness', 'sentiment-analysis', 'entity-recognition'],
+      // Tier 2: Agentic Training
+      ['agent-coordination', 'debate-framework', 'consensus-building', 'task-allocation'],
+      // Tier 3: Slang & Natural Speaking
+      ['slang-detection', 'casual-speech', 'regional-dialect', 'conversational-flow'],
+      // Tier 4: Image Generation & Spatial Analysis
+      ['image-understanding', 'spatial-reasoning', 'visual-composition', 'color-theory'],
+      // Tier 5: Video Generation & 3D Modeling
+      ['motion-analysis', '3d-representation', 'temporal-consistency', 'physics-simulation']
+    ];
     
-    contextFactors.forEach(factor => {
-      const weight = unit.semanticField.contextWeights.get(factor) || 0;
-      const interference = this.resonanceField.getInterference(factor, unit.id);
-      resonanceSum += (weight - interference) * unit.energySignature.stability;
+    const algorithmTypes = tierAlgorithms[tier];
+    const algorithmType = algorithmTypes[index % algorithmTypes.length];
+    
+    return {
+      id: `${unitId}_ALG_${index}`,
+      name: `${algorithmType}-v1`,
+      pattern: `${algorithmType}-pattern-${Math.floor(Math.random() * 100)}`,
+      purpose: `Handles ${algorithmType.replace(/-/g, ' ')} operations`,
+      performance: 0.3 + Math.random() * 0.3,
+      generation: 1,
+      parentIds: [],
+      mutations: 0,
+      size: 10000 + Math.floor(Math.random() * 50000), // 10KB - 60KB
+      lastUsed: new Date(),
+      usageCount: 0,
+      compressionRatio: 1.0
+    };
+  }
+  
+  /**
+   * Create initial pattern based on tier
+   */
+  private createInitialPattern(tier: number, unitId: string, index: number): PatternData {
+    // Different pattern types based on tier
+    const patternTypes: ('reasoning' | 'language' | 'slang' | 'common_sense' | 'domain_knowledge')[] = [
+      'common_sense', 'reasoning', 'reasoning', 'common_sense', 'domain_knowledge', // Tier 0
+      'language', 'language', 'reasoning', 'domain_knowledge', 'common_sense',      // Tier 1
+      'reasoning', 'language', 'domain_knowledge', 'common_sense', 'reasoning',     // Tier 2
+      'slang', 'language', 'slang', 'language', 'common_sense',                     // Tier 3
+      'domain_knowledge', 'reasoning', 'common_sense', 'language', 'reasoning',     // Tier 4
+      'domain_knowledge', 'reasoning', 'language', 'common_sense', 'reasoning'      // Tier 5
+    ];
+    
+    const patternType = patternTypes[tier * 5 + (index % 5)];
+    
+    return {
+      id: `${unitId}_PAT_${index}`,
+      type: patternType,
+      pattern: `${patternType}-pattern-${Math.floor(Math.random() * 100)}`,
+      examples: [
+        `Example 1 for ${patternType} pattern`,
+        `Example 2 for ${patternType} pattern`
+      ],
+      frequency: Math.random(),
+      lastUsed: new Date(),
+      size: 5000 + Math.floor(Math.random() * 15000) // 5KB - 20KB
+    };
+  }
+  
+  /**
+   * Process input with brain-like visualization
+   */
+  async processInputWithVisualization(input: string, context: string[] = []): Promise<{
+    visualThoughts: any[];
+    activatedConcepts: string[];
+    emergentVisualizations: any[];
+    diffusionPattern: string;
+    newConnections: any[];
+  }> {
+    // Simulate brain-like processing
+    console.log(`🧠 Processing input with brain-like visualization: "${input}"`);
+    
+    // Extract key concepts from input
+    const concepts = this.extractKeyConcepts(input);
+    
+    // Find relevant algorithms and patterns
+    const relevantAlgorithms = this.findRelevantAlgorithms(concepts);
+    const relevantPatterns = this.findRelevantPatterns(concepts);
+    
+    // Simulate visual thoughts
+    const visualThoughts = this.generateVisualThoughts(input, relevantAlgorithms);
+    
+    // Simulate emergent visualizations
+    const emergentVisualizations = this.generateEmergentVisualizations(input, context);
+    
+    // Simulate diffusion pattern
+    const diffusionPattern = this.generateDiffusionPattern(concepts);
+    
+    // Simulate new neural connections
+    const newConnections = this.generateNewConnections(relevantAlgorithms, relevantPatterns);
+    
+    // Update algorithm usage
+    relevantAlgorithms.forEach(alg => {
+      alg.usageCount++;
+      alg.lastUsed = new Date();
     });
     
-    return resonanceSum / contextFactors.length;
+    // Update pattern frequency
+    relevantPatterns.forEach(pattern => {
+      pattern.frequency += 0.01;
+      pattern.lastUsed = new Date();
+    });
+    
+    return {
+      visualThoughts,
+      activatedConcepts: relevantAlgorithms.map(alg => alg.name),
+      emergentVisualizations,
+      diffusionPattern,
+      newConnections
+    };
   }
-
-  // ... Additional advanced methods ...
-}
-
-/**
- * Resonance Field Matrix
- * Manages interference patterns between stored concepts
- */
-class ResonanceMatrix {
-  private patternMatrix: Map<string, Map<string, number>> = new Map();
   
-  entanglePatterns(patterns: string[], unitId: string): void {
-    patterns.forEach(pattern => {
-      if (!this.patternMatrix.has(pattern)) {
-        this.patternMatrix.set(pattern, new Map());
-      }
+  /**
+   * Extract key concepts from input
+   */
+  private extractKeyConcepts(input: string): string[] {
+    const words = input.toLowerCase().split(/\s+/);
+    const stopWords = new Set(['a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'with', 'by', 'of']);
+    
+    // Filter out stop words and short words
+    const concepts = words.filter(word => !stopWords.has(word) && word.length > 3);
+    
+    // Deduplicate
+    return [...new Set(concepts)];
+  }
+  
+  /**
+   * Find relevant algorithms based on concepts
+   */
+  private findRelevantAlgorithms(concepts: string[]): AlgorithmData[] {
+    const relevantAlgorithms: AlgorithmData[] = [];
+    
+    // Search across all tiers
+    this.tiers.forEach(tier => {
+      tier.units.forEach(unit => {
+        unit.algorithms.forEach(algorithm => {
+          // Check if algorithm is relevant to any concept
+          if (concepts.some(concept => 
+            algorithm.name.includes(concept) || 
+            algorithm.pattern.includes(concept) || 
+            algorithm.purpose.includes(concept)
+          )) {
+            relevantAlgorithms.push(algorithm);
+          }
+        });
+      });
+    });
+    
+    // If no direct matches, return some general algorithms
+    if (relevantAlgorithms.length === 0) {
+      const generalAlgorithms: AlgorithmData[] = [];
       
-      const unitMatrix = this.patternMatrix.get(pattern)!;
-      patterns.forEach(otherPattern => {
-        if (pattern !== otherPattern) {
-          const current = unitMatrix.get(otherPattern) || 0;
-          unitMatrix.set(otherPattern, current + 0.15);
+      // Get some general algorithms from each tier
+      this.tiers.forEach(tier => {
+        if (tier.units.length > 0 && tier.units[0].algorithms.length > 0) {
+          generalAlgorithms.push(tier.units[0].algorithms[0]);
         }
       });
       
-      // Link to unit
-      unitMatrix.set(unitId, (unitMatrix.get(unitId) || 0) + 1.0);
-    });
-  }
-
-  getInterference(pattern: string, unitId: string): number {
-    const patternEntries = this.patternMatrix.get(pattern) || new Map();
-    let interference = 0;
+      return generalAlgorithms;
+    }
     
-    patternEntries.forEach((strength, key) => {
-      if (key !== unitId && key.startsWith('T')) {
-        interference += strength * 0.3;
+    return relevantAlgorithms;
+  }
+  
+  /**
+   * Find relevant patterns based on concepts
+   */
+  private findRelevantPatterns(concepts: string[]): PatternData[] {
+    const relevantPatterns: PatternData[] = [];
+    
+    // Search across all tiers
+    this.tiers.forEach(tier => {
+      tier.units.forEach(unit => {
+        unit.patterns.forEach(pattern => {
+          // Check if pattern is relevant to any concept
+          if (concepts.some(concept => 
+            pattern.pattern.includes(concept) || 
+            pattern.examples.some(example => example.includes(concept))
+          )) {
+            relevantPatterns.push(pattern);
+          }
+        });
+      });
+    });
+    
+    // If no direct matches, return some general patterns
+    if (relevantPatterns.length === 0) {
+      const generalPatterns: PatternData[] = [];
+      
+      // Get some general patterns from each tier
+      this.tiers.forEach(tier => {
+        if (tier.units.length > 0 && tier.units[0].patterns.length > 0) {
+          generalPatterns.push(tier.units[0].patterns[0]);
+        }
+      });
+      
+      return generalPatterns;
+    }
+    
+    return relevantPatterns;
+  }
+  
+  /**
+   * Generate visual thoughts based on input and algorithms
+   */
+  private generateVisualThoughts(input: string, algorithms: AlgorithmData[]): any[] {
+    // Simulate visual thoughts
+    const visualThoughts = [];
+    
+    // Generate 3-5 visual thoughts
+    const thoughtCount = Math.floor(Math.random() * 3) + 3;
+    
+    for (let i = 0; i < thoughtCount; i++) {
+      const algorithm = algorithms[i % algorithms.length];
+      
+      visualThoughts.push({
+        id: `thought-${Date.now()}-${i}`,
+        type: ['concept', 'image', 'pattern', 'connection'][Math.floor(Math.random() * 4)],
+        content: algorithm ? algorithm.name : 'general-thought',
+        strength: 0.5 + Math.random() * 0.5,
+        connections: Math.floor(Math.random() * 5) + 1
+      });
+    }
+    
+    return visualThoughts;
+  }
+  
+  /**
+   * Generate emergent visualizations based on input and context
+   */
+  private generateEmergentVisualizations(input: string, context: string[]): any[] {
+    // Simulate emergent visualizations
+    const visualizations = [];
+    
+    // Generate 2-4 visualizations
+    const vizCount = Math.floor(Math.random() * 3) + 2;
+    
+    for (let i = 0; i < vizCount; i++) {
+      visualizations.push({
+        id: `viz-${Date.now()}-${i}`,
+        type: ['spatial', 'temporal', 'semantic', 'emotional'][Math.floor(Math.random() * 4)],
+        clarity: 0.4 + Math.random() * 0.6,
+        complexity: Math.floor(Math.random() * 10) + 1,
+        contextDependence: context.length > 0 ? 0.7 + Math.random() * 0.3 : 0.1 + Math.random() * 0.3
+      });
+    }
+    
+    return visualizations;
+  }
+  
+  /**
+   * Generate diffusion pattern based on concepts
+   */
+  private generateDiffusionPattern(concepts: string[]): string {
+    // Simulate diffusion pattern
+    const patterns = [
+      'radial-expansion',
+      'hierarchical-cascade',
+      'associative-network',
+      'semantic-wave',
+      'concept-cluster'
+    ];
+    
+    return patterns[Math.floor(Math.random() * patterns.length)];
+  }
+  
+  /**
+   * Generate new neural connections
+   */
+  private generateNewConnections(algorithms: AlgorithmData[], patterns: PatternData[]): any[] {
+    // Simulate new neural connections
+    const connections = [];
+    
+    // Generate 1-3 new connections
+    const connectionCount = Math.floor(Math.random() * 3) + 1;
+    
+    for (let i = 0; i < connectionCount; i++) {
+      const algorithm = algorithms[i % algorithms.length];
+      const pattern = patterns[i % patterns.length];
+      
+      if (algorithm && pattern) {
+        connections.push({
+          id: `conn-${Date.now()}-${i}`,
+          source: algorithm.name,
+          target: pattern.pattern,
+          strength: 0.3 + Math.random() * 0.7,
+          type: ['associative', 'causal', 'hierarchical', 'temporal'][Math.floor(Math.random() * 4)]
+        });
+      }
+    }
+    
+    return connections;
+  }
+  
+  /**
+   * Get brain visualization data
+   */
+  async getBrainVisualization(): Promise<any> {
+    // Generate brain visualization data
+    const activeRegions = [];
+    const conceptNetwork = {
+      nodes: [],
+      connections: []
+    };
+    
+    // Add active brain regions
+    for (let i = 0; i < this.TIER_COUNT; i++) {
+      if (Math.random() > 0.3) {
+        activeRegions.push(this.TIER_PURPOSES[i].toLowerCase().replace(/\s+/g, '_'));
+      }
+    }
+    
+    // Add concept nodes
+    const nodeCount = Math.floor(Math.random() * 20) + 10;
+    for (let i = 0; i < nodeCount; i++) {
+      conceptNetwork.nodes.push({
+        id: `node-${i}`,
+        type: ['concept', 'pattern', 'memory', 'process'][Math.floor(Math.random() * 4)],
+        activity: 0.3 + Math.random() * 0.7,
+        region: activeRegions[Math.floor(Math.random() * activeRegions.length)]
+      });
+    }
+    
+    // Add connections
+    const connectionCount = Math.floor(Math.random() * 30) + 20;
+    for (let i = 0; i < connectionCount; i++) {
+      const source = Math.floor(Math.random() * nodeCount);
+      let target = Math.floor(Math.random() * nodeCount);
+      
+      // Ensure no self-connections
+      while (target === source) {
+        target = Math.floor(Math.random() * nodeCount);
+      }
+      
+      conceptNetwork.connections.push({
+        id: `conn-${i}`,
+        source: `node-${source}`,
+        target: `node-${target}`,
+        strength: 0.2 + Math.random() * 0.8,
+        type: ['excitatory', 'inhibitory'][Math.floor(Math.random() * 2)]
+      });
+    }
+    
+    return {
+      activeRegions,
+      conceptNetwork,
+      brainwavePatterns: {
+        alpha: 0.2 + Math.random() * 0.3,
+        beta: 0.3 + Math.random() * 0.4,
+        gamma: 0.4 + Math.random() * 0.5,
+        theta: 0.1 + Math.random() * 0.2
+      },
+      neuralActivity: {
+        frontLobe: 0.5 + Math.random() * 0.5,
+        temporalLobe: 0.4 + Math.random() * 0.5,
+        parietalLobe: 0.3 + Math.random() * 0.5,
+        occipitalLobe: 0.6 + Math.random() * 0.4
+      }
+    };
+  }
+  
+  /**
+   * Get storage statistics
+   */
+  getStorageStats(): any {
+    let totalAlgorithms = 0;
+    let totalPatterns = 0;
+    let totalPerformance = 0;
+    let algorithmCount = 0;
+    let activeUnits = 0;
+    let totalCapacity = 0;
+    let usedCapacity = 0;
+    
+    // Calculate tier with highest average performance
+    const tierPerformances: number[] = Array(this.TIER_COUNT).fill(0);
+    const tierAlgorithmCounts: number[] = Array(this.TIER_COUNT).fill(0);
+    
+    this.tiers.forEach(tier => {
+      totalCapacity += tier.totalCapacity;
+      usedCapacity += tier.usedCapacity;
+      
+      tier.units.forEach(unit => {
+        if (unit.algorithms.length > 0 || unit.patterns.length > 0) {
+          activeUnits++;
+        }
+        
+        totalAlgorithms += unit.algorithms.length;
+        totalPatterns += unit.patterns.length;
+        
+        unit.algorithms.forEach(alg => {
+          totalPerformance += alg.performance;
+          algorithmCount++;
+          
+          tierPerformances[tier.id] += alg.performance;
+          tierAlgorithmCounts[tier.id]++;
+        });
+      });
+    });
+    
+    // Calculate average performance per tier
+    const tierAveragePerformances = tierPerformances.map((perf, index) => 
+      tierAlgorithmCounts[index] > 0 ? perf / tierAlgorithmCounts[index] : 0
+    );
+    
+    // Find top performing tier
+    let topPerformingTier = 0;
+    let highestPerformance = 0;
+    
+    tierAveragePerformances.forEach((perf, index) => {
+      if (perf > highestPerformance) {
+        highestPerformance = perf;
+        topPerformingTier = index;
       }
     });
     
-    return Math.min(1.0, interference);
+    // Prepare tier information for UI
+    const tierInfo = this.tiers.map(tier => ({
+      id: tier.id,
+      name: `Tier ${tier.id + 1}`,
+      description: tier.description,
+      usedCapacity: tier.usedCapacity,
+      totalCapacity: tier.totalCapacity,
+      utilizationPercentage: (tier.usedCapacity / tier.totalCapacity) * 100,
+      compressionRatio: tier.compressionRatio
+    }));
+    
+    return {
+      stats: {
+        totalUnits: this.TIER_COUNT * this.UNITS_PER_TIER,
+        activeUnits,
+        totalAlgorithms,
+        totalPatterns,
+        averagePerformance: algorithmCount > 0 ? totalPerformance / algorithmCount : 0,
+        topPerformingTier,
+        compressionRatio: usedCapacity / totalCapacity,
+        capacityUsed: usedCapacity,
+        capacityTotal: totalCapacity
+      },
+      tiers: tierInfo,
+      topAlgorithms: this.getTopAlgorithms(5),
+      topPatterns: this.getMostFrequentPatterns(5)
+    };
   }
-
-  decayResonance(decayFactor = 0.95): void {
-    this.patternMatrix.forEach((unitMatrix, pattern) => {
-      unitMatrix.forEach((strength, key) => {
-        unitMatrix.set(key, strength * decayFactor);
+  
+  /**
+   * Get top performing algorithms
+   */
+  getTopAlgorithms(count: number = 10): AlgorithmData[] {
+    const allAlgorithms: AlgorithmData[] = [];
+    
+    this.tiers.forEach(tier => {
+      tier.units.forEach(unit => {
+        allAlgorithms.push(...unit.algorithms);
       });
     });
+    
+    return allAlgorithms
+      .sort((a, b) => b.performance - a.performance)
+      .slice(0, count);
+  }
+  
+  /**
+   * Get most frequently used patterns
+   */
+  getMostFrequentPatterns(count: number = 10): PatternData[] {
+    const allPatterns: PatternData[] = [];
+    
+    this.tiers.forEach(tier => {
+      tier.units.forEach(unit => {
+        allPatterns.push(...unit.patterns);
+      });
+    });
+    
+    return allPatterns
+      .sort((a, b) => b.frequency - a.frequency)
+      .slice(0, count);
+  }
+  
+  /**
+   * Optimize storage
+   */
+  async optimizeStorage(): Promise<{
+    spaceReclaimed: number;
+    compressionImproved: number;
+    duration: number;
+  }> {
+    console.log('🔄 Starting storage optimization...');
+    const startTime = Date.now();
+    
+    let totalSpaceReclaimed = 0;
+    const initialUsedCapacity = this.tiers.reduce((sum, tier) => sum + tier.usedCapacity, 0);
+    
+    // Compress all units
+    for (const tier of this.tiers) {
+      for (const unit of tier.units) {
+        if (unit.usedCapacity > 0) {
+          const beforeCompression = unit.usedCapacity;
+          this.compressUnit(unit);
+          const spaceReclaimed = beforeCompression - unit.usedCapacity;
+          totalSpaceReclaimed += spaceReclaimed;
+        }
+      }
+      
+      // Update tier compression ratio
+      tier.compressionRatio = tier.usedCapacity / tier.totalCapacity;
+    }
+    
+    const finalUsedCapacity = this.tiers.reduce((sum, tier) => sum + tier.usedCapacity, 0);
+    const compressionImproved = initialUsedCapacity > 0 ? 
+      (initialUsedCapacity - finalUsedCapacity) / initialUsedCapacity : 0;
+    
+    const duration = Date.now() - startTime;
+    
+    console.log(`✅ Storage optimization complete: ${totalSpaceReclaimed} bytes reclaimed (${(compressionImproved * 100).toFixed(1)}% improvement) in ${duration}ms`);
+    
+    return {
+      spaceReclaimed: totalSpaceReclaimed,
+      compressionImproved,
+      duration
+    };
+  }
+  
+  /**
+   * Compress a unit to free up space
+   */
+  private compressUnit(unit: LogicDataUnit): void {
+    console.log(`🗜️ Compressing unit ${unit.id}`);
+    
+    // Calculate current size
+    const currentSize = unit.usedCapacity;
+    
+    // Apply compression to algorithms
+    unit.algorithms.forEach(alg => {
+      // More frequently used algorithms get better compression
+      const usageBonus = Math.min(0.2, alg.usageCount / 100);
+      const newCompressionRatio = Math.max(0.5, alg.compressionRatio - 0.1 - usageBonus);
+      
+      // Calculate space saved
+      const oldSize = alg.size;
+      const newSize = Math.floor(oldSize * newCompressionRatio / alg.compressionRatio);
+      const spaceSaved = oldSize - newSize;
+      
+      // Update algorithm
+      alg.size = newSize;
+      alg.compressionRatio = newCompressionRatio;
+      
+      // Update unit capacity
+      unit.usedCapacity -= spaceSaved;
+    });
+    
+    // Apply compression to patterns
+    unit.patterns.forEach(pat => {
+      // More frequent patterns get better compression
+      const frequencyBonus = Math.min(0.2, pat.frequency);
+      const compressionFactor = 0.8 - frequencyBonus;
+      
+      // Calculate space saved
+      const oldSize = pat.size;
+      const newSize = Math.floor(oldSize * compressionFactor);
+      const spaceSaved = oldSize - newSize;
+      
+      // Update pattern
+      pat.size = newSize;
+      
+      // Update unit capacity
+      unit.usedCapacity -= spaceSaved;
+    });
+    
+    // Update unit compression level
+    unit.compressionLevel = unit.usedCapacity / currentSize;
+    
+    console.log(`✅ Compressed unit ${unit.id} from ${currentSize} to ${unit.usedCapacity} bytes (${(unit.compressionLevel * 100).toFixed(1)}%)`);
   }
 }
