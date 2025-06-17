@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MachineGodCore, SystemStatus, ConversationResponse, UserFeedback } from '../core/MachineGodCore';
+import { SocialMediaSpeechProcessor } from '../core/SocialMediaSpeechProcessor';
+import { SystemAuditor } from '../core/SystemAuditor';
+import { StructuredReasoningProcessor } from '../core/StructuredReasoningProcessor';
+import { UserFeedbackWidget } from './UserFeedbackWidget';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { OpenLMMBenchmarks, LMMBenchmarkResult } from '../core/OpenLMMBenchmarks';
 
@@ -16,6 +20,8 @@ interface TerminalCommand {
   slangApplied?: boolean;
   logicAlgorithmsUsed?: string[];
   benchmarkResult?: LMMBenchmarkResult;
+  socialMediaProcessed?: boolean;
+  structuredReasoning?: any;
 }
 
 interface TerminalInterfaceProps {
@@ -44,14 +50,13 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
   const [currentInput, setCurrentInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [machineGod] = useState(() => new MachineGodCore());
+  const [socialMediaProcessor] = useState(() => new SocialMediaSpeechProcessor());
+  const [systemAuditor] = useState(() => new SystemAuditor());
+  const [structuredReasoning] = useState(() => new StructuredReasoningProcessor());
   const [lmmBenchmarks] = useState(() => new OpenLMMBenchmarks());
   const [isInitialized, setIsInitialized] = useState(false);
   const [conversationContext, setConversationContext] = useState<string[]>([]);
-  const [showFeedbackFor, setShowFeedbackFor] = useState<string | null>(null);
-  const [feedbackReason, setFeedbackReason] = useState('');
-  const [feedbackImprovement, setFeedbackImprovement] = useState('');
   const [isBenchmarking, setIsBenchmarking] = useState(false);
-  const [slangIntensity, setSlangIntensity] = useState(0.5);
   const [trainingProgress, setTrainingProgress] = useState<TrainingProgress>({
     currentLevel: 'ChatGPT-4 Baseline',
     targetLevel: 'Full Multi-Modal AGI',
@@ -73,15 +78,16 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const bootSequence = [
-    "MACHINEGOD NATURAL CONVERSATION v3.0.0",
-    "(c) 2024 - TRUE NATURAL AI WITH PROPER LOGIC STORAGE",
+    "MACHINEGOD NATURAL CONVERSATION v3.0.0 with SOCIAL MEDIA SPEECH",
+    "(c) 2024 - TRUE NATURAL AI WITH PROPER LOGIC STORAGE + 256MB SPEECH REFERENCE",
     "",
-    "💬 Initializing Natural Conversation Mode...",
+    "💬 Initializing Natural Conversation Mode with Social Media Speech...",
     "✓ Human-like response patterns: LOADED",
-    "✓ Slang and casual speech: ACTIVE",
-    "✓ Conversational flow optimization: ENABLED",
+    "✓ Social media speech patterns: ACTIVE (256MB reference)",
+    "✓ Modern slang and casual expressions: ENABLED",
     "✓ User feedback learning: READY",
     "✓ Background quality assurance: SILENT MODE",
+    "✓ System auditor: TARGETING 100% PERFORMANCE",
     "",
     "🧠 6-Tier Logic Storage System:",
     "✓ Tier 1: Common Sense & Meta-Logic (256 units)",
@@ -92,19 +98,19 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     "✓ Tier 6: Video Generation & 3D Modeling (256 units)",
     "✓ Total: 1536 logic data units ACTIVE",
     "",
+    "🗣️ Social Media Speech Integration:",
+    "✓ Modern slang patterns: LOADED (trending expressions)",
+    "✓ Casual speech patterns: ACTIVE",
+    "✓ Internet language: ENABLED",
+    "✓ User feedback learning: CONTINUOUS",
+    "✓ Speech reference: 256MB local database",
+    "",
     "🔍 REAL Research Capabilities:",
     "✓ Google Custom Search API: CONNECTED",
     "✓ Web search integration: ACTIVE",
     "✓ Source credibility assessment: ENABLED",
     "✓ Fact-checking system: READY",
     "✓ Logical analysis framework: LOADED",
-    "",
-    "🗣️ Slang & Natural Speech:",
-    "✓ Modern slang patterns: LOADED",
-    "✓ Casual speech patterns: ACTIVE",
-    "✓ Conversational fillers: ENABLED",
-    "✓ Emoji integration: READY",
-    "✓ Regional dialect support: AVAILABLE",
     "",
     "📊 LMM Reasoning Benchmarks:",
     "✓ MathVista: READY",
@@ -114,28 +120,27 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     "✓ WeMath: READY",
     "✓ LogicVista: READY",
     "",
-    "🧠 Background Systems (Silent Operation):",
-    "✓ Agent team debates: BACKGROUND ONLY",
-    "✓ Truth verification: BACKGROUND ONLY", 
-    "✓ Algorithm evolution: BACKGROUND ONLY",
-    "✓ Quality assurance: BACKGROUND ONLY",
-    "✓ All technical processing: INVISIBLE TO USER",
+    "🔍 System Auditor:",
+    "✓ Performance monitoring: ACTIVE",
+    "✓ Component auditing: ENABLED",
+    "✓ 100% performance target: SET",
+    "✓ Continuous improvement: READY",
     "",
-    "📝 User Feedback Learning System:",
+    "👍👎 User Feedback System:",
     "✓ Thumbs up/down feedback: ENABLED",
     "✓ Improvement suggestions: ACTIVE",
     "✓ Response adaptation: CONTINUOUS",
     "✓ Learning from mistakes: ENABLED",
     "",
-    "NATURAL CONVERSATION SYSTEM WITH PROPER LOGIC STORAGE READY",
+    "NATURAL CONVERSATION SYSTEM WITH SOCIAL MEDIA SPEECH READY",
     "",
-    "Hey! I'm your AI assistant with proper logic storage. I talk like a normal person",
-    "and can search the web in real-time to answer your questions with up-to-date information.",
+    "Yo! I'm your AI assistant and I talk like a real person now, no cap! 🔥",
+    "I can search the web in real-time and give you up-to-date info that's actually fire.",
     "",
-    "If you like or dislike any of my responses, just click the thumbs up or down",
-    "and I'll learn from your feedback to get better at helping you.",
+    "If you like or don't like my responses, just hit the thumbs up or down",
+    "and I'll learn from your feedback to get better at helping you, fr fr.",
     "",
-    "What would you like to chat about today?"
+    "What would you like to chat about today? I'm ready to help! 💯"
   ];
 
   // Update training progress
@@ -210,7 +215,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
         
         setCommands(prev => [...prev, {
           command: '',
-          response: "🎯 Natural conversation system with proper logic storage ready - just talk to me normally!",
+          response: "🎯 Natural conversation system with social media speech ready - just talk to me normally, bestie!",
           timestamp: new Date()
         }]);
       } catch (error) {
@@ -258,15 +263,17 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
       let slangApplied = false;
       let logicAlgorithmsUsed: string[] = [];
       let benchmarkResult: LMMBenchmarkResult | undefined;
+      let socialMediaProcessed = false;
+      let structuredReasoningResult: any = undefined;
 
       // Check for system commands first
       if (input.toLowerCase() === 'help') {
         response = `
-Hey! Here's what I can help with:
+Yo! Here's what I can help with, no cap! 🔥
 
 💬 NATURAL CONVERSATION:
   Just talk to me normally! Ask questions, have conversations, request help with tasks.
-  I respond like a regular person - with natural language and even slang when appropriate.
+  I respond like a real person - with natural language, slang, and modern expressions.
 
 🧠 LOGIC STORAGE SYSTEM:
   I use a 6-tier logic storage system with 256 units per tier:
@@ -276,6 +283,12 @@ Hey! Here's what I can help with:
   • Tier 4: Slang & Natural Speaking
   • Tier 5: Image Generation & Spatial Analysis
   • Tier 6: Video Generation & 3D Modeling
+
+🗣️ SOCIAL MEDIA SPEECH (256MB):
+  I talk like people on social media - casual, modern, with slang
+  • Modern expressions and trending slang
+  • Casual contractions and fillers
+  • Internet language and emojis
 
 🔍 REAL-TIME RESEARCH:
   I can search the web in real-time to find information for you
@@ -290,17 +303,16 @@ Hey! Here's what I can help with:
   benchmark logicvista - Test logical reasoning and inference
   benchmark report - Show benchmark results report
 
-🗣️ SLANG SETTINGS:
-  slang high - Use more slang and casual speech
-  slang medium - Use moderate slang (default)
-  slang low - Use minimal slang
-  slang off - Turn off slang completely
+🔍 SYSTEM AUDITING:
+  audit system - Run comprehensive system audit
+  audit report - Show latest audit results
+  performance - Show current system performance
 
-📝 FEEDBACK SYSTEM:
-  👍 👎 Click thumbs up/down on any response to help me improve
+👍👎 FEEDBACK SYSTEM:
+  Click thumbs up/down on any response to help me improve
   I learn from your feedback and get better over time
 
-🔧 SYSTEM COMMANDS (if you're curious):
+🔧 SYSTEM COMMANDS:
   status     - Show system status
   storage    - Show logic storage statistics
   feedback   - Show feedback statistics  
@@ -308,28 +320,95 @@ Hey! Here's what I can help with:
   clear      - Clear terminal
   reset      - Reset conversation
 
-Just talk to me like you would any person - that's what I'm designed for!
+Just talk to me like you would any person - that's what I'm designed for, fr! 💯
+`;
+      } else if (input.toLowerCase() === 'audit system') {
+        const auditReport = await systemAuditor.performFullAudit();
+        response = `
+🔍 System Audit Complete - Overall Performance: ${auditReport.overallPerformance.toFixed(1)}%
+
+📊 Component Performance:
+${auditReport.componentAudits.map(audit => 
+  `• ${audit.name}: ${audit.performance.toFixed(1)}% (${audit.status})`
+).join('\n')}
+
+⚠️ Critical Issues (${auditReport.criticalIssues.length}):
+${auditReport.criticalIssues.length > 0 ? auditReport.criticalIssues.map(issue => `• ${issue}`).join('\n') : '• None - system running well!'}
+
+🚀 Quick Wins (${auditReport.quickWins.length}):
+${auditReport.quickWins.slice(0, 3).map(win => `• ${win}`).join('\n')}
+
+🗺️ Roadmap to 100%:
+${auditReport.roadmapTo100.map((phase, index) => `${index + 1}. ${phase}`).join('\n')}
+
+The system is ${auditReport.overallPerformance >= 90 ? 'performing excellently' : auditReport.overallPerformance >= 75 ? 'performing well' : 'needs improvement'}, tbh!
+`;
+      } else if (input.toLowerCase() === 'audit report') {
+        const latest = systemAuditor.getLatestAudit();
+        if (latest) {
+          response = `
+📋 Latest Audit Report (${latest.timestamp.toLocaleString()})
+
+Overall Performance: ${latest.overallPerformance.toFixed(1)}%
+
+Top Performing Components:
+${latest.componentAudits
+  .filter(a => a.performance >= 90)
+  .map(a => `✅ ${a.name}: ${a.performance.toFixed(1)}%`)
+  .join('\n') || '• None at 90%+ yet'}
+
+Needs Improvement:
+${latest.componentAudits
+  .filter(a => a.performance < 80)
+  .map(a => `⚠️ ${a.name}: ${a.performance.toFixed(1)}%`)
+  .join('\n') || '• All components above 80%!'}
+
+This audit is helping us reach 100% performance, no cap! 🎯
+`;
+        } else {
+          response = "No audit reports available yet. Run 'audit system' first, bestie!";
+        }
+      } else if (input.toLowerCase() === 'performance') {
+        const latest = systemAuditor.getLatestAudit();
+        const improvementPlan = systemAuditor.generateImprovementPlan();
+        
+        response = `
+🎯 Current System Performance
+
+Overall: ${latest ? latest.overallPerformance.toFixed(1) : 'Unknown'}%
+
+🔥 Priority 1 (Critical):
+${improvementPlan.priority1.map(item => `• ${item}`).join('\n') || '• None - we\'re doing great!'}
+
+📈 Priority 2 (Important):
+${improvementPlan.priority2.slice(0, 3).map(item => `• ${item}`).join('\n') || '• None currently'}
+
+⚡ Priority 3 (Nice to have):
+${improvementPlan.priority3.slice(0, 2).map(item => `• ${item}`).join('\n') || '• None currently'}
+
+⏱️ Estimated time to 100%: ${improvementPlan.estimatedTimeToCompletion}
+
+We're working hard to get everything to 100%, fr! 💪
 `;
       } else if (input.toLowerCase() === 'feedback') {
-        const feedbackStats = machineGod.getFeedbackStats();
+        const feedbackStats = socialMediaProcessor.getFeedbackStats();
         response = `
-📝 Feedback Statistics:
+📝 Feedback Statistics
 
-👍 Positive: ${feedbackStats.positiveCount}
-👎 Negative: ${feedbackStats.negativeCount}
-📊 Success Rate: ${feedbackStats.positiveRate.toFixed(1)}%
+👍 Total Feedback: ${feedbackStats.totalFeedback}
+📊 Like Rate: ${feedbackStats.likeRate.toFixed(1)}%
 
-${feedbackStats.commonIssues.length > 0 ? `
+${feedbackStats.topIssues.length > 0 ? `
 🔧 Common Issues:
-${feedbackStats.commonIssues.map(issue => `• ${issue}`).join('\n')}
+${feedbackStats.topIssues.map(issue => `• ${issue}`).join('\n')}
 ` : ''}
 
-${feedbackStats.improvementSuggestions.length > 0 ? `
-💡 Improvement Suggestions:
-${feedbackStats.improvementSuggestions.map(suggestion => `• ${suggestion}`).join('\n')}
+${feedbackStats.improvements.length > 0 ? `
+💡 User Suggestions:
+${feedbackStats.improvements.map(suggestion => `• ${suggestion}`).join('\n')}
 ` : ''}
 
-Thanks for helping me improve! Your feedback makes me better at conversations.
+Thanks for helping me improve! Your feedback makes me better at conversations, ngl! 🙏
 `;
       } else if (input.toLowerCase() === 'clear') {
         setCommands([]);
@@ -337,9 +416,10 @@ Thanks for helping me improve! Your feedback makes me better at conversations.
         return;
       } else if (input.toLowerCase() === 'reset') {
         setConversationContext([]);
-        response = 'Conversation reset! What would you like to talk about?';
+        response = 'Conversation reset! What would you like to talk about, bestie? 💫';
       } else if (input.toLowerCase() === 'status') {
         const logicStats = machineGod.getLogicStorageStats();
+        const speechStats = socialMediaProcessor.getSpeechSettings();
         response = `
 🧠 Logic Storage System Status:
 
@@ -349,10 +429,15 @@ Thanks for helping me improve! Your feedback makes me better at conversations.
 • Compression Ratio: ${(logicStats.stats.compressionRatio * 100).toFixed(1)}%
 • Top Performing Tier: ${logicStats.tiers[logicStats.stats.topPerformingTier].description}
 
-🔝 Top Performing Algorithms:
-${logicStats.topAlgorithms.map((alg, i) => `${i+1}. ${alg.name} (${(alg.performance * 100).toFixed(1)}%)`).join('\n')}
+🗣️ Social Media Speech Status:
 
-The system is fully operational with proper 6-tier logic storage.
+• Modern Slang: ${speechStats.modernSlangCount} expressions
+• Casual Language: ${speechStats.casualExpressionsCount} patterns
+• Internet Language: ${speechStats.internetLanguageCount} terms
+• Total Patterns: ${speechStats.totalPatterns}
+• Average Frequency: ${(speechStats.averageFrequency * 100).toFixed(1)}%
+
+The system is fully operational with proper 6-tier logic storage and social media speech, no cap! 🔥
 `;
       } else if (input.toLowerCase() === 'storage') {
         const logicStats = machineGod.getLogicStorageStats();
@@ -371,7 +456,7 @@ ${logicStats.tiers.map(tier =>
 • Active Units: ${logicStats.stats.activeUnits} of ${logicStats.stats.totalUnits}
 • Average Performance: ${(logicStats.stats.averagePerformance * 100).toFixed(1)}%
 
-This 6-tier system ensures proper storage of different types of knowledge and capabilities.
+This 6-tier system ensures proper storage of different types of knowledge and capabilities, fr! 💾
 `;
       } else if (input.toLowerCase().startsWith('benchmark ')) {
         const benchmarkCommand = input.toLowerCase().substring(10).trim();
@@ -384,7 +469,7 @@ This 6-tier system ensures proper storage of different types of knowledge and ca
           
           if (benchmarkId) {
             setIsBenchmarking(true);
-            response = `Starting ${benchmarkId} benchmark test...`;
+            response = `Starting ${benchmarkId} benchmark test, let's see how we do! 🎯`;
             
             try {
               const fullBenchmarkId = benchmarkId === 'mathvista' ? 'mathvista_mini' : 
@@ -408,7 +493,7 @@ This 6-tier system ensures proper storage of different types of knowledge and ca
               );
               
               response = `
-📊 ${benchmarkId.toUpperCase()} Benchmark Results:
+📊 ${benchmarkId.toUpperCase()} Benchmark Results - We did it! 🔥
 
 Score: ${benchmarkResult.percentage.toFixed(1)}% (${benchmarkResult.score}/${benchmarkResult.maxScore})
 Rank on Leaderboard: #${benchmarkResult.leaderboardComparison.rank}
@@ -416,23 +501,23 @@ Percentile: ${benchmarkResult.leaderboardComparison.percentile.toFixed(1)}%
 Top Model Score: ${benchmarkResult.leaderboardComparison.topScore.toFixed(1)}%
 
 ${benchmarkResult.percentage > benchmarkResult.leaderboardComparison.topScore ? 
-  '🎉 OUTSTANDING! Exceeded top model performance!' : 
+  '🎉 YO WE BEAT THE TOP MODEL! That\'s absolutely fire! 🔥🔥🔥' : 
   benchmarkResult.leaderboardComparison.percentile > 75 ? 
-    '🌟 EXCELLENT! Top-tier performance!' : 
+    '🌟 EXCELLENT! We\'re in the top tier, no cap! 💯' : 
     benchmarkResult.leaderboardComparison.percentile > 50 ? 
-      '✅ GOOD! Above average performance.' : 
-      '⚠️ NEEDS IMPROVEMENT. Below average performance.'}
+      '✅ SOLID! Above average performance, we\'re getting there! 📈' : 
+      '⚠️ We can do better than this, ngl. Time to level up! 💪'}
 
-Run 'benchmark report' to see full comparison across all benchmarks.
+Run 'benchmark report' to see how we stack up across all benchmarks, bestie!
 `;
             } catch (error) {
-              response = `❌ Error running benchmark: ${error}`;
+              response = `❌ Benchmark failed: ${error} - that's mid, we'll fix it though! 🔧`;
             } finally {
               setIsBenchmarking(false);
             }
           } else {
             response = `
-Invalid benchmark command. Available benchmarks:
+Invalid benchmark command, bestie! Available benchmarks:
 - benchmark mathvista - Test mathematical reasoning with visual elements
 - benchmark mathvision - Test advanced mathematical vision understanding
 - benchmark mathverse - Test mathematical reasoning in vision-only mode
@@ -443,53 +528,36 @@ Invalid benchmark command. Available benchmarks:
 `;
           }
         }
-      } else if (input.toLowerCase().startsWith('slang ')) {
-        const slangCommand = input.toLowerCase().substring(6).trim();
-        
-        if (slangCommand === 'high') {
-          machineGod.setSlangIntensity(0.8);
-          response = "Slang intensity set to high! I'll talk with lots more slang and casual speech now. 🔥";
-          setSlangIntensity(0.8);
-        } else if (slangCommand === 'medium') {
-          machineGod.setSlangIntensity(0.5);
-          response = "Slang intensity set to medium - I'll use a moderate amount of slang now. 👌";
-          setSlangIntensity(0.5);
-        } else if (slangCommand === 'low') {
-          machineGod.setSlangIntensity(0.2);
-          response = "Slang intensity set to low. I'll use just a little bit of slang now.";
-          setSlangIntensity(0.2);
-        } else if (slangCommand === 'off') {
-          machineGod.setSlangIntensity(0);
-          response = "Slang turned off. I'll speak more formally now without using slang terms.";
-          setSlangIntensity(0);
-        } else {
-          response = `
-Invalid slang command. Available options:
-- slang high - Use more slang and casual speech
-- slang medium - Use moderate slang (default)
-- slang low - Use minimal slang
-- slang off - Turn off slang completely
-`;
-        }
       } else {
-        // Main conversation processing with Natural Flow
+        // Main conversation processing with Social Media Speech
         if (isInitialized) {
+          // First get the base response
           const result = await machineGod.processConversation(input, conversationContext);
           
-          response = result.response;
+          // Apply social media speech processing
+          const socialResponse = socialMediaProcessor.makeSocialMediaStyle(result.response, input);
+          socialMediaProcessed = true;
+          
+          // Apply structured reasoning for complex queries
+          if (input.length > 50 || input.includes('why') || input.includes('how') || input.includes('explain')) {
+            structuredReasoningResult = await structuredReasoning.processWithStructuredReasoning(input);
+            logicalAnalysisApplied = true;
+          }
+          
+          response = socialResponse;
           confidence = result.confidence;
           needsFeedback = result.needsFeedback;
           memoryId = result.memoryId;
           researchConducted = result.researchConducted || false;
-          logicalAnalysisApplied = result.logicalAnalysisApplied || false;
-          slangApplied = result.slangApplied || false;
+          logicalAnalysisApplied = result.logicalAnalysisApplied || logicalAnalysisApplied;
+          slangApplied = true; // Always true with social media processing
           logicAlgorithmsUsed = result.logicAlgorithmsUsed || [];
 
           // Update system status after processing
           const status = machineGod.getSystemStatus();
           onSystemStatusChange(status);
         } else {
-          response = '⚠️ System not yet ready. Please wait for initialization to complete.';
+          response = '⚠️ System not yet ready. Please wait for initialization to complete, bestie!';
         }
       }
 
@@ -506,7 +574,9 @@ Invalid slang command. Available options:
           logicalAnalysisApplied,
           slangApplied,
           logicAlgorithmsUsed,
-          benchmarkResult
+          benchmarkResult,
+          socialMediaProcessed,
+          structuredReasoning: structuredReasoningResult
         };
         return newCommands;
       });
@@ -522,10 +592,16 @@ Invalid slang command. Available options:
     }
   };
 
-  const handleFeedback = async (memoryId: string, liked: boolean) => {
-    if (liked) {
-      // Positive feedback - just process it
-      await machineGod.processUserFeedback(memoryId, true);
+  const handleFeedback = async (memoryId: string, liked: boolean, improvement?: string) => {
+    try {
+      // Process feedback through MachineGod
+      await machineGod.processUserFeedback(memoryId, liked, improvement ? 'User provided improvement' : undefined, improvement);
+      
+      // Also record in social media processor
+      const conversation = commands.find(cmd => cmd.memoryId === memoryId);
+      if (conversation) {
+        socialMediaProcessor.recordFeedback(memoryId, liked, conversation.response, improvement);
+      }
       
       // Update the command to show feedback was given
       setCommands(prev => {
@@ -536,40 +612,8 @@ Invalid slang command. Available options:
         }
         return newCommands;
       });
-    } else {
-      // Negative feedback - show form for details
-      setShowFeedbackFor(memoryId);
-    }
-  };
-
-  const submitNegativeFeedback = async () => {
-    if (showFeedbackFor === null) return;
-
-    try {
-      await machineGod.processUserFeedback(
-        showFeedbackFor,
-        false,
-        feedbackReason || 'No specific reason given',
-        feedbackImprovement || undefined
-      );
-
-      // Update the command to show feedback was given
-      setCommands(prev => {
-        const newCommands = [...prev];
-        const commandIndex = newCommands.findIndex(cmd => cmd.memoryId === showFeedbackFor);
-        if (commandIndex !== -1) {
-          newCommands[commandIndex].feedbackGiven = true;
-        }
-        return newCommands;
-      });
-
-      // Reset feedback form
-      setShowFeedbackFor(null);
-      setFeedbackReason('');
-      setFeedbackImprovement('');
     } catch (error) {
       console.error('Error submitting feedback:', error);
-      alert('There was an error submitting your feedback. Please try again.');
     }
   };
 
@@ -584,11 +628,11 @@ Invalid slang command. Available options:
       {/* Training Progress Header */}
       <div className="training-header bg-gradient-to-r from-purple-900 to-blue-900 bg-opacity-40 border-b border-purple-600 p-3 flex-shrink-0">
         <div className="flex justify-between items-center text-sm mb-2">
-          <span className="text-purple-300">🧠 6-Tier Logic Storage</span>
+          <span className="text-purple-300">🧠 6-Tier Logic + 🗣️ Social Media Speech</span>
           <span className="text-cyan-300">Learning: {trainingProgress.generation}</span>
           <span className="text-green-300">{trainingProgress.progressPercentage.toFixed(1)}%</span>
           <span className="text-yellow-300">ETA: {trainingProgress.eta}</span>
-          <span className="text-pink-300">🗣️ Slang: {slangIntensity === 0 ? 'Off' : slangIntensity < 0.3 ? 'Low' : slangIntensity < 0.7 ? 'Medium' : 'High'}</span>
+          <span className="text-pink-300">🔥 Speech: 256MB</span>
         </div>
         <div className="bg-gray-700 rounded-full h-2">
           <div 
@@ -622,6 +666,13 @@ Invalid slang command. Available options:
                 </div>
               )}
               
+              {/* Social media processing indicator */}
+              {cmd.socialMediaProcessed && (
+                <div className="ml-2 mt-1 text-pink-400 text-xs flex items-center">
+                  <span>🗣️ Social media speech applied (256MB reference)</span>
+                </div>
+              )}
+              
               {/* Benchmark result indicator */}
               {cmd.benchmarkResult && (
                 <div className="ml-2 mt-1 text-yellow-400 text-xs flex items-center">
@@ -639,14 +690,7 @@ Invalid slang command. Available options:
               {/* Logical analysis indicator */}
               {cmd.logicalAnalysisApplied && (
                 <div className="ml-2 mt-1 text-purple-400 text-xs flex items-center">
-                  <span>🧠 Logical analysis applied</span>
-                </div>
-              )}
-              
-              {/* Slang indicator */}
-              {cmd.slangApplied && (
-                <div className="ml-2 mt-1 text-pink-400 text-xs flex items-center">
-                  <span>🗣️ Natural speech with slang applied</span>
+                  <span>🧠 Structured reasoning applied</span>
                 </div>
               )}
               
@@ -657,79 +701,33 @@ Invalid slang command. Available options:
                 </div>
               )}
               
-              {/* Feedback buttons for responses that need feedback */}
+              {/* User feedback widget */}
               {cmd.needsFeedback && !cmd.feedbackGiven && cmd.command && cmd.memoryId && (
-                <div className="ml-2 mt-2 flex items-center space-x-2">
-                  <span className="text-gray-400 text-sm">Was this helpful?</span>
-                  <button
-                    onClick={() => handleFeedback(cmd.memoryId!, true)}
-                    className="text-green-400 hover:text-green-300 transition-colors"
-                    title="This was helpful"
-                  >
-                    <ThumbsUp size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleFeedback(cmd.memoryId!, false)}
-                    className="text-red-400 hover:text-red-300 transition-colors"
-                    title="This wasn't helpful"
-                  >
-                    <ThumbsDown size={16} />
-                  </button>
+                <div className="ml-2 mt-2">
+                  <UserFeedbackWidget
+                    responseId={cmd.memoryId}
+                    onFeedback={(liked, improvement) => handleFeedback(cmd.memoryId!, liked, improvement)}
+                  />
                 </div>
               )}
 
               {/* Show feedback given confirmation */}
               {cmd.feedbackGiven && (
                 <div className="ml-2 mt-1 text-gray-500 text-xs">
-                  ✓ Thanks for the feedback!
+                  ✓ Thanks for the feedback, bestie! 🙏
                 </div>
               )}
             </div>
           ))}
           {isLoading && (
             <div className="text-yellow-400 ml-2 flex items-center">
-              <span className="animate-pulse">{isBenchmarking ? '📊 Running benchmark...' : '💬 Thinking...'}</span>
+              <span className="animate-pulse">{isBenchmarking ? '📊 Running benchmark, let\'s see how we do...' : '💬 Thinking with social media speech...'}</span>
             </div>
           )}
           {/* Scroll anchor */}
           <div ref={messagesEndRef} />
         </div>
       </div>
-      
-      {/* Negative Feedback Form */}
-      {showFeedbackFor !== null && (
-        <div className="border-t border-purple-800 p-4 bg-gray-900 bg-opacity-50">
-          <div className="text-yellow-300 mb-2">Help me improve! What went wrong?</div>
-          <input
-            type="text"
-            value={feedbackReason}
-            onChange={(e) => setFeedbackReason(e.target.value)}
-            placeholder="What didn't you like about this response?"
-            className="w-full p-2 mb-2 bg-gray-800 text-white rounded border border-gray-600"
-          />
-          <input
-            type="text"
-            value={feedbackImprovement}
-            onChange={(e) => setFeedbackImprovement(e.target.value)}
-            placeholder="How could I improve? (optional)"
-            className="w-full p-2 mb-2 bg-gray-800 text-white rounded border border-gray-600"
-          />
-          <div className="flex space-x-2">
-            <button
-              onClick={submitNegativeFeedback}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Submit Feedback
-            </button>
-            <button
-              onClick={() => setShowFeedbackFor(null)}
-              className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
       
       {/* Input Area - Fixed at bottom */}
       <div className="flex-shrink-0 border-t border-purple-800 p-4">
@@ -742,7 +740,7 @@ Invalid slang command. Available options:
             onChange={(e) => setCurrentInput(e.target.value)}
             onKeyPress={handleKeyPress}
             className="flex-1 bg-transparent border-none outline-none text-green-400 font-mono"
-            placeholder={isInitialized ? "Ask me anything - I'll respond naturally with proper logic..." : "Initializing 6-tier logic storage system..."}
+            placeholder={isInitialized ? "Ask me anything - I'll respond naturally with social media speech, no cap! 🔥" : "Initializing social media speech processor..."}
             disabled={isLoading || !isInitialized}
             autoFocus
           />
