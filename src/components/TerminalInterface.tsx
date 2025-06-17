@@ -3,7 +3,9 @@ import { MachineGodCore, SystemStatus, ConversationResponse, UserFeedback } from
 import { SocialMediaSpeechProcessor } from '../core/SocialMediaSpeechProcessor';
 import { SystemAuditor } from '../core/SystemAuditor';
 import { StructuredReasoningProcessor } from '../core/StructuredReasoningProcessor';
+import { TrainingTestSystem } from '../core/TrainingTestSystem';
 import { UserFeedbackWidget } from './UserFeedbackWidget';
+import { TrainingTestInterface } from './TrainingTestInterface';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { OpenLMMBenchmarks, LMMBenchmarkResult } from '../core/OpenLMMBenchmarks';
 
@@ -53,20 +55,23 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
   const [socialMediaProcessor] = useState(() => new SocialMediaSpeechProcessor());
   const [systemAuditor] = useState(() => new SystemAuditor());
   const [structuredReasoning] = useState(() => new StructuredReasoningProcessor());
+  const [trainingSystem] = useState(() => new TrainingTestSystem());
   const [lmmBenchmarks] = useState(() => new OpenLMMBenchmarks());
   const [isInitialized, setIsInitialized] = useState(false);
   const [conversationContext, setConversationContext] = useState<string[]>([]);
   const [isBenchmarking, setIsBenchmarking] = useState(false);
+  const [showTrainingTest, setShowTrainingTest] = useState(false);
+  const [trainingComplete, setTrainingComplete] = useState(false);
   const [trainingProgress, setTrainingProgress] = useState<TrainingProgress>({
-    currentLevel: 'ChatGPT-4 Baseline',
-    targetLevel: 'Full Multi-Modal AGI',
-    progressPercentage: 15,
-    eta: 'Calculating...',
-    reasoningAbility: 0.4,
+    currentLevel: 'Training Mode',
+    targetLevel: 'Natural Conversation Unlocked',
+    progressPercentage: 0,
+    eta: 'Complete 25-question test',
+    reasoningAbility: 0.1,
     algorithmCount: 0,
     generation: 0,
-    capabilities: ['Natural conversation', 'Basic reasoning', 'Information retrieval'],
-    multiModalProgress: 0.25,
+    capabilities: ['Training mode only'],
+    multiModalProgress: 0,
     totalConversations: 0,
     apiConnectivity: 'unhealthy',
     apiRequests: 0,
@@ -78,75 +83,42 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const bootSequence = [
-    "MACHINEGOD NATURAL CONVERSATION v3.0.0 with SOCIAL MEDIA SPEECH",
-    "(c) 2024 - TRUE NATURAL AI WITH PROPER LOGIC STORAGE + 256MB SPEECH REFERENCE",
+    "MACHINEGOD TRAINING SYSTEM v3.0.0",
+    "(c) 2024 - 25-QUESTION RAPID FIRE TRAINING BEFORE NATURAL CONVERSATION",
     "",
-    "💬 Initializing Natural Conversation Mode with Social Media Speech...",
-    "✓ Human-like response patterns: LOADED",
-    "✓ Social media speech patterns: ACTIVE (256MB reference)",
-    "✓ Modern slang and casual expressions: ENABLED",
-    "✓ User feedback learning: READY",
-    "✓ Background quality assurance: SILENT MODE",
-    "✓ System auditor: TARGETING 100% PERFORMANCE",
+    "🎯 Initializing Training Test System...",
+    "✓ 25 rapid-fire questions loaded",
+    "✓ User validation system: READY",
+    "✓ Learning from corrections: ENABLED",
+    "✓ Natural conversation: LOCKED until training complete",
     "",
-    "🧠 6-Tier Logic Storage System:",
-    "✓ Tier 1: Common Sense & Meta-Logic (256 units)",
-    "✓ Tier 2: Natural Language Processing (256 units)",
-    "✓ Tier 3: Agentic Training (256 units)",
-    "✓ Tier 4: Slang & Natural Speaking (256 units)",
-    "✓ Tier 5: Image Generation & Spatial Analysis (256 units)",
-    "✓ Tier 6: Video Generation & 3D Modeling (256 units)",
-    "✓ Total: 1536 logic data units ACTIVE",
+    "📚 Training Categories:",
+    "✓ Logic & Reasoning (5 questions)",
+    "✓ Language & Communication (5 questions)", 
+    "✓ Knowledge & Facts (5 questions)",
+    "✓ Problem Solving (5 questions)",
+    "✓ Social Intelligence (5 questions)",
     "",
-    "🗣️ Social Media Speech Integration:",
-    "✓ Modern slang patterns: LOADED (trending expressions)",
-    "✓ Casual speech patterns: ACTIVE",
-    "✓ Internet language: ENABLED",
-    "✓ User feedback learning: CONTINUOUS",
-    "✓ Speech reference: 256MB local database",
+    "🔒 TRAINING MODE ACTIVE",
     "",
-    "🔍 REAL Research Capabilities:",
-    "✓ Google Custom Search API: CONNECTED",
-    "✓ Web search integration: ACTIVE",
-    "✓ Source credibility assessment: ENABLED",
-    "✓ Fact-checking system: READY",
-    "✓ Logical analysis framework: LOADED",
+    "You need to complete a 25-question training test before I can have",
+    "natural conversations with you. This helps me learn your preferences",
+    "and ensures I give you the best responses possible!",
     "",
-    "📊 LMM Reasoning Benchmarks:",
-    "✓ MathVista: READY",
-    "✓ MathVision: READY",
-    "✓ MathVerse: READY",
-    "✓ DynaMath: READY",
-    "✓ WeMath: READY",
-    "✓ LogicVista: READY",
+    "For each question:",
+    "1. I'll ask you something",
+    "2. You answer it",
+    "3. I'll respond based on your answer", 
+    "4. You tell me if my response was correct (yes/no)",
+    "5. If no, you explain what I should have said",
     "",
-    "🔍 System Auditor:",
-    "✓ Performance monitoring: ACTIVE",
-    "✓ Component auditing: ENABLED",
-    "✓ 100% performance target: SET",
-    "✓ Continuous improvement: READY",
-    "",
-    "👍👎 User Feedback System:",
-    "✓ Thumbs up/down feedback: ENABLED",
-    "✓ Improvement suggestions: ACTIVE",
-    "✓ Response adaptation: CONTINUOUS",
-    "✓ Learning from mistakes: ENABLED",
-    "",
-    "NATURAL CONVERSATION SYSTEM WITH SOCIAL MEDIA SPEECH READY",
-    "",
-    "Yo! I'm your AI assistant and I talk like a real person now, no cap! 🔥",
-    "I can search the web in real-time and give you up-to-date info that's actually fire.",
-    "",
-    "If you like or don't like my responses, just hit the thumbs up or down",
-    "and I'll learn from your feedback to get better at helping you, fr fr.",
-    "",
-    "What would you like to chat about today? I'm ready to help! 💯"
+    "Ready to start the training? Type 'start training' to begin! 🚀"
   ];
 
   // Update training progress
   useEffect(() => {
     const updateTraining = () => {
-      if (isInitialized) {
+      if (trainingComplete && isInitialized) {
         try {
           const trainingMetrics = machineGod.getTrainingMetrics();
           const memoryTrainingProgress = machineGod.getTrainingProgress();
@@ -171,12 +143,21 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
         } catch (error) {
           console.error('Error updating training metrics:', error);
         }
+      } else {
+        // Update training test progress
+        const testProgress = trainingSystem.getTrainingProgress();
+        setTrainingProgress(prev => ({
+          ...prev,
+          progressPercentage: (testProgress.correctCount / testProgress.requiredCorrect) * 100,
+          eta: `${testProgress.requiredCorrect - testProgress.correctCount} questions remaining`,
+          capabilities: [`Training: ${testProgress.correctCount}/${testProgress.requiredCorrect} correct`]
+        }));
       }
     };
 
     const interval = setInterval(updateTraining, 2000);
     return () => clearInterval(interval);
-  }, [isInitialized]);
+  }, [isInitialized, trainingComplete]);
 
   // Auto-scroll when new messages arrive
   useEffect(() => {
@@ -204,18 +185,14 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
         }]);
       }
 
-      // Initialize MachineGod core
+      // Initialize MachineGod core but keep it locked
       try {
         await machineGod.initialize();
         setIsInitialized(true);
         
-        // Update system status
-        const status = machineGod.getSystemStatus();
-        onSystemStatusChange(status);
-        
         setCommands(prev => [...prev, {
           command: '',
-          response: "🎯 Natural conversation system with social media speech ready - just talk to me normally, bestie!",
+          response: "🎯 System ready for training! Type 'start training' to begin the 25-question test.",
           timestamp: new Date()
         }]);
       } catch (error) {
@@ -237,6 +214,21 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     }
   };
 
+  const handleTrainingComplete = () => {
+    setShowTrainingTest(false);
+    setTrainingComplete(true);
+    
+    setCommands(prev => [...prev, {
+      command: '',
+      response: "🎉 TRAINING COMPLETE! You've successfully answered 25 questions correctly!\n\n🔓 Natural conversation mode is now UNLOCKED!\n\nI can now talk to you naturally with social media speech, conduct real research,\nand have proper conversations. Thanks for training me, bestie! 💯\n\nWhat would you like to chat about?",
+      timestamp: new Date()
+    }]);
+
+    // Update system status
+    const status = machineGod.getSystemStatus();
+    onSystemStatusChange(status);
+  };
+
   const handleUserInput = async (input: string) => {
     if (!input.trim()) return;
 
@@ -251,287 +243,105 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     setIsLoading(true);
 
     try {
-      // Add to conversation context
-      setConversationContext(prev => [...prev.slice(-5), input]); // Keep last 5 exchanges
-
       let response = '';
-      let confidence = 0;
-      let needsFeedback = false;
-      let memoryId = '';
-      let researchConducted = false;
-      let logicalAnalysisApplied = false;
-      let slangApplied = false;
-      let logicAlgorithmsUsed: string[] = [];
-      let benchmarkResult: LMMBenchmarkResult | undefined;
-      let socialMediaProcessed = false;
-      let structuredReasoningResult: any = undefined;
 
-      // Check for system commands first
-      if (input.toLowerCase() === 'help') {
-        response = `
-Yo! Here's what I can help with, no cap! 🔥
+      // Check if training is complete
+      if (!trainingComplete) {
+        if (input.toLowerCase().includes('start training') || input.toLowerCase().includes('begin training')) {
+          setShowTrainingTest(true);
+          response = "🎯 Starting 25-question training test! A new window will open with the training interface.";
+        } else if (input.toLowerCase() === 'help') {
+          response = `
+🎯 TRAINING MODE HELP
+
+You're currently in training mode. Before I can have natural conversations,
+you need to complete a 25-question rapid-fire test.
+
+Commands available:
+• start training - Begin the 25-question test
+• training progress - Check your current progress
+• help - Show this help message
+
+The training test will:
+1. Ask you 25 questions across different categories
+2. You answer each question
+3. I respond based on your answer
+4. You validate if my response is correct (yes/no)
+5. If wrong, you explain what the correct answer should be
+6. I learn from your corrections
+
+Once you get 25 correct answers, natural conversation mode unlocks! 🔓
+`;
+        } else if (input.toLowerCase().includes('training progress') || input.toLowerCase().includes('progress')) {
+          const testProgress = trainingSystem.getTrainingProgress();
+          response = `
+📊 Training Progress:
+
+✅ Correct Answers: ${testProgress.correctCount} / ${testProgress.requiredCorrect}
+📝 Total Attempts: ${testProgress.totalAttempts}
+🎯 Remaining: ${testProgress.requiredCorrect - testProgress.correctCount} questions
+📈 Progress: ${((testProgress.correctCount / testProgress.requiredCorrect) * 100).toFixed(1)}%
+
+${testProgress.sessionActive ? 
+  `🔥 Training session active! Current category: ${testProgress.currentCategory || 'Mixed'}` :
+  '💤 No active training session. Type "start training" to begin!'
+}
+
+${testProgress.isComplete ? 
+  '🎉 Training complete! Natural conversation unlocked!' :
+  'Keep going! You need 25 correct answers to unlock natural conversation.'
+}
+`;
+        } else {
+          response = `🔒 Natural conversation is locked until you complete the 25-question training test.\n\nType 'start training' to begin, or 'help' for more information.\n\nThis training helps me learn your preferences and ensures I give you the best responses! 🎯`;
+        }
+      } else {
+        // Training complete - normal conversation mode
+        // Add to conversation context
+        setConversationContext(prev => [...prev.slice(-5), input]);
+
+        let confidence = 0;
+        let needsFeedback = false;
+        let memoryId = '';
+        let researchConducted = false;
+        let logicalAnalysisApplied = false;
+        let slangApplied = false;
+        let logicAlgorithmsUsed: string[] = [];
+        let benchmarkResult: LMMBenchmarkResult | undefined;
+        let socialMediaProcessed = false;
+        let structuredReasoningResult: any = undefined;
+
+        // Handle system commands
+        if (input.toLowerCase() === 'help') {
+          response = `
+Yo! Here's what I can help with now that training is complete! 🔥
 
 💬 NATURAL CONVERSATION:
   Just talk to me normally! Ask questions, have conversations, request help with tasks.
   I respond like a real person - with natural language, slang, and modern expressions.
 
 🧠 LOGIC STORAGE SYSTEM:
-  I use a 6-tier logic storage system with 256 units per tier:
-  • Tier 1: Common Sense & Meta-Logic
-  • Tier 2: Natural Language Processing
-  • Tier 3: Agentic Training
-  • Tier 4: Slang & Natural Speaking
-  • Tier 5: Image Generation & Spatial Analysis
-  • Tier 6: Video Generation & 3D Modeling
+  I use a 6-tier logic storage system with 256 units per tier
 
 🗣️ SOCIAL MEDIA SPEECH (256MB):
   I talk like people on social media - casual, modern, with slang
-  • Modern expressions and trending slang
-  • Casual contractions and fillers
-  • Internet language and emojis
 
 🔍 REAL-TIME RESEARCH:
   I can search the web in real-time to find information for you
-  Just ask me questions that need up-to-date information
 
 📊 REASONING BENCHMARKS:
-  benchmark mathvista - Test mathematical reasoning with visual elements
-  benchmark mathvision - Test advanced mathematical vision understanding
-  benchmark mathverse - Test mathematical reasoning in vision-only mode
-  benchmark dynamath - Test dynamic mathematical problem solving
-  benchmark wemath - Test comprehensive mathematical reasoning
-  benchmark logicvista - Test logical reasoning and inference
-  benchmark report - Show benchmark results report
+  benchmark [test] - Run various reasoning tests
 
 🔍 SYSTEM AUDITING:
   audit system - Run comprehensive system audit
-  audit report - Show latest audit results
-  performance - Show current system performance
 
 👍👎 FEEDBACK SYSTEM:
   Click thumbs up/down on any response to help me improve
-  I learn from your feedback and get better over time
-
-🔧 SYSTEM COMMANDS:
-  status     - Show system status
-  storage    - Show logic storage statistics
-  feedback   - Show feedback statistics  
-  training   - Show learning progress
-  clear      - Clear terminal
-  reset      - Reset conversation
 
 Just talk to me like you would any person - that's what I'm designed for, fr! 💯
 `;
-      } else if (input.toLowerCase() === 'audit system') {
-        const auditReport = await systemAuditor.performFullAudit();
-        response = `
-🔍 System Audit Complete - Overall Performance: ${auditReport.overallPerformance.toFixed(1)}%
-
-📊 Component Performance:
-${auditReport.componentAudits.map(audit => 
-  `• ${audit.name}: ${audit.performance.toFixed(1)}% (${audit.status})`
-).join('\n')}
-
-⚠️ Critical Issues (${auditReport.criticalIssues.length}):
-${auditReport.criticalIssues.length > 0 ? auditReport.criticalIssues.map(issue => `• ${issue}`).join('\n') : '• None - system running well!'}
-
-🚀 Quick Wins (${auditReport.quickWins.length}):
-${auditReport.quickWins.slice(0, 3).map(win => `• ${win}`).join('\n')}
-
-🗺️ Roadmap to 100%:
-${auditReport.roadmapTo100.map((phase, index) => `${index + 1}. ${phase}`).join('\n')}
-
-The system is ${auditReport.overallPerformance >= 90 ? 'performing excellently' : auditReport.overallPerformance >= 75 ? 'performing well' : 'needs improvement'}, tbh!
-`;
-      } else if (input.toLowerCase() === 'audit report') {
-        const latest = systemAuditor.getLatestAudit();
-        if (latest) {
-          response = `
-📋 Latest Audit Report (${latest.timestamp.toLocaleString()})
-
-Overall Performance: ${latest.overallPerformance.toFixed(1)}%
-
-Top Performing Components:
-${latest.componentAudits
-  .filter(a => a.performance >= 90)
-  .map(a => `✅ ${a.name}: ${a.performance.toFixed(1)}%`)
-  .join('\n') || '• None at 90%+ yet'}
-
-Needs Improvement:
-${latest.componentAudits
-  .filter(a => a.performance < 80)
-  .map(a => `⚠️ ${a.name}: ${a.performance.toFixed(1)}%`)
-  .join('\n') || '• All components above 80%!'}
-
-This audit is helping us reach 100% performance, no cap! 🎯
-`;
         } else {
-          response = "No audit reports available yet. Run 'audit system' first, bestie!";
-        }
-      } else if (input.toLowerCase() === 'performance') {
-        const latest = systemAuditor.getLatestAudit();
-        const improvementPlan = systemAuditor.generateImprovementPlan();
-        
-        response = `
-🎯 Current System Performance
-
-Overall: ${latest ? latest.overallPerformance.toFixed(1) : 'Unknown'}%
-
-🔥 Priority 1 (Critical):
-${improvementPlan.priority1.map(item => `• ${item}`).join('\n') || '• None - we\'re doing great!'}
-
-📈 Priority 2 (Important):
-${improvementPlan.priority2.slice(0, 3).map(item => `• ${item}`).join('\n') || '• None currently'}
-
-⚡ Priority 3 (Nice to have):
-${improvementPlan.priority3.slice(0, 2).map(item => `• ${item}`).join('\n') || '• None currently'}
-
-⏱️ Estimated time to 100%: ${improvementPlan.estimatedTimeToCompletion}
-
-We're working hard to get everything to 100%, fr! 💪
-`;
-      } else if (input.toLowerCase() === 'feedback') {
-        const feedbackStats = socialMediaProcessor.getFeedbackStats();
-        response = `
-📝 Feedback Statistics
-
-👍 Total Feedback: ${feedbackStats.totalFeedback}
-📊 Like Rate: ${feedbackStats.likeRate.toFixed(1)}%
-
-${feedbackStats.topIssues.length > 0 ? `
-🔧 Common Issues:
-${feedbackStats.topIssues.map(issue => `• ${issue}`).join('\n')}
-` : ''}
-
-${feedbackStats.improvements.length > 0 ? `
-💡 User Suggestions:
-${feedbackStats.improvements.map(suggestion => `• ${suggestion}`).join('\n')}
-` : ''}
-
-Thanks for helping me improve! Your feedback makes me better at conversations, ngl! 🙏
-`;
-      } else if (input.toLowerCase() === 'clear') {
-        setCommands([]);
-        setIsLoading(false);
-        return;
-      } else if (input.toLowerCase() === 'reset') {
-        setConversationContext([]);
-        response = 'Conversation reset! What would you like to talk about, bestie? 💫';
-      } else if (input.toLowerCase() === 'status') {
-        const logicStats = machineGod.getLogicStorageStats();
-        const speechStats = socialMediaProcessor.getSpeechSettings();
-        response = `
-🧠 Logic Storage System Status:
-
-• Total Algorithms: ${logicStats.stats.totalAlgorithms}
-• Total Patterns: ${logicStats.stats.totalPatterns}
-• Active Units: ${logicStats.stats.activeUnits} of ${logicStats.stats.totalUnits}
-• Compression Ratio: ${(logicStats.stats.compressionRatio * 100).toFixed(1)}%
-• Top Performing Tier: ${logicStats.tiers[logicStats.stats.topPerformingTier].description}
-
-🗣️ Social Media Speech Status:
-
-• Modern Slang: ${speechStats.modernSlangCount} expressions
-• Casual Language: ${speechStats.casualExpressionsCount} patterns
-• Internet Language: ${speechStats.internetLanguageCount} terms
-• Total Patterns: ${speechStats.totalPatterns}
-• Average Frequency: ${(speechStats.averageFrequency * 100).toFixed(1)}%
-
-The system is fully operational with proper 6-tier logic storage and social media speech, no cap! 🔥
-`;
-      } else if (input.toLowerCase() === 'storage') {
-        const logicStats = machineGod.getLogicStorageStats();
-        response = `
-🧠 6-Tier Logic Storage System:
-
-${logicStats.tiers.map(tier => 
-  `Tier ${tier.id+1}: ${tier.description}
-   • Usage: ${tier.utilizationPercentage.toFixed(1)}% (${Math.round(tier.usedCapacity/1024/1024)}MB / ${Math.round(tier.totalCapacity/1024/1024)}MB)
-   • Compression: ${((1-tier.compressionRatio) * 100).toFixed(1)}%`
-).join('\n\n')}
-
-📊 Overall Statistics:
-• Total Algorithms: ${logicStats.stats.totalAlgorithms}
-• Total Patterns: ${logicStats.stats.totalPatterns}
-• Active Units: ${logicStats.stats.activeUnits} of ${logicStats.stats.totalUnits}
-• Average Performance: ${(logicStats.stats.averagePerformance * 100).toFixed(1)}%
-
-This 6-tier system ensures proper storage of different types of knowledge and capabilities, fr! 💾
-`;
-      } else if (input.toLowerCase().startsWith('benchmark ')) {
-        const benchmarkCommand = input.toLowerCase().substring(10).trim();
-        
-        if (benchmarkCommand === 'report') {
-          response = lmmBenchmarks.generateBenchmarkReport();
-        } else {
-          const validBenchmarks = ['mathvista', 'mathvision', 'mathverse', 'dynamath', 'wemath', 'logicvista'];
-          const benchmarkId = validBenchmarks.find(b => benchmarkCommand.includes(b));
-          
-          if (benchmarkId) {
-            setIsBenchmarking(true);
-            response = `Starting ${benchmarkId} benchmark test, let's see how we do! 🎯`;
-            
-            try {
-              const fullBenchmarkId = benchmarkId === 'mathvista' ? 'mathvista_mini' : 
-                                     benchmarkId === 'mathverse' ? 'mathverse_mini' : benchmarkId;
-              
-              benchmarkResult = await lmmBenchmarks.runLMMBenchmark(
-                fullBenchmarkId,
-                async (question, options) => {
-                  // Process through MachineGod
-                  const result = await machineGod.processConversation(
-                    `${question}${options ? '\nOptions: ' + options.join(', ') : ''}`,
-                    []
-                  );
-                  
-                  return {
-                    answer: result.response,
-                    reasoning: 'Processed through natural language understanding',
-                    confidence: result.confidence
-                  };
-                }
-              );
-              
-              response = `
-📊 ${benchmarkId.toUpperCase()} Benchmark Results - We did it! 🔥
-
-Score: ${benchmarkResult.percentage.toFixed(1)}% (${benchmarkResult.score}/${benchmarkResult.maxScore})
-Rank on Leaderboard: #${benchmarkResult.leaderboardComparison.rank}
-Percentile: ${benchmarkResult.leaderboardComparison.percentile.toFixed(1)}%
-Top Model Score: ${benchmarkResult.leaderboardComparison.topScore.toFixed(1)}%
-
-${benchmarkResult.percentage > benchmarkResult.leaderboardComparison.topScore ? 
-  '🎉 YO WE BEAT THE TOP MODEL! That\'s absolutely fire! 🔥🔥🔥' : 
-  benchmarkResult.leaderboardComparison.percentile > 75 ? 
-    '🌟 EXCELLENT! We\'re in the top tier, no cap! 💯' : 
-    benchmarkResult.leaderboardComparison.percentile > 50 ? 
-      '✅ SOLID! Above average performance, we\'re getting there! 📈' : 
-      '⚠️ We can do better than this, ngl. Time to level up! 💪'}
-
-Run 'benchmark report' to see how we stack up across all benchmarks, bestie!
-`;
-            } catch (error) {
-              response = `❌ Benchmark failed: ${error} - that's mid, we'll fix it though! 🔧`;
-            } finally {
-              setIsBenchmarking(false);
-            }
-          } else {
-            response = `
-Invalid benchmark command, bestie! Available benchmarks:
-- benchmark mathvista - Test mathematical reasoning with visual elements
-- benchmark mathvision - Test advanced mathematical vision understanding
-- benchmark mathverse - Test mathematical reasoning in vision-only mode
-- benchmark dynamath - Test dynamic mathematical problem solving
-- benchmark wemath - Test comprehensive mathematical reasoning
-- benchmark logicvista - Test logical reasoning and inference
-- benchmark report - Show benchmark results report
-`;
-          }
-        }
-      } else {
-        // Main conversation processing with Social Media Speech
-        if (isInitialized) {
-          // First get the base response
+          // Process through full system
           const result = await machineGod.processConversation(input, conversationContext);
           
           // Apply social media speech processing
@@ -550,14 +360,12 @@ Invalid benchmark command, bestie! Available benchmarks:
           memoryId = result.memoryId;
           researchConducted = result.researchConducted || false;
           logicalAnalysisApplied = result.logicalAnalysisApplied || logicalAnalysisApplied;
-          slangApplied = true; // Always true with social media processing
+          slangApplied = true;
           logicAlgorithmsUsed = result.logicAlgorithmsUsed || [];
 
-          // Update system status after processing
+          // Update system status
           const status = machineGod.getSystemStatus();
           onSystemStatusChange(status);
-        } else {
-          response = '⚠️ System not yet ready. Please wait for initialization to complete, bestie!';
         }
       }
 
@@ -624,129 +432,148 @@ Invalid benchmark command, bestie! Available benchmarks:
   };
 
   return (
-    <div className="h-full flex flex-col bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg overflow-hidden">
-      {/* Training Progress Header */}
-      <div className="training-header bg-gradient-to-r from-purple-900 to-blue-900 bg-opacity-40 border-b border-purple-600 p-3 flex-shrink-0">
-        <div className="flex justify-between items-center text-sm mb-2">
-          <span className="text-purple-300">🧠 6-Tier Logic + 🗣️ Social Media Speech</span>
-          <span className="text-cyan-300">Learning: {trainingProgress.generation}</span>
-          <span className="text-green-300">{trainingProgress.progressPercentage.toFixed(1)}%</span>
-          <span className="text-yellow-300">ETA: {trainingProgress.eta}</span>
-          <span className="text-pink-300">🔥 Speech: 256MB</span>
+    <>
+      <div className="h-full flex flex-col bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg overflow-hidden">
+        {/* Training Progress Header */}
+        <div className="training-header bg-gradient-to-r from-purple-900 to-blue-900 bg-opacity-40 border-b border-purple-600 p-3 flex-shrink-0">
+          <div className="flex justify-between items-center text-sm mb-2">
+            <span className="text-purple-300">
+              {trainingComplete ? '🧠 6-Tier Logic + 🗣️ Social Media Speech' : '🎯 Training Mode'}
+            </span>
+            <span className="text-cyan-300">
+              {trainingComplete ? `Learning: ${trainingProgress.generation}` : 'Training Required'}
+            </span>
+            <span className="text-green-300">{trainingProgress.progressPercentage.toFixed(1)}%</span>
+            <span className="text-yellow-300">ETA: {trainingProgress.eta}</span>
+            <span className="text-pink-300">
+              {trainingComplete ? '🔥 Speech: 256MB' : '🔒 Locked'}
+            </span>
+          </div>
+          <div className="bg-gray-700 rounded-full h-2">
+            <div 
+              className={`h-2 rounded-full transition-all duration-1000 ${
+                trainingComplete 
+                  ? 'bg-gradient-to-r from-purple-500 via-blue-500 to-green-500'
+                  : 'bg-gradient-to-r from-red-500 to-yellow-500'
+              }`}
+              style={{ width: `${trainingProgress.progressPercentage}%` }}
+            ></div>
+          </div>
         </div>
-        <div className="bg-gray-700 rounded-full h-2">
-          <div 
-            className="bg-gradient-to-r from-purple-500 via-blue-500 to-green-500 h-2 rounded-full transition-all duration-1000"
-            style={{ width: `${trainingProgress.progressPercentage}%` }}
-          ></div>
+
+        {/* Terminal Content - Scrollable */}
+        <div 
+          ref={terminalRef}
+          className="flex-1 overflow-y-auto p-4 font-mono text-green-400 cursor-text"
+          onClick={handleTerminalClick}
+          style={{ 
+            scrollBehavior: 'smooth',
+            minHeight: 0
+          }}
+        >
+          <div className="space-y-2">
+            {commands.map((cmd, index) => (
+              <div key={index} className="terminal-line">
+                {cmd.command && (
+                  <div className="text-purple-400 mb-2 break-words">
+                    <span className="text-purple-300">{'>'}</span> {cmd.command}
+                  </div>
+                )}
+                {cmd.response && (
+                  <div className="whitespace-pre-wrap text-green-300 ml-2 mb-2 break-words">
+                    {cmd.response}
+                  </div>
+                )}
+                
+                {/* Training mode indicators */}
+                {!trainingComplete && cmd.command && (
+                  <div className="ml-2 mt-1 text-yellow-400 text-xs flex items-center">
+                    <span>🔒 Training mode - natural conversation locked</span>
+                  </div>
+                )}
+                
+                {/* Social media processing indicator */}
+                {cmd.socialMediaProcessed && trainingComplete && (
+                  <div className="ml-2 mt-1 text-pink-400 text-xs flex items-center">
+                    <span>🗣️ Social media speech applied (256MB reference)</span>
+                  </div>
+                )}
+                
+                {/* Other indicators for completed training */}
+                {trainingComplete && cmd.researchConducted && (
+                  <div className="ml-2 mt-1 text-blue-400 text-xs flex items-center">
+                    <span>🔍 Real-time web research conducted</span>
+                  </div>
+                )}
+                
+                {trainingComplete && cmd.logicalAnalysisApplied && (
+                  <div className="ml-2 mt-1 text-purple-400 text-xs flex items-center">
+                    <span>🧠 Structured reasoning applied</span>
+                  </div>
+                )}
+                
+                {/* User feedback widget for completed training */}
+                {trainingComplete && cmd.needsFeedback && !cmd.feedbackGiven && cmd.command && cmd.memoryId && (
+                  <div className="ml-2 mt-2">
+                    <UserFeedbackWidget
+                      responseId={cmd.memoryId}
+                      onFeedback={(liked, improvement) => handleFeedback(cmd.memoryId!, liked, improvement)}
+                    />
+                  </div>
+                )}
+
+                {/* Show feedback given confirmation */}
+                {cmd.feedbackGiven && (
+                  <div className="ml-2 mt-1 text-gray-500 text-xs">
+                    ✓ Thanks for the feedback, bestie! 🙏
+                  </div>
+                )}
+              </div>
+            ))}
+            {isLoading && (
+              <div className="text-yellow-400 ml-2 flex items-center">
+                <span className="animate-pulse">
+                  {trainingComplete 
+                    ? '💬 Thinking with social media speech...' 
+                    : '🎯 Processing training command...'
+                  }
+                </span>
+              </div>
+            )}
+            {/* Scroll anchor */}
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
+        
+        {/* Input Area - Fixed at bottom */}
+        <div className="flex-shrink-0 border-t border-purple-800 p-4">
+          <div className="flex items-center">
+            <span className="text-purple-300 mr-2 flex-shrink-0">{'>'}</span>
+            <input
+              ref={inputRef}
+              type="text"
+              value={currentInput}
+              onChange={(e) => setCurrentInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className="flex-1 bg-transparent border-none outline-none text-green-400 font-mono"
+              placeholder={
+                trainingComplete 
+                  ? "Ask me anything - I'll respond naturally with social media speech, no cap! 🔥"
+                  : "Type 'start training' to begin the 25-question test..."
+              }
+              disabled={isLoading || !isInitialized}
+              autoFocus
+            />
+            <span className="text-green-400 animate-pulse ml-2 flex-shrink-0">█</span>
+          </div>
         </div>
       </div>
 
-      {/* Terminal Content - Scrollable */}
-      <div 
-        ref={terminalRef}
-        className="flex-1 overflow-y-auto p-4 font-mono text-green-400 cursor-text"
-        onClick={handleTerminalClick}
-        style={{ 
-          scrollBehavior: 'smooth',
-          minHeight: 0
-        }}
-      >
-        <div className="space-y-2">
-          {commands.map((cmd, index) => (
-            <div key={index} className="terminal-line">
-              {cmd.command && (
-                <div className="text-purple-400 mb-2 break-words">
-                  <span className="text-purple-300">{'>'}</span> {cmd.command}
-                </div>
-              )}
-              {cmd.response && (
-                <div className="whitespace-pre-wrap text-green-300 ml-2 mb-2 break-words">
-                  {cmd.response}
-                </div>
-              )}
-              
-              {/* Social media processing indicator */}
-              {cmd.socialMediaProcessed && (
-                <div className="ml-2 mt-1 text-pink-400 text-xs flex items-center">
-                  <span>🗣️ Social media speech applied (256MB reference)</span>
-                </div>
-              )}
-              
-              {/* Benchmark result indicator */}
-              {cmd.benchmarkResult && (
-                <div className="ml-2 mt-1 text-yellow-400 text-xs flex items-center">
-                  <span>📊 Benchmark completed: {cmd.benchmarkResult.percentage.toFixed(1)}% score</span>
-                </div>
-              )}
-              
-              {/* Research indicator */}
-              {cmd.researchConducted && (
-                <div className="ml-2 mt-1 text-blue-400 text-xs flex items-center">
-                  <span>🔍 Real-time web research conducted</span>
-                </div>
-              )}
-              
-              {/* Logical analysis indicator */}
-              {cmd.logicalAnalysisApplied && (
-                <div className="ml-2 mt-1 text-purple-400 text-xs flex items-center">
-                  <span>🧠 Structured reasoning applied</span>
-                </div>
-              )}
-              
-              {/* Logic algorithms used */}
-              {cmd.logicAlgorithmsUsed && cmd.logicAlgorithmsUsed.length > 0 && (
-                <div className="ml-2 mt-1 text-cyan-400 text-xs flex items-center">
-                  <span>🧠 Used {cmd.logicAlgorithmsUsed.length} logic algorithms</span>
-                </div>
-              )}
-              
-              {/* User feedback widget */}
-              {cmd.needsFeedback && !cmd.feedbackGiven && cmd.command && cmd.memoryId && (
-                <div className="ml-2 mt-2">
-                  <UserFeedbackWidget
-                    responseId={cmd.memoryId}
-                    onFeedback={(liked, improvement) => handleFeedback(cmd.memoryId!, liked, improvement)}
-                  />
-                </div>
-              )}
-
-              {/* Show feedback given confirmation */}
-              {cmd.feedbackGiven && (
-                <div className="ml-2 mt-1 text-gray-500 text-xs">
-                  ✓ Thanks for the feedback, bestie! 🙏
-                </div>
-              )}
-            </div>
-          ))}
-          {isLoading && (
-            <div className="text-yellow-400 ml-2 flex items-center">
-              <span className="animate-pulse">{isBenchmarking ? '📊 Running benchmark, let\'s see how we do...' : '💬 Thinking with social media speech...'}</span>
-            </div>
-          )}
-          {/* Scroll anchor */}
-          <div ref={messagesEndRef} />
-        </div>
-      </div>
-      
-      {/* Input Area - Fixed at bottom */}
-      <div className="flex-shrink-0 border-t border-purple-800 p-4">
-        <div className="flex items-center">
-          <span className="text-purple-300 mr-2 flex-shrink-0">{'>'}</span>
-          <input
-            ref={inputRef}
-            type="text"
-            value={currentInput}
-            onChange={(e) => setCurrentInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            className="flex-1 bg-transparent border-none outline-none text-green-400 font-mono"
-            placeholder={isInitialized ? "Ask me anything - I'll respond naturally with social media speech, no cap! 🔥" : "Initializing social media speech processor..."}
-            disabled={isLoading || !isInitialized}
-            autoFocus
-          />
-          <span className="text-green-400 animate-pulse ml-2 flex-shrink-0">█</span>
-        </div>
-      </div>
-    </div>
+      {/* Training Test Interface */}
+      <TrainingTestInterface
+        isVisible={showTrainingTest}
+        onTrainingComplete={handleTrainingComplete}
+      />
+    </>
   );
 };
