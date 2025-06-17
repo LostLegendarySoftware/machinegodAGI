@@ -292,8 +292,8 @@ function App() {
 
       {/* Main Content */}
       <div className="relative z-10 flex flex-col h-screen">
-        {/* Header */}
-        <header className="bg-black bg-opacity-80 border-b-2 border-purple-500 p-4">
+        {/* Header - Sticky */}
+        <header className="bg-black bg-opacity-80 border-b-2 border-purple-500 p-4 sticky top-0 z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Activity className="text-purple-400" size={32} />
@@ -313,9 +313,9 @@ function App() {
           </div>
         </header>
 
-        {/* Tab Navigation */}
-        <nav className="bg-black bg-opacity-80 border-b border-purple-600">
-          <div className="flex space-x-1 p-2">
+        {/* Tab Navigation - Sticky */}
+        <nav className="bg-black bg-opacity-80 border-b border-purple-600 sticky top-[81px] z-20">
+          <div className="flex space-x-1 p-2 overflow-x-auto">
             {tabs.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
@@ -333,13 +333,46 @@ function App() {
           </div>
         </nav>
 
-        {/* Main Content Area */}
-        <main className="flex-1 p-4">
+        {/* System Metrics Bar - Sticky */}
+        <div className="bg-black bg-opacity-80 border-b border-purple-600 p-3 sticky top-[133px] z-20">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div className="bg-gray-900 bg-opacity-50 p-2 rounded-lg border border-gray-600">
+              <div className="text-xl font-bold text-green-400">
+                {systemStatus.metaLogic.evaluationsCount + systemStatus.ariel.debateCount}
+              </div>
+              <div className="text-xs text-gray-300">Operations</div>
+            </div>
+            
+            <div className="bg-gray-900 bg-opacity-50 p-2 rounded-lg border border-gray-600">
+              <div className="text-xl font-bold text-blue-400">
+                {systemStatus.ariel.agentCount}
+              </div>
+              <div className="text-xs text-gray-300">Active Agents</div>
+            </div>
+            
+            <div className="bg-gray-900 bg-opacity-50 p-2 rounded-lg border border-gray-600">
+              <div className="text-xl font-bold text-purple-400">
+                {systemStatus.warp.currentPhase}
+              </div>
+              <div className="text-xs text-gray-300">WARP Phase</div>
+            </div>
+            
+            <div className="bg-gray-900 bg-opacity-50 p-2 rounded-lg border border-gray-600">
+              <div className="text-xl font-bold text-yellow-400">
+                {Math.round(systemStatus.helix.spaceSaved / 1024)}KB
+              </div>
+              <div className="text-xs text-gray-300">Space Saved</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Area - Scrollable */}
+        <main className="flex-1 p-4 overflow-y-auto">
           {renderTabContent()}
         </main>
 
-        {/* Footer */}
-        <footer className="bg-black bg-opacity-80 border-t border-purple-600 p-3">
+        {/* Footer - Sticky */}
+        <footer className="bg-black bg-opacity-80 border-t border-purple-600 p-3 sticky bottom-0 z-20">
           <div className="flex justify-between items-center text-sm text-gray-400">
             <div>
               MachineGod v3.0.0 OmegaEvolved - Background Reasoning with Auto-Tasking AGI System

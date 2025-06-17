@@ -18,7 +18,7 @@ export const SystemDashboard: React.FC<SystemDashboardProps> = ({ status }) => {
           MachineGod System Status
         </h2>
         <div className="text-green-400 text-sm">
-          Integrated META-LOGIC • ARIEL • WARP • HELIX
+          OmegaEvolved • Background Reasoning • Auto-Tasking • Truth Stratification
         </div>
       </div>
 
@@ -69,7 +69,7 @@ export const SystemDashboard: React.FC<SystemDashboardProps> = ({ status }) => {
               <span className="text-blue-300">{status.ariel.debateCount}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-300">Morale:</span>
+              <span className="text-gray-300">Performance:</span>
               <span className={status.ariel.teamMorale > 0.7 ? 'text-green-300' : 'text-yellow-300'}>
                 {(status.ariel.teamMorale * 100).toFixed(1)}%
               </span>
@@ -136,71 +136,152 @@ export const SystemDashboard: React.FC<SystemDashboardProps> = ({ status }) => {
         </div>
       </div>
 
-      {/* System Metrics Bar */}
+      {/* Training Status */}
       <div className="mt-6 p-4 bg-purple-900 bg-opacity-30 rounded-lg border border-purple-600">
-        <h3 className="text-purple-300 font-bold mb-3">System Performance</h3>
+        <h3 className="text-purple-300 font-bold mb-3 flex items-center">
+          <Brain className="mr-2" size={18} />
+          OmegaEvolved Training Status
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="bg-black bg-opacity-50 p-3 rounded-lg border border-purple-500">
+            <div className="text-sm text-gray-300 mb-1">Current Level</div>
+            <div className="text-lg font-bold text-purple-300">{status.training.currentLevel}</div>
+          </div>
+          
+          <div className="bg-black bg-opacity-50 p-3 rounded-lg border border-purple-500">
+            <div className="text-sm text-gray-300 mb-1">Progress</div>
+            <div className="text-lg font-bold text-green-300">{status.training.progressPercentage.toFixed(1)}%</div>
+          </div>
+          
+          <div className="bg-black bg-opacity-50 p-3 rounded-lg border border-purple-500">
+            <div className="text-sm text-gray-300 mb-1">Reasoning Ability</div>
+            <div className="text-lg font-bold text-blue-300">{(status.training.reasoningAbility * 100).toFixed(1)}%</div>
+          </div>
+        </div>
         
         <div className="space-y-3">
           <div>
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-300">Overall Efficiency</span>
+              <span className="text-gray-300">Training Progress</span>
               <span className="text-green-300">
-                {((status.warp.efficiency + status.ariel.teamMorale) / 2 * 100).toFixed(1)}%
+                {status.training.progressPercentage.toFixed(1)}%
               </span>
             </div>
             <div className="w-full bg-gray-700 rounded-full h-2">
               <div 
                 className="bg-gradient-to-r from-green-500 to-purple-500 h-2 rounded-full"
-                style={{ width: `${(status.warp.efficiency + status.ariel.teamMorale) / 2 * 100}%` }}
+                style={{ width: `${status.training.progressPercentage}%` }}
               ></div>
             </div>
           </div>
           
           <div>
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-300">Processing Power</span>
+              <span className="text-gray-300">Multi-Modal Progress</span>
               <span className="text-cyan-300">
-                {status.warp.teamCount}x Teams
+                {(status.memory.multiModalProgress * 100).toFixed(1)}%
               </span>
             </div>
             <div className="w-full bg-gray-700 rounded-full h-2">
               <div 
                 className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full"
-                style={{ width: `${(status.warp.teamCount / 8) * 100}%` }}
+                style={{ width: `${status.memory.multiModalProgress * 100}%` }}
               ></div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-        <div className="bg-gray-900 bg-opacity-50 p-3 rounded-lg border border-gray-600">
-          <div className="text-2xl font-bold text-green-400">
-            {status.metaLogic.evaluationsCount + status.ariel.debateCount}
+      {/* Research & API Status */}
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-4 bg-blue-900 bg-opacity-30 rounded-lg border border-blue-600">
+          <h3 className="text-blue-300 font-bold mb-3">REAL Research Status</h3>
+          
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-300">Google Search API:</span>
+              <span className="text-green-300">CONNECTED</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-300">API Requests:</span>
+              <span className="text-blue-300">{status.api.requestCount}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-300">Network:</span>
+              <span className="text-purple-300">{status.api.network}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-300">Connectivity:</span>
+              <span className={status.api.connectivity === 'healthy' ? 'text-green-300' : 'text-yellow-300'}>
+                {status.api.connectivity.toUpperCase()}
+              </span>
+            </div>
           </div>
-          <div className="text-sm text-gray-300">Total Operations</div>
         </div>
         
-        <div className="bg-gray-900 bg-opacity-50 p-3 rounded-lg border border-gray-600">
-          <div className="text-2xl font-bold text-blue-400">
-            {status.ariel.agentCount}
+        <div className="p-4 bg-red-900 bg-opacity-30 rounded-lg border border-red-600">
+          <h3 className="text-red-300 font-bold mb-3">Truth Protocol Status</h3>
+          
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-300">Status:</span>
+              <span className={status.truthProtocol.active ? 'text-green-300' : 'text-red-300'}>
+                {status.truthProtocol.active ? 'ACTIVE' : 'DISABLED'}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-300">Adversarial Cycles:</span>
+              <span className="text-orange-300">{status.truthProtocol.adversarialCycles}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-300">Truth Signatures:</span>
+              <span className="text-yellow-300">{status.truthProtocol.truthSignatures}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-300">Stratum Compliance:</span>
+              <span className="text-pink-300">
+                {Object.entries(status.truthProtocol.stratumCompliance).map(([key, value]) => 
+                  `${key}:${(value * 100 || 0).toFixed(0)}%`
+                ).join(' ')}
+              </span>
+            </div>
           </div>
-          <div className="text-sm text-gray-300">Active Agents</div>
         </div>
+      </div>
+
+      {/* Memory & Conversation Stats */}
+      <div className="mt-6 p-4 bg-green-900 bg-opacity-30 rounded-lg border border-green-600">
+        <h3 className="text-green-300 font-bold mb-3">Memory & Conversation Stats</h3>
         
-        <div className="bg-gray-900 bg-opacity-50 p-3 rounded-lg border border-gray-600">
-          <div className="text-2xl font-bold text-purple-400">
-            {status.warp.currentPhase}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div className="bg-black bg-opacity-50 p-3 rounded-lg border border-gray-600">
+            <div className="text-2xl font-bold text-green-400">
+              {status.memory.totalConversations}
+            </div>
+            <div className="text-sm text-gray-300">Total Conversations</div>
           </div>
-          <div className="text-sm text-gray-300">WARP Phase</div>
-        </div>
-        
-        <div className="bg-gray-900 bg-opacity-50 p-3 rounded-lg border border-gray-600">
-          <div className="text-2xl font-bold text-yellow-400">
-            {Math.round(status.helix.spaceSaved / 1024)}KB
+          
+          <div className="bg-black bg-opacity-50 p-3 rounded-lg border border-gray-600">
+            <div className="text-2xl font-bold text-blue-400">
+              {status.memory.userSessions}
+            </div>
+            <div className="text-sm text-gray-300">User Sessions</div>
           </div>
-          <div className="text-sm text-gray-300">Space Saved</div>
+          
+          <div className="bg-black bg-opacity-50 p-3 rounded-lg border border-gray-600">
+            <div className="text-2xl font-bold text-purple-400">
+              {status.memory.trainingCheckpoints}
+            </div>
+            <div className="text-sm text-gray-300">Training Checkpoints</div>
+          </div>
+          
+          <div className="bg-black bg-opacity-50 p-3 rounded-lg border border-gray-600">
+            <div className="text-2xl font-bold text-yellow-400">
+              {(status.memory.multiModalProgress * 100).toFixed(1)}%
+            </div>
+            <div className="text-sm text-gray-300">Multi-Modal Progress</div>
+          </div>
         </div>
       </div>
     </div>
