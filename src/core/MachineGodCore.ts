@@ -1,6 +1,6 @@
 /**
  * MachineGod Core Integration System
- * Enhanced with OmegaEvolved training, background reasoning, and auto-tasking
+ * Enhanced with OmegaEvolved training, background reasoning, and natural conversation flow
  */
 
 import { MetaLogicEvaluator, LogicalStatement, EvaluationResult } from './MetaLogicEvaluator';
@@ -71,6 +71,8 @@ export interface BackgroundReasoning {
   reasoningSteps: string[];
   confidence: number;
   processingTime: number;
+  keyInsights: string[];
+  conversationalTone: 'analytical' | 'explanatory' | 'casual' | 'technical';
 }
 
 export interface ConversationResponse {
@@ -119,9 +121,10 @@ export class MachineGodCore {
   private apiConnectivity: 'healthy' | 'degraded' | 'unhealthy' = 'unhealthy';
   private truthVerificationEnabled = true;
 
-  // Knowledge base for intelligent responses
+  // Enhanced knowledge base for natural conversation
   private knowledgeBase = new Map<string, any>();
-  private responsePatterns = new Map<string, string[]>();
+  private conversationalPatterns = new Map<string, string[]>();
+  private contextualResponses = new Map<string, string[]>();
 
   constructor() {
     console.log('🚀 Initializing MachineGod Unified Intelligence with OmegaEvolved...');
@@ -136,74 +139,98 @@ export class MachineGodCore {
     this.truthProtocol = new MesiahBishopProtocol();
     
     this.initializeKnowledgeBase();
-    this.initializeResponsePatterns();
+    this.initializeConversationalPatterns();
     
     console.log('✅ MachineGod Core System with OmegaEvolved initialized');
   }
 
   private initializeKnowledgeBase() {
-    // Initialize core knowledge domains
+    // Initialize core knowledge domains with conversational context
     this.knowledgeBase.set('artificial_intelligence', {
       concepts: ['machine learning', 'neural networks', 'deep learning', 'natural language processing', 'computer vision'],
       relationships: ['AI encompasses ML', 'ML uses algorithms to learn patterns', 'Deep learning uses neural networks'],
-      applications: ['chatbots', 'image recognition', 'autonomous vehicles', 'recommendation systems']
+      applications: ['chatbots', 'image recognition', 'autonomous vehicles', 'recommendation systems'],
+      conversationalHooks: ['fascinating field', 'rapidly evolving', 'transforming industries', 'exciting possibilities']
     });
 
     this.knowledgeBase.set('programming', {
       concepts: ['algorithms', 'data structures', 'programming languages', 'software engineering', 'debugging'],
       relationships: ['algorithms solve problems', 'data structures organize information', 'languages implement algorithms'],
-      applications: ['web development', 'mobile apps', 'system software', 'games']
+      applications: ['web development', 'mobile apps', 'system software', 'games'],
+      conversationalHooks: ['creative problem solving', 'logical thinking', 'building solutions', 'endless possibilities']
     });
 
     this.knowledgeBase.set('mathematics', {
       concepts: ['algebra', 'calculus', 'statistics', 'geometry', 'logic'],
       relationships: ['calculus builds on algebra', 'statistics analyzes data', 'logic forms reasoning foundation'],
-      applications: ['engineering', 'physics', 'economics', 'computer science']
+      applications: ['engineering', 'physics', 'economics', 'computer science'],
+      conversationalHooks: ['beautiful patterns', 'logical elegance', 'universal language', 'fundamental truths']
     });
 
     this.knowledgeBase.set('science', {
       concepts: ['physics', 'chemistry', 'biology', 'astronomy', 'geology'],
       relationships: ['physics studies matter and energy', 'chemistry studies atomic interactions', 'biology studies life'],
-      applications: ['medicine', 'technology', 'environmental science', 'space exploration']
+      applications: ['medicine', 'technology', 'environmental science', 'space exploration'],
+      conversationalHooks: ['amazing discoveries', 'natural wonders', 'understanding reality', 'pushing boundaries']
     });
 
     this.knowledgeBase.set('philosophy', {
       concepts: ['ethics', 'logic', 'metaphysics', 'epistemology', 'aesthetics'],
       relationships: ['ethics studies moral behavior', 'logic studies valid reasoning', 'epistemology studies knowledge'],
-      applications: ['moral decision making', 'critical thinking', 'understanding reality']
+      applications: ['moral decision making', 'critical thinking', 'understanding reality'],
+      conversationalHooks: ['deep questions', 'fundamental mysteries', 'human nature', 'meaning of existence']
     });
   }
 
-  private initializeResponsePatterns() {
-    // Question patterns and response templates
-    this.responsePatterns.set('what_is', [
-      'Let me think about {topic} systematically.',
-      'I need to analyze {topic} from multiple perspectives.',
-      'Based on my reasoning, {topic} can be understood as {explanation}'
+  private initializeConversationalPatterns() {
+    // Natural conversation starters based on analysis
+    this.conversationalPatterns.set('confident_response', [
+      "I can help you with that.",
+      "That's a great question.",
+      "Let me share what I know about this.",
+      "I've been thinking about this topic.",
+      "This is something I find interesting."
     ]);
 
-    this.responsePatterns.set('how_to', [
-      'I\'ll work through {task} step by step.',
-      'Let me break down {task} logically.',
-      'Through careful analysis, the best approach to {task} involves:'
+    this.conversationalPatterns.set('analytical_response', [
+      "After analyzing this carefully,",
+      "Looking at this from multiple angles,",
+      "When I consider the various factors,",
+      "Breaking this down systematically,",
+      "From my analysis of the situation,"
     ]);
 
-    this.responsePatterns.set('why', [
-      'The reasoning behind {topic} requires careful consideration.',
-      'Let me analyze the underlying causes of {topic}.',
-      'Through logical evaluation, {topic} occurs because:'
+    this.conversationalPatterns.set('explanatory_response', [
+      "Let me explain how this works.",
+      "The key thing to understand is",
+      "What's happening here is",
+      "The important point is that",
+      "Here's what you need to know:"
     ]);
 
-    this.responsePatterns.set('compare', [
-      'I need to carefully compare {item1} and {item2}.',
-      'Let me analyze the differences between {item1} and {item2}.',
-      'My analysis reveals these distinctions:'
+    this.conversationalPatterns.set('collaborative_response', [
+      "Let's explore this together.",
+      "I think we can work through this.",
+      "This is worth discussing further.",
+      "There are several ways to approach this.",
+      "We can look at this from different perspectives."
     ]);
 
-    this.responsePatterns.set('explain', [
-      'Let me think through {topic} carefully.',
-      'I\'ll analyze {topic} systematically.',
-      'Through logical reasoning, {topic} works like this:'
+    // Contextual response patterns
+    this.contextualResponses.set('follow_up', [
+      "Building on what we discussed earlier,",
+      "This connects to our previous conversation about",
+      "As we were exploring before,",
+      "Continuing our discussion,",
+      "This relates to what you mentioned about"
+    ]);
+
+    this.contextualResponses.set('clarification', [
+      "To clarify what you're asking,",
+      "If I understand correctly,",
+      "What you're getting at is",
+      "The core of your question seems to be",
+      "Let me make sure I understand:"
     ]);
   }
 
@@ -303,6 +330,7 @@ export class MachineGodCore {
   private async performBackgroundReasoning(input: string, context: string[]): Promise<BackgroundReasoning> {
     const startTime = Date.now();
     const reasoningSteps: string[] = [];
+    const keyInsights: string[] = [];
     
     console.log('🧠 Starting background reasoning process...');
     
@@ -318,6 +346,14 @@ export class MachineGodCore {
     const metaLogicAnalysis = await this.metaLogic.evaluate(statement);
     reasoningSteps.push(`META-LOGIC evaluation complete: ${metaLogicAnalysis.truthValue} (${(metaLogicAnalysis.confidence * 100).toFixed(1)}% confidence)`);
     
+    // Extract key insights from META-LOGIC
+    if (metaLogicAnalysis.confidence > 0.8) {
+      keyInsights.push('High logical confidence in analysis');
+    }
+    if (metaLogicAnalysis.metaRules.length > 0) {
+      keyInsights.push(`Applied ${metaLogicAnalysis.metaRules.length} meta-logical rules`);
+    }
+    
     // Step 2: Auto-task ARIEL agents for debate
     reasoningSteps.push('Auto-tasking ARIEL agent teams for collaborative analysis');
     const complexity = this.calculateComplexity(input);
@@ -325,12 +361,23 @@ export class MachineGodCore {
     reasoningSteps.push(`Agent debate completed: ${agentDebateResult.participatingAgents.length} agents participated`);
     reasoningSteps.push(`Winning approach: ${agentDebateResult.winningTeam} with ${(agentDebateResult.confidence * 100).toFixed(1)}% confidence`);
     
+    // Extract key insights from debate
+    if (agentDebateResult.confidence > 0.7) {
+      keyInsights.push('Strong consensus from agent teams');
+    }
+    if (agentDebateResult.adversarialChallenges && agentDebateResult.adversarialChallenges.length > 0) {
+      keyInsights.push('Multiple perspectives considered');
+    }
+    
     // Step 3: Handler synthesis
     reasoningSteps.push('Handler synthesizing debate results and META-LOGIC analysis');
     const handlerSynthesis = this.synthesizeBackgroundAnalysis(metaLogicAnalysis, agentDebateResult, input);
     reasoningSteps.push('Background analysis synthesis complete');
     
-    // Step 4: Calculate overall confidence
+    // Step 4: Determine conversational tone
+    const conversationalTone = this.determineConversationalTone(input, complexity, metaLogicAnalysis.confidence);
+    
+    // Step 5: Calculate overall confidence
     const confidence = (metaLogicAnalysis.confidence + agentDebateResult.confidence) / 2;
     
     const processingTime = Date.now() - startTime;
@@ -342,12 +389,14 @@ export class MachineGodCore {
       handlerSynthesis,
       reasoningSteps,
       confidence,
-      processingTime
+      processingTime,
+      keyInsights,
+      conversationalTone
     };
   }
 
   /**
-   * Generate natural response based on background reasoning
+   * Generate natural, flowing response based on background reasoning
    */
   private async generateNaturalResponse(
     input: string, 
@@ -356,43 +405,283 @@ export class MachineGodCore {
   ): Promise<string> {
     console.log('💬 Generating natural response from background analysis...');
     
-    // Analyze input type and select appropriate response pattern
+    // Analyze input and determine response approach
     const inputAnalysis = this.analyzeInput(input);
     const domain = this.determineDomain(input);
+    const hasContext = context.length > 0;
     
     let response = '';
     
-    // Start with natural acknowledgment
-    if (inputAnalysis.complexity > 7) {
-      response = "That's a complex question that requires careful analysis. ";
-    } else if (inputAnalysis.complexity > 4) {
-      response = "Let me think through this systematically. ";
-    } else {
-      response = "";
+    // Step 1: Choose natural conversation starter based on tone and confidence
+    const starter = this.selectConversationStarter(backgroundReasoning, inputAnalysis, hasContext);
+    if (starter) {
+      response += starter + ' ';
     }
     
-    // Generate domain-specific response based on background reasoning
-    if (this.knowledgeBase.has(domain)) {
-      const domainKnowledge = this.knowledgeBase.get(domain);
-      response += this.generateDomainResponse(input, inputAnalysis, domainKnowledge, backgroundReasoning);
-    } else {
-      response += this.generateGeneralResponse(input, inputAnalysis, backgroundReasoning);
+    // Step 2: Generate core response based on domain knowledge and reasoning
+    const coreResponse = await this.generateCoreResponse(input, inputAnalysis, domain, backgroundReasoning);
+    response += coreResponse;
+    
+    // Step 3: Add insights from background reasoning naturally
+    const insights = this.integrateInsightsNaturally(backgroundReasoning, inputAnalysis);
+    if (insights) {
+      response += ' ' + insights;
     }
     
-    // Add insights from agent debate if significant
-    if (backgroundReasoning.agentDebateResult.confidence > 0.7) {
-      response += `\n\nThrough collaborative analysis, my agent teams identified that ${backgroundReasoning.handlerSynthesis}`;
-    }
-    
-    // Add context awareness if relevant
-    if (context.length > 0) {
-      const contextRelevance = this.assessContextRelevance(input, context);
-      if (contextRelevance > 0.3) {
-        response += "\n\nBuilding on our previous conversation, this connects to the themes we've been exploring.";
+    // Step 4: Add contextual connections if relevant
+    if (hasContext) {
+      const contextualConnection = this.addContextualConnection(input, context, backgroundReasoning);
+      if (contextualConnection) {
+        response += ' ' + contextualConnection;
       }
     }
     
+    // Step 5: Add natural conclusion or follow-up
+    const conclusion = this.addNaturalConclusion(inputAnalysis, backgroundReasoning);
+    if (conclusion) {
+      response += ' ' + conclusion;
+    }
+    
+    return response.trim();
+  }
+
+  /**
+   * Select appropriate conversation starter
+   */
+  private selectConversationStarter(
+    backgroundReasoning: BackgroundReasoning, 
+    inputAnalysis: any, 
+    hasContext: boolean
+  ): string {
+    const { confidence, conversationalTone } = backgroundReasoning;
+    
+    // High confidence responses
+    if (confidence > 0.8) {
+      const starters = this.conversationalPatterns.get('confident_response') || [];
+      return starters[Math.floor(Math.random() * starters.length)];
+    }
+    
+    // Analytical responses for complex questions
+    if (inputAnalysis.complexity > 6 || conversationalTone === 'analytical') {
+      const starters = this.conversationalPatterns.get('analytical_response') || [];
+      return starters[Math.floor(Math.random() * starters.length)];
+    }
+    
+    // Explanatory responses for "what" or "how" questions
+    if (inputAnalysis.questionType === 'what' || inputAnalysis.questionType === 'how') {
+      const starters = this.conversationalPatterns.get('explanatory_response') || [];
+      return starters[Math.floor(Math.random() * starters.length)];
+    }
+    
+    // Collaborative responses for open-ended questions
+    if (inputAnalysis.questionType === 'why' || inputAnalysis.complexity > 4) {
+      const starters = this.conversationalPatterns.get('collaborative_response') || [];
+      return starters[Math.floor(Math.random() * starters.length)];
+    }
+    
+    return '';
+  }
+
+  /**
+   * Generate core response content
+   */
+  private async generateCoreResponse(
+    input: string, 
+    inputAnalysis: any, 
+    domain: string, 
+    backgroundReasoning: BackgroundReasoning
+  ): Promise<string> {
+    let response = '';
+    
+    // Use domain knowledge if available
+    if (this.knowledgeBase.has(domain)) {
+      const domainKnowledge = this.knowledgeBase.get(domain);
+      response = this.generateDomainResponse(input, inputAnalysis, domainKnowledge, backgroundReasoning);
+    } else {
+      response = this.generateGeneralResponse(input, inputAnalysis, backgroundReasoning);
+    }
+    
     return response;
+  }
+
+  /**
+   * Generate domain-specific response with natural flow
+   */
+  private generateDomainResponse(
+    input: string, 
+    analysis: any, 
+    domainKnowledge: any, 
+    backgroundReasoning: BackgroundReasoning
+  ): string {
+    const concepts = domainKnowledge.concepts || [];
+    const relationships = domainKnowledge.relationships || [];
+    const applications = domainKnowledge.applications || [];
+    const hooks = domainKnowledge.conversationalHooks || [];
+
+    let response = '';
+
+    switch (analysis.questionType) {
+      case 'what':
+        const relevantConcepts = concepts.filter((concept: string) => 
+          input.toLowerCase().includes(concept.toLowerCase())
+        );
+        if (relevantConcepts.length > 0) {
+          const hook = hooks[Math.floor(Math.random() * hooks.length)];
+          response = `${relevantConcepts[0]} is ${hook ? 'a ' + hook + ' part of' : 'a key concept in'} ${analysis.domain}. `;
+          response += `It connects with ${concepts.slice(0, 2).join(' and ')}, and you'll find it used in ${applications.slice(0, 2).join(' and ')}.`;
+        } else {
+          response = `In ${analysis.domain}, this involves ${concepts.slice(0, 2).join(' and ')}. `;
+          response += `What makes this interesting is how ${relationships[0] || 'these concepts interact'}.`;
+        }
+        break;
+
+      case 'how':
+        response = `Here's how I'd approach this in ${analysis.domain}:\n\n`;
+        response += `First, you need to understand ${concepts[0] || 'the fundamentals'}. `;
+        response += `Then, ${relationships[0] || 'you can build on that foundation'}. `;
+        response += `Finally, you can apply this in ${applications.slice(0, 2).join(' or ')}.`;
+        break;
+
+      case 'why':
+        response = `The reasoning behind this in ${analysis.domain} is fascinating. `;
+        response += `Essentially, ${relationships[0] || 'there are several interconnected factors'}. `;
+        response += `This matters because it affects ${applications.slice(0, 2).join(' and ')}, `;
+        response += `and connects to broader concepts like ${concepts.slice(1, 3).join(' and ')}.`;
+        break;
+
+      default:
+        const hook = hooks[Math.floor(Math.random() * hooks.length)];
+        response = `This is ${hook ? 'a ' + hook + ' topic' : 'an interesting question'} in ${analysis.domain}. `;
+        response += `It involves ${concepts.slice(0, 2).join(' and ')}, `;
+        response += `and has practical applications in ${applications.slice(0, 2).join(' and ')}.`;
+    }
+
+    return response;
+  }
+
+  /**
+   * Generate general response with natural flow
+   */
+  private generateGeneralResponse(
+    input: string, 
+    analysis: any, 
+    backgroundReasoning: BackgroundReasoning
+  ): string {
+    let response = '';
+
+    switch (analysis.questionType) {
+      case 'what':
+        response = `This involves ${analysis.keywords.slice(0, 2).join(' and ')}. `;
+        response += `From my analysis, the key aspects are how these elements interact and influence each other.`;
+        break;
+
+      case 'how':
+        response = `I'd break this down into steps:\n\n`;
+        response += `Start by understanding ${analysis.keywords[0] || 'the core concept'}. `;
+        response += `Then consider how ${analysis.keywords.slice(1, 3).join(' and ')} factor in. `;
+        response += `The approach depends on your specific situation and goals.`;
+        break;
+
+      case 'why':
+        response = `There are several interconnected reasons for this. `;
+        response += `The main factors involve ${analysis.keywords.slice(0, 2).join(' and ')}, `;
+        response += `and how they create patterns that lead to the outcomes you're asking about.`;
+        break;
+
+      default:
+        response = `This is an interesting question about ${analysis.keywords.slice(0, 2).join(' and ')}. `;
+        response += `Through my analysis, I can see multiple perspectives that are worth considering.`;
+    }
+
+    return response;
+  }
+
+  /**
+   * Integrate insights from background reasoning naturally
+   */
+  private integrateInsightsNaturally(
+    backgroundReasoning: BackgroundReasoning, 
+    inputAnalysis: any
+  ): string {
+    const { keyInsights, agentDebateResult } = backgroundReasoning;
+    
+    if (keyInsights.length === 0) return '';
+    
+    let integration = '';
+    
+    // Add insights based on confidence and complexity
+    if (keyInsights.includes('High logical confidence in analysis')) {
+      integration += 'I\'m quite confident in this analysis.';
+    }
+    
+    if (keyInsights.includes('Strong consensus from agent teams')) {
+      integration += integration ? ' ' : '';
+      integration += 'Multiple perspectives align on this approach.';
+    }
+    
+    if (keyInsights.includes('Multiple perspectives considered') && inputAnalysis.complexity > 5) {
+      integration += integration ? ' ' : '';
+      integration += 'I\'ve considered various angles to give you a comprehensive view.';
+    }
+    
+    return integration;
+  }
+
+  /**
+   * Add contextual connection to previous conversation
+   */
+  private addContextualConnection(
+    input: string, 
+    context: string[], 
+    backgroundReasoning: BackgroundReasoning
+  ): string {
+    const relevance = this.assessContextRelevance(input, context);
+    
+    if (relevance > 0.3) {
+      const starters = this.contextualResponses.get('follow_up') || [];
+      const starter = starters[Math.floor(Math.random() * starters.length)];
+      return starter + ' this builds on the themes we\'ve been exploring.';
+    }
+    
+    return '';
+  }
+
+  /**
+   * Add natural conclusion or follow-up
+   */
+  private addNaturalConclusion(
+    inputAnalysis: any, 
+    backgroundReasoning: BackgroundReasoning
+  ): string {
+    const { confidence } = backgroundReasoning;
+    
+    if (inputAnalysis.complexity > 7) {
+      return 'Would you like me to explore any particular aspect of this in more detail?';
+    }
+    
+    if (confidence > 0.8) {
+      return 'Does this help clarify things for you?';
+    }
+    
+    if (inputAnalysis.questionType === 'how') {
+      return 'Let me know if you\'d like me to elaborate on any of these steps.';
+    }
+    
+    return '';
+  }
+
+  /**
+   * Determine conversational tone based on input and analysis
+   */
+  private determineConversationalTone(
+    input: string, 
+    complexity: number, 
+    confidence: number
+  ): 'analytical' | 'explanatory' | 'casual' | 'technical' {
+    if (complexity > 7 || confidence < 0.6) return 'analytical';
+    if (input.toLowerCase().includes('explain') || input.toLowerCase().includes('how')) return 'explanatory';
+    if (complexity < 4 && confidence > 0.8) return 'casual';
+    return 'technical';
   }
 
   /**
@@ -426,7 +715,7 @@ export class MachineGodCore {
   }
 
   /**
-   * Process conversation with background reasoning and auto-tasking
+   * Process conversation with background reasoning and natural response generation
    */
   async processConversation(input: string, context: string[]): Promise<ConversationResponse> {
     if (!this.isInitialized) {
@@ -647,93 +936,6 @@ export class MachineGodCore {
     }
     
     return 'general';
-  }
-
-  private generateDomainResponse(
-    input: string, 
-    analysis: any, 
-    domainKnowledge: any, 
-    backgroundReasoning: BackgroundReasoning
-  ): string {
-    const concepts = domainKnowledge.concepts || [];
-    const relationships = domainKnowledge.relationships || [];
-    const applications = domainKnowledge.applications || [];
-
-    let response = '';
-
-    switch (analysis.questionType) {
-      case 'what':
-        const relevantConcepts = concepts.filter((concept: string) => 
-          input.toLowerCase().includes(concept.toLowerCase())
-        );
-        if (relevantConcepts.length > 0) {
-          response = `${relevantConcepts[0]} is a fundamental concept in ${analysis.domain}. `;
-          response += `It relates to ${concepts.slice(0, 3).join(', ')} and has applications in ${applications.slice(0, 2).join(' and ')}.`;
-        } else {
-          response = `In the context of ${analysis.domain}, this involves understanding ${concepts.slice(0, 2).join(' and ')}.`;
-        }
-        break;
-
-      case 'how':
-        response = `To approach this in ${analysis.domain}, I need to consider these key steps:\n\n`;
-        response += `1. Understanding the foundational concepts: ${concepts.slice(0, 2).join(', ')}\n`;
-        response += `2. Applying the relationships: ${relationships.slice(0, 2).join('; ')}\n`;
-        response += `3. Implementing in practical applications: ${applications.slice(0, 2).join(' or ')}`;
-        break;
-
-      case 'why':
-        response = `The reasoning behind this in ${analysis.domain} involves several factors:\n\n`;
-        response += `• Fundamental principles: ${relationships.slice(0, 2).join('\n• ')}\n`;
-        response += `• Practical applications: ${applications.slice(0, 2).join(' and ')}\n`;
-        response += `• Interconnected concepts: ${concepts.slice(0, 3).join(', ')}`;
-        break;
-
-      default:
-        response = `Regarding ${analysis.domain}, this involves ${concepts.slice(0, 2).join(' and ')}. `;
-        response += `The key relationships are: ${relationships.slice(0, 2).join('; ')}. `;
-        response += `This has practical applications in ${applications.slice(0, 2).join(' and ')}.`;
-    }
-
-    return response;
-  }
-
-  private generateGeneralResponse(
-    input: string, 
-    analysis: any, 
-    backgroundReasoning: BackgroundReasoning
-  ): string {
-    let response = '';
-
-    switch (analysis.questionType) {
-      case 'what':
-        response = `Based on my analysis, this appears to involve ${analysis.keywords.slice(0, 2).join(' and ')}. `;
-        response += `Through logical evaluation, I can provide insights on the key aspects and relationships.`;
-        break;
-
-      case 'how':
-        response = `Here's my systematic approach:\n\n`;
-        response += `1. First, I analyze the core components: ${analysis.keywords.slice(0, 2).join(', ')}\n`;
-        response += `2. Then, I consider the logical relationships and dependencies\n`;
-        response += `3. Finally, I develop a step-by-step methodology\n\n`;
-        response += `This approach ensures comprehensive coverage while maintaining logical consistency.`;
-        break;
-
-      case 'why':
-        response = `The reasoning involves multiple interconnected factors:\n\n`;
-        response += `• Causal relationships between ${analysis.keywords.slice(0, 2).join(' and ')}\n`;
-        response += `• Logical dependencies and prerequisites\n`;
-        response += `• Contextual factors that influence outcomes\n\n`;
-        response += `Through systematic analysis, these elements combine to create the observed patterns.`;
-        break;
-
-      default:
-        response = `Based on my analysis of ${analysis.keywords.slice(0, 2).join(' and ')}, `;
-        response += `this involves systematic reasoning and logical evaluation. `;
-        response += `Through my evolved algorithms and collaborative analysis, I can provide comprehensive insights `;
-        response += `that consider multiple perspectives and maintain logical consistency.`;
-    }
-
-    return response;
   }
 
   // Additional helper methods...
