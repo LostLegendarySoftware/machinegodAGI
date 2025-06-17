@@ -160,6 +160,7 @@ export class MachineGodCore {
       relationships: ['calculus builds on algebra', 'statistics analyzes data', 'logic forms reasoning foundation'],
       applications: ['engineering', 'physics', 'economics', 'computer science']
     };
+    )
 
     this.knowledgeBase.set('science', {
       concepts: ['physics', 'chemistry', 'biology', 'astronomy', 'geology'],
