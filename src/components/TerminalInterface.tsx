@@ -135,7 +135,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
             algorithmCount: trainingMetrics.algorithmCount,
             generation: trainingMetrics.generation,
             capabilities: trainingMetrics.currentLevel.capabilities,
-            multiModalProgress: memoryTrainingProgress.multiModalProgress.overallProgress * 100,
+            multiModalProgress: (memoryTrainingProgress.overallProgress || 0) * 100,
             totalConversations: memoryTrainingProgress.totalConversations || 0,
             apiConnectivity: systemStatus.api.connectivity,
             apiRequests: systemStatus.api.requestCount,

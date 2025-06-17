@@ -545,7 +545,7 @@ export class MachineGodCore {
         totalConversations: memoryStats.totalConversations,
         userSessions: memoryStats.totalUsers,
         trainingCheckpoints: memoryStats.totalCheckpoints,
-        multiModalProgress: trainingProgress.multiModalProgress.overallProgress
+        multiModalProgress: trainingProgress.overallProgress || 0
       },
       api: {
         network: apiStats.currentNetwork,
