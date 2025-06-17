@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MachineGodCore, SystemStatus, ConversationResponse, UserFeedback } from '../core/MachineGodCore';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
+import { OpenLMMBenchmarks, LMMBenchmarkResult } from '../core/OpenLMMBenchmarks';
 
 interface TerminalCommand {
   command: string;
@@ -12,6 +13,7 @@ interface TerminalCommand {
   memoryId?: string;
   researchConducted?: boolean;
   logicalAnalysisApplied?: boolean;
+  benchmarkResult?: LMMBenchmarkResult;
 }
 
 interface TerminalInterfaceProps {
@@ -40,11 +42,13 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
   const [currentInput, setCurrentInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [machineGod] = useState(() => new MachineGodCore());
+  const [lmmBenchmarks] = useState(() => new OpenLMMBenchmarks());
   const [isInitialized, setIsInitialized] = useState(false);
   const [conversationContext, setConversationContext] = useState<string[]>([]);
   const [showFeedbackFor, setShowFeedbackFor] = useState<string | null>(null);
   const [feedbackReason, setFeedbackReason] = useState('');
   const [feedbackImprovement, setFeedbackImprovement] = useState('');
+  const [isBenchmarking, setIsBenchmarking] = useState(false);
   const [trainingProgress, setTrainingProgress] = useState<TrainingProgress>({
     currentLevel: 'ChatGPT-4 Baseline',
     targetLevel: 'Full Multi-Modal AGI',
@@ -82,6 +86,14 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     "✓ Source credibility assessment: ENABLED",
     "✓ Fact-checking system: READY",
     "✓ Logical analysis framework: LOADED",
+    "",
+    "📊 LMM Reasoning Benchmarks:",
+    "✓ MathVista: READY",
+    "✓ MathVision: READY",
+    "✓ MathVerse: READY",
+    "✓ DynaMath: READY",
+    "✓ WeMath: READY",
+    "✓ LogicVista: READY",
     "",
     "🧠 Background Systems (Silent Operation):",
     "✓ Agent team debates: BACKGROUND ONLY",
@@ -224,6 +236,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
       let memoryId = '';
       let researchConducted = false;
       let logicalAnalysisApplied = false;
+      let benchmarkResult: LMMBenchmarkResult | undefined;
 
       // Check for system commands first
       if (input.toLowerCase() === 'help') {
@@ -237,6 +250,15 @@ Hey! Here's what I can help with:
 🔍 REAL-TIME RESEARCH:
   I can search the web in real-time to find information for you
   Just ask me questions that need up-to-date information
+
+📊 REASONING BENCHMARKS:
+  benchmark mathvista - Test mathematical reasoning with visual elements
+  benchmark mathvision - Test advanced mathematical vision understanding
+  benchmark mathverse - Test mathematical reasoning in vision-only mode
+  benchmark dynamath - Test dynamic mathematical problem solving
+  benchmark wemath - Test comprehensive mathematical reasoning
+  benchmark logicvista - Test logical reasoning and inference
+  benchmark report - Show benchmark results report
 
 📝 FEEDBACK SYSTEM:
   👍 👎 Click thumbs up/down on any response to help me improve
@@ -300,6 +322,76 @@ Thanks for helping me improve! Your feedback makes me better at conversations.
 
 The system is fully operational with real-time web search capabilities.
 `;
+      } else if (input.toLowerCase().startsWith('benchmark ')) {
+        const benchmarkCommand = input.toLowerCase().substring(10).trim();
+        
+        if (benchmarkCommand === 'report') {
+          response = lmmBenchmarks.generateBenchmarkReport();
+        } else {
+          const validBenchmarks = ['mathvista', 'mathvision', 'mathverse', 'dynamath', 'wemath', 'logicvista'];
+          const benchmarkId = validBenchmarks.find(b => benchmarkCommand.includes(b));
+          
+          if (benchmarkId) {
+            setIsBenchmarking(true);
+            response = `Starting ${benchmarkId} benchmark test...`;
+            
+            try {
+              const fullBenchmarkId = benchmarkId === 'mathvista' ? 'mathvista_mini' : 
+                                     benchmarkId === 'mathverse' ? 'mathverse_mini' : benchmarkId;
+              
+              benchmarkResult = await lmmBenchmarks.runLMMBenchmark(
+                fullBenchmarkId,
+                async (question, options) => {
+                  // Process through MachineGod
+                  const result = await machineGod.processConversation(
+                    `${question}${options ? '\nOptions: ' + options.join(', ') : ''}`,
+                    []
+                  );
+                  
+                  return {
+                    answer: result.response,
+                    reasoning: 'Processed through natural language understanding',
+                    confidence: result.confidence
+                  };
+                }
+              );
+              
+              response = `
+📊 ${benchmarkId.toUpperCase()} Benchmark Results:
+
+Score: ${benchmarkResult.percentage.toFixed(1)}% (${benchmarkResult.score}/${benchmarkResult.maxScore})
+Rank on Leaderboard: #${benchmarkResult.leaderboardComparison.rank}
+Percentile: ${benchmarkResult.leaderboardComparison.percentile.toFixed(1)}%
+Top Model Score: ${benchmarkResult.leaderboardComparison.topScore.toFixed(1)}%
+
+${benchmarkResult.percentage > benchmarkResult.leaderboardComparison.topScore ? 
+  '🎉 OUTSTANDING! Exceeded top model performance!' : 
+  benchmarkResult.leaderboardComparison.percentile > 75 ? 
+    '🌟 EXCELLENT! Top-tier performance!' : 
+    benchmarkResult.leaderboardComparison.percentile > 50 ? 
+      '✅ GOOD! Above average performance.' : 
+      '⚠️ NEEDS IMPROVEMENT. Below average performance.'}
+
+Run 'benchmark report' to see full comparison across all benchmarks.
+`;
+            } catch (error) {
+              response = `❌ Error running benchmark: ${error}`;
+            } finally {
+              setIsBenchmarking(false);
+            }
+          } else {
+            response = `
+Invalid benchmark command. Available benchmarks:
+- benchmark mathvista - Test mathematical reasoning with visual elements
+- benchmark mathvision - Test advanced mathematical vision understanding
+- benchmark mathverse - Test mathematical reasoning in vision-only mode
+- benchmark dynamath - Test dynamic mathematical problem solving
+- benchmark wemath - Test comprehensive mathematical reasoning
+- benchmark logicvista - Test logical reasoning and inference
+- benchmark report - Show benchmark results report
+`;
+          }
+        }
       } else {
         // Main conversation processing with Natural Flow
         if (isInitialized) {
@@ -330,7 +422,8 @@ The system is fully operational with real-time web search capabilities.
           feedbackGiven: false,
           memoryId,
           researchConducted,
-          logicalAnalysisApplied
+          logicalAnalysisApplied,
+          benchmarkResult
         };
         return newCommands;
       });
@@ -446,6 +539,13 @@ The system is fully operational with real-time web search capabilities.
                 </div>
               )}
               
+              {/* Benchmark result indicator */}
+              {cmd.benchmarkResult && (
+                <div className="ml-2 mt-1 text-yellow-400 text-xs flex items-center">
+                  <span>📊 Benchmark completed: {cmd.benchmarkResult.percentage.toFixed(1)}% score</span>
+                </div>
+              )}
+              
               {/* Research indicator */}
               {cmd.researchConducted && (
                 <div className="ml-2 mt-1 text-blue-400 text-xs flex items-center">
@@ -491,7 +591,7 @@ The system is fully operational with real-time web search capabilities.
           ))}
           {isLoading && (
             <div className="text-yellow-400 ml-2 flex items-center">
-              <span className="animate-pulse">💬 Thinking...</span>
+              <span className="animate-pulse">{isBenchmarking ? '📊 Running benchmark...' : '💬 Thinking...'}</span>
             </div>
           )}
           {/* Scroll anchor */}

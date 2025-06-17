@@ -13,6 +13,8 @@ import { AlgorandAPI, APIResponse } from './AlgorandAPI';
 import { MesiahBishopProtocol, AnointingResult } from './MesiahBishopProtocol';
 import { TaskingSystem, TaskRequest, TaskResult } from './TaskingSystem';
 import { ResearchEngine } from './ResearchEngine';
+import { NaturalConversationProcessor } from './NaturalConversationProcessor';
+import { OpenLMMBenchmarks } from './OpenLMMBenchmarks';
 
 export interface SystemStatus {
   metaLogic: {
@@ -70,6 +72,12 @@ export interface SystemStatus {
     researchCapability: boolean;
     logicalAnalysis: boolean;
   };
+  benchmarks: {
+    totalBenchmarks: number;
+    averageScore: number;
+    topBenchmark: string;
+    leaderboardRank: number;
+  };
 }
 
 export interface ConversationResponse {
@@ -102,6 +110,8 @@ export class MachineGodCore {
   private truthProtocol: MesiahBishopProtocol;
   private taskingSystem: TaskingSystem;
   private researchEngine: ResearchEngine;
+  private naturalProcessor: NaturalConversationProcessor;
+  private lmmBenchmarks: OpenLMMBenchmarks;
   private isInitialized = false;
   private operationCount = 0;
   private conversationHistory: Array<{input: string, response: ConversationResponse, feedback?: UserFeedback, memoryId: string}> = [];
@@ -109,6 +119,7 @@ export class MachineGodCore {
   private checkpointInterval = 300000; // 5 minutes
   private lastHealthCheck: Date | null = null;
   private apiConnectivity: 'healthy' | 'degraded' | 'unhealthy' = 'unhealthy';
+  private benchmarkResults: any[] = [];
 
   constructor() {
     console.log('🚀 Initializing MachineGod with REAL Research and Logic System...');
@@ -123,6 +134,8 @@ export class MachineGodCore {
     this.truthProtocol = new MesiahBishopProtocol();
     this.taskingSystem = new TaskingSystem();
     this.researchEngine = new ResearchEngine();
+    this.naturalProcessor = new NaturalConversationProcessor();
+    this.lmmBenchmarks = new OpenLMMBenchmarks();
     
     console.log('✅ MachineGod Core System with REAL Research and Logic initialized');
   }
@@ -206,8 +219,8 @@ export class MachineGodCore {
         context
       );
       
-      // Step 7: Format the response for natural conversation
-      const naturalResponse = this.formatForNaturalConversation(taskResult.result, taskRequest.type);
+      // Step 7: Make the response sound natural and human-like
+      const naturalResponse = this.naturalProcessor.makeResponseNatural(taskResult.result, input);
       
       const conversationResponse: ConversationResponse = {
         response: naturalResponse,
@@ -215,7 +228,7 @@ export class MachineGodCore {
         processingTime,
         memoryId,
         needsFeedback: taskResult.confidence < 0.8,
-        feedbackPrompt: taskResult.confidence < 0.8 ? "Was this research and analysis helpful? 👍 👎" : undefined,
+        feedbackPrompt: taskResult.confidence < 0.8 ? "Was this helpful? 👍 👎" : undefined,
         taskResult,
         researchConducted,
         logicalAnalysisApplied
@@ -228,7 +241,7 @@ export class MachineGodCore {
         memoryId
       });
       
-      console.log(`✅ Research-based response generated in ${processingTime}ms with ${(taskResult.confidence * 100).toFixed(1)}% confidence`);
+      console.log(`✅ Natural response generated in ${processingTime}ms with ${(taskResult.confidence * 100).toFixed(1)}% confidence`);
       console.log(`🔍 Research: ${researchConducted ? 'Conducted' : 'Not needed'}, Logic: ${logicalAnalysisApplied ? 'Applied' : 'Not needed'}`);
       
       return conversationResponse;
@@ -237,39 +250,6 @@ export class MachineGodCore {
       console.error('❌ Conversation processing failed:', error);
       throw error;
     }
-  }
-
-  /**
-   * Format technical response for natural conversation
-   */
-  private formatForNaturalConversation(technicalResponse: string, taskType: string): string {
-    // Remove technical formatting and make it more conversational
-    let naturalResponse = technicalResponse;
-    
-    // Remove markdown headers
-    naturalResponse = naturalResponse.replace(/\*\*(.*?)\*\*/g, '$1');
-    
-    // Remove technical indicators
-    naturalResponse = naturalResponse.replace(/^Research Results for:/i, 'Here\'s what I found about');
-    naturalResponse = naturalResponse.replace(/^Logical Analysis of:/i, 'I analyzed');
-    naturalResponse = naturalResponse.replace(/^Problem-Solving Analysis:/i, 'Here\'s how to solve');
-    naturalResponse = naturalResponse.replace(/^Comparison Analysis:/i, 'When comparing');
-    
-    // Make language more conversational
-    naturalResponse = naturalResponse.replace(/Sources Consulted:/i, 'I found information from these sources:');
-    naturalResponse = naturalResponse.replace(/Logical Analysis:/i, 'My analysis shows:');
-    naturalResponse = naturalResponse.replace(/Recommended Approach:/i, 'I recommend:');
-    
-    // Add conversational opener based on task type
-    if (taskType === 'research') {
-      naturalResponse = `I searched the web and found some information for you. ${naturalResponse}`;
-    } else if (taskType === 'analysis') {
-      naturalResponse = `I analyzed this carefully. ${naturalResponse}`;
-    } else if (taskType === 'problem_solving') {
-      naturalResponse = `I think I can help solve this. ${naturalResponse}`;
-    }
-    
-    return naturalResponse;
   }
 
   /**
@@ -410,6 +390,38 @@ export class MachineGodCore {
   }
 
   /**
+   * Run LMM benchmark test
+   */
+  async runLMMBenchmark(benchmarkId: string): Promise<any> {
+    console.log(`📊 Running LMM benchmark: ${benchmarkId}`);
+    
+    try {
+      const result = await this.lmmBenchmarks.runLMMBenchmark(
+        benchmarkId,
+        async (question, options) => {
+          // Process through natural conversation
+          const result = await this.processConversation(
+            `${question}${options ? '\nOptions: ' + options.join(', ') : ''}`,
+            []
+          );
+          
+          return {
+            answer: result.response,
+            reasoning: 'Processed through natural language understanding',
+            confidence: result.confidence
+          };
+        }
+      );
+      
+      this.benchmarkResults.push(result);
+      return result;
+    } catch (error) {
+      console.error('Benchmark error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get system status including tasking capabilities
    */
   getSystemStatus(): SystemStatus {
@@ -420,6 +432,25 @@ export class MachineGodCore {
     const truthStats = this.truthProtocol.getProtocolStats();
     const taskStats = this.taskingSystem.getTaskStats();
     const researchCapabilities = this.researchEngine.getCapabilities();
+    
+    // Calculate benchmark stats
+    let totalBenchmarks = this.benchmarkResults.length;
+    let averageScore = 0;
+    let topBenchmark = '';
+    let leaderboardRank = 0;
+    
+    if (totalBenchmarks > 0) {
+      averageScore = this.benchmarkResults.reduce((sum, r) => sum + r.percentage, 0) / totalBenchmarks;
+      
+      // Find top benchmark
+      const topResult = [...this.benchmarkResults].sort((a, b) => b.percentage - a.percentage)[0];
+      topBenchmark = topResult?.testId || '';
+      
+      // Average rank
+      leaderboardRank = Math.round(
+        this.benchmarkResults.reduce((sum, r) => sum + r.leaderboardComparison.rank, 0) / totalBenchmarks
+      );
+    }
     
     return {
       metaLogic: {
@@ -476,6 +507,12 @@ export class MachineGodCore {
         activeAgents: Object.keys(taskStats.agentUtilization).length,
         researchCapability: researchCapabilities.realTimeSearch,
         logicalAnalysis: researchCapabilities.logicalAxioms > 0
+      },
+      benchmarks: {
+        totalBenchmarks,
+        averageScore,
+        topBenchmark,
+        leaderboardRank
       }
     };
   }
@@ -586,6 +623,20 @@ export class MachineGodCore {
     };
   }
 
+  /**
+   * Get benchmark statistics
+   */
+  getBenchmarkStats() {
+    return {
+      totalBenchmarks: this.benchmarkResults.length,
+      benchmarkResults: this.benchmarkResults,
+      averageScore: this.benchmarkResults.length > 0 
+        ? this.benchmarkResults.reduce((sum, r) => sum + r.percentage, 0) / this.benchmarkResults.length
+        : 0,
+      benchmarkReport: this.lmmBenchmarks.generateBenchmarkReport()
+    };
+  }
+
   async emergencyReset(): Promise<void> {
     console.log('🚨 Emergency reset initiated...');
     
@@ -599,6 +650,7 @@ export class MachineGodCore {
     this.truthProtocol = new MesiahBishopProtocol();
     this.taskingSystem = new TaskingSystem();
     this.researchEngine = new ResearchEngine();
+    this.naturalProcessor = new NaturalConversationProcessor();
     
     await this.warp.activate();
     
@@ -620,6 +672,7 @@ export class MachineGodCore {
     optimizations.push('Research engine optimization completed');
     optimizations.push('Logical reasoning patterns enhanced');
     optimizations.push('Task routing efficiency improved');
+    optimizations.push('Natural conversation processor optimized');
     
     return optimizations;
   }
