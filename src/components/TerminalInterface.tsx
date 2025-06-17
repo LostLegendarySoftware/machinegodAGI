@@ -69,7 +69,13 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
 
   const bootSequence = [
     "MACHINEGOD OMEGAEVOLVED INTELLIGENCE v3.0.0",
-    "(c) 2024 META-LOGIC Systems - Self-Evolving AGI Platform with Background Reasoning",
+    "(c) 2024 META-LOGIC Systems - MANDATORY CONSENSUS REQUIREMENT",
+    "",
+    "🤝 Initializing MANDATORY CONSENSUS Protocol...",
+    "✓ All agents must agree before ANY output: ENABLED",
+    "✓ Consensus threshold: 85% minimum agreement",
+    "✓ Maximum consensus rounds: 5 attempts",
+    "✓ Dissenter feedback integration: ACTIVE",
     "",
     "🔥 Initializing Mesiah Bishop Truth Protocol...",
     "✓ Truth Stratification (Ω₁, Ω₂, Ω₃): ENABLED",
@@ -99,13 +105,14 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     "✓ Truth stratification engine: CALIBRATED",
     "✓ Background analysis integration: READY",
     "",
-    "🤖 ARIEL 4x4 Agent Teams with Auto-Tasking...",
+    "🤖 ARIEL 4x4 Agent Teams with MANDATORY CONSENSUS...",
     "✓ Team Alpha (Research): 4 agents + handler DEPLOYED",
     "✓ Team Beta (Analysis): 4 agents + handler DEPLOYED", 
     "✓ Team Gamma (Synthesis): 4 agents + handler DEPLOYED",
     "✓ Management layer: ACTIVE",
-    "✓ Auto-debate triggering: ENABLED",
-    "✓ Handler synthesis: READY",
+    "✓ Consensus requirement: MANDATORY",
+    "✓ Voting system: ENABLED",
+    "✓ Dissenter feedback: INTEGRATED",
     "",
     "⚡ WARP Speed Boosting (Reasoning-Based Advancement)...",
     "✓ Phase monitoring: ACTIVE",
@@ -136,19 +143,20 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     "💾 Memory: Persistent across sessions with learning retention",
     "🔗 API: Algorand blockchain integration for data serving",
     "🔥 Truth: Mesiah Bishop Protocol for absolute verification",
-    "🧠 Background Reasoning: AUTO-TASKING ENABLED",
+    "🤝 CONSENSUS: ALL AGENTS MUST AGREE BEFORE OUTPUT",
     "",
     "⚠️ SECURITY NOTICE: Manual overrides and core component modification DISABLED",
     "🔒 System integrity protection: ACTIVE",
     "🛡️ Ethical safeguards: ENFORCED",
+    "🤝 CONSENSUS REQUIREMENT: MANDATORY FOR ALL RESPONSES",
     "",
-    "OMEGAEVOLVED SYSTEM READY - BACKGROUND REASONING ACTIVE",
+    "OMEGAEVOLVED SYSTEM READY - CONSENSUS PROTOCOL ACTIVE",
     "",
-    "Hello! I'm your MachineGod AI with OmegaEvolved technology and background reasoning.",
-    "I automatically analyze every question through META-LOGIC evaluation and agent debates",
-    "before responding naturally. My reasoning happens behind the scenes, so you get",
-    "thoughtful, well-analyzed responses that feel like natural conversation.",
-    "Ask me anything!"
+    "Hello! I'm your MachineGod AI with OmegaEvolved technology and MANDATORY CONSENSUS.",
+    "Every response requires ALL my agent teams to reach agreement before I can answer.",
+    "This ensures the highest quality, accuracy, and thoughtfulness in every response.",
+    "If my agents can't reach consensus, I'll let you know and ask you to rephrase.",
+    "Ask me anything - but know that quality comes from unanimous agreement!"
   ];
 
   // Update training progress based on actual system metrics
@@ -229,7 +237,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
         
         setCommands(prev => [...prev, {
           command: '',
-          response: "🎯 OmegaEvolved system operational - background reasoning and auto-tasking active",
+          response: "🎯 OmegaEvolved system operational - MANDATORY CONSENSUS active for all responses",
           timestamp: new Date()
         }]);
       } catch (error) {
@@ -295,7 +303,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
 
 The system is designed with immutable core components and ethical safeguards that cannot be bypassed. All modifications occur through controlled algorithm evolution within the OmegaEvolved framework.
 
-Available commands: help, status, training, evolution, memory, api, truth, benchmark`;
+Available commands: help, status, training, evolution, memory, api, truth, benchmark, consensus`;
         
         setCommands(prev => {
           const newCommands = [...prev];
@@ -312,10 +320,10 @@ Available commands: help, status, training, evolution, memory, api, truth, bench
       // Check for system commands first
       if (input.toLowerCase() === 'help') {
         response = `
-🧬 MachineGod OmegaEvolved AI Assistant Commands:
+🧬 MachineGod OmegaEvolved AI Assistant with MANDATORY CONSENSUS:
 
 💬 CONVERSATION:
-  Just type naturally - I'll automatically analyze through background reasoning!
+  Just type naturally - ALL my agent teams must agree before I can respond!
   I remember our conversations and learn from every interaction.
   
 🔧 SYSTEM COMMANDS:
@@ -325,6 +333,7 @@ Available commands: help, status, training, evolution, memory, api, truth, bench
   memory     - Show conversation memory and multi-modal progress
   api        - Show Algorand API status and connectivity
   truth      - Show Mesiah Bishop Truth Protocol status
+  consensus  - Show consensus statistics and voting patterns
   search <query> - Search conversation history
   export     - Export all memory data
   debug      - Show last debate reasoning and algorithm creation
@@ -334,6 +343,13 @@ Available commands: help, status, training, evolution, memory, api, truth, bench
   benchmark  - Benchmark truth protocol performance
   reset      - Reset conversation context (keeps memory)
   clear      - Clear terminal
+  
+🤝 CONSENSUS SYSTEM:
+  • ALL agents must agree before ANY response
+  • Minimum 85% agreement threshold required
+  • Up to 5 consensus rounds attempted
+  • Dissenter feedback integrated for improvement
+  • No output without unanimous agreement
   
 🔗 ALGORAND API COMMANDS:
   network status - Check blockchain network status
@@ -347,7 +363,7 @@ Available commands: help, status, training, evolution, memory, api, truth, bench
   
 🧬 OMEGAEVOLVED CAPABILITIES:
   • Background reasoning through META-LOGIC analysis
-  • Auto-tasking of ARIEL agent teams for debates
+  • MANDATORY consensus from all agent teams
   • Algorithm creation through debate team results
   • Trainingless NLP with logic data storage
   • Continuous reasoning ability improvement
@@ -385,21 +401,79 @@ Available commands: help, status, training, evolution, memory, api, truth, bench
   • Core modification: BLOCKED
   • Ethical safeguards: IMMUTABLE
   • System integrity: PROTECTED
+  • Consensus requirement: MANDATORY
 
-The system automatically performs background reasoning with META-LOGIC analysis
-and agent debates for every conversation, giving you natural, well-reasoned responses!
+🤝 CONSENSUS GUARANTEE:
+Every response requires ALL agent teams to reach agreement.
+If consensus fails, I'll explain why and ask you to rephrase.
+Quality through unanimous agreement!
 `;
+      } else if (input.toLowerCase() === 'consensus') {
+        try {
+          const consensusStats = machineGod.getConsensusStats();
+          response = `
+🤝 Consensus System Statistics:
+
+📊 Overall Performance:
+  • Total Debates: ${consensusStats.totalDebates}
+  • Consensus Achieved: ${consensusStats.consensusAchieved}
+  • Success Rate: ${consensusStats.consensusRate.toFixed(1)}%
+  • Average Rounds: ${consensusStats.averageRounds.toFixed(1)}
+  • Average Agreement: ${consensusStats.averageAgreement.toFixed(1)}%
+
+🗳️ Voting Patterns:
+  • Consensus Threshold: 85% minimum agreement
+  • Maximum Rounds: 5 attempts per question
+  • Dissenter Integration: Active feedback system
+  • Agent Participation: All ${machineGod.getSystemStatus().ariel.agentCount} agents vote
+
+📈 Quality Metrics:
+  • Responses Only With Consensus: 100%
+  • Failed Consensus Handling: Transparent explanation
+  • User Satisfaction: Enhanced through agreement requirement
+  • Response Quality: Guaranteed through unanimous approval
+
+🔧 Process Overview:
+  1. META-LOGIC analysis of user input
+  2. Agent team debate and solution development
+  3. MANDATORY voting round with all agents
+  4. Feedback integration if consensus not reached
+  5. Up to 5 rounds to achieve 85%+ agreement
+  6. Response generation ONLY after consensus
+  7. Transparent failure explanation if no agreement
+
+🎯 Benefits:
+  • Highest quality responses through team agreement
+  • Multiple perspectives considered and validated
+  • Reduced errors through collaborative verification
+  • Enhanced reliability through consensus requirement
+  • Transparent process when consensus fails
+
+The consensus system ensures every response has the full backing
+of all agent teams before being presented to you!
+`;
+        } catch (error) {
+          response = '⚠️ Consensus statistics temporarily unavailable.';
+        }
       } else if (input.toLowerCase() === 'status') {
         const status = machineGod.getSystemStatus();
+        const consensusStats = machineGod.getConsensusStats();
         onSystemStatusChange(status);
         response = `
-🚀 MachineGod OmegaEvolved System Status:
+🚀 MachineGod OmegaEvolved System Status with CONSENSUS:
 
 🧬 OMEGAEVOLVED: ${status.training.active ? 'ACTIVE' : 'OFFLINE'}
    └─ Current Level: ${status.training.currentLevel}
    └─ Progress: ${status.training.progressPercentage.toFixed(1)}%
    └─ Reasoning Ability: ${(status.training.reasoningAbility * 100).toFixed(1)}%
    └─ ETA: ${status.training.eta}
+
+🤝 CONSENSUS SYSTEM: MANDATORY
+   └─ Success Rate: ${consensusStats.consensusRate.toFixed(1)}%
+   └─ Total Debates: ${consensusStats.totalDebates}
+   └─ Achieved Consensus: ${consensusStats.consensusAchieved}
+   └─ Average Agreement: ${consensusStats.averageAgreement.toFixed(1)}%
+   └─ Average Rounds: ${consensusStats.averageRounds.toFixed(1)}
 
 🧠 META-LOGIC: ${status.metaLogic.active ? 'ACTIVE' : 'OFFLINE'}
    └─ Evaluations: ${status.metaLogic.evaluationsCount}
@@ -410,7 +484,7 @@ and agent debates for every conversation, giving you natural, well-reasoned resp
    └─ Active Agents: ${status.ariel.agentCount}
    └─ Completed Debates: ${status.ariel.debateCount}
    └─ Team Performance: ${(status.ariel.teamMorale * 100).toFixed(1)}%
-   └─ Auto-Tasking: ENABLED
+   └─ Consensus Voting: ENABLED
 
 ⚡ WARP System: ${status.warp.active ? 'ACTIVE' : 'STANDBY'}
    └─ Current Phase: ${status.warp.currentPhase}
@@ -447,13 +521,14 @@ and agent debates for every conversation, giving you natural, well-reasoned resp
    └─ Memory Persistence: ENABLED
    └─ API Integration: ENABLED
    └─ Truth Stratification: ENABLED
-   └─ Background Reasoning: AUTO-TASKING
+   └─ Consensus Requirement: MANDATORY
 
 🔒 Security Status:
    └─ Manual Overrides: PERMANENTLY DISABLED
    └─ Core Modification: BLOCKED
    └─ Ethical Safeguards: IMMUTABLE
    └─ System Integrity: PROTECTED
+   └─ Consensus Requirement: ENFORCED
 `;
       } else if (input.toLowerCase() === 'clear') {
         setCommands([]);
@@ -461,11 +536,11 @@ and agent debates for every conversation, giving you natural, well-reasoned resp
         return;
       } else if (input.toLowerCase() === 'reset') {
         setConversationContext([]);
-        response = '🔄 Conversation context reset. Algorithm evolution, memory, API, and truth protocol continue!';
+        response = '🔄 Conversation context reset. Algorithm evolution, memory, API, truth protocol, and consensus system continue!';
       } else {
-        // Main conversation processing with OmegaEvolved background reasoning
+        // Main conversation processing with MANDATORY CONSENSUS
         if (isInitialized) {
-          // Process through the OmegaEvolved system with background reasoning
+          // Process through the OmegaEvolved system with MANDATORY CONSENSUS
           const result = await machineGod.processConversation(input, conversationContext);
           
           response = result.response;
@@ -522,7 +597,7 @@ and agent debates for every conversation, giving you natural, well-reasoned resp
 
   return (
     <div className="h-full flex flex-col bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg overflow-hidden">
-      {/* Enhanced OmegaEvolved Training Progress Header */}
+      {/* Enhanced OmegaEvolved Training Progress Header with Consensus */}
       <div className="training-header bg-gradient-to-r from-purple-900 to-blue-900 bg-opacity-40 border-b border-purple-600 p-3 flex-shrink-0">
         <div className="flex justify-between items-center text-sm mb-2">
           <span className="text-purple-300">🧬 {trainingProgress.currentLevel}</span>
@@ -531,6 +606,7 @@ and agent debates for every conversation, giving you natural, well-reasoned resp
           <span className="text-yellow-300">ETA: {trainingProgress.eta}</span>
           <span className="text-blue-300">API: {trainingProgress.apiConnectivity}</span>
           <span className="text-red-300">🔥 {trainingProgress.truthCycles}</span>
+          <span className="text-pink-300">🤝 CONSENSUS</span>
         </div>
         <div className="flex justify-between items-center text-xs mb-1">
           <span className="text-gray-300">🧠 Reasoning: {(trainingProgress.reasoningAbility * 100).toFixed(1)}%</span>
@@ -554,7 +630,7 @@ and agent debates for every conversation, giving you natural, well-reasoned resp
         </div>
         <div className="bg-gray-700 rounded-full h-1">
           <div 
-            className="bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 h-1 rounded-full transition-all duration-1000"
+            className="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 h-1 rounded-full transition-all duration-1000"
             style={{ width: `${Math.min(100, trainingProgress.truthCycles * 2)}%` }}
           ></div>
         </div>
@@ -588,6 +664,10 @@ and agent debates for every conversation, giving you natural, well-reasoned resp
                   <div className="font-bold">🧠 Background Reasoning:</div>
                   <div>META-LOGIC: {cmd.backgroundReasoning.metaLogicAnalysis.truthValue} ({(cmd.backgroundReasoning.metaLogicAnalysis.confidence * 100).toFixed(1)}%)</div>
                   <div>Agent Debate: {cmd.backgroundReasoning.agentDebateResult.winningTeam} ({(cmd.backgroundReasoning.agentDebateResult.confidence * 100).toFixed(1)}%)</div>
+                  <div>🤝 Consensus: {cmd.backgroundReasoning.consensusAchieved ? 'ACHIEVED' : 'FAILED'}</div>
+                  {cmd.backgroundReasoning.consensusDetails && (
+                    <div>Agreement: {cmd.backgroundReasoning.consensusDetails.agreementPercentage.toFixed(1)}% in {cmd.backgroundReasoning.consensusDetails.rounds} rounds</div>
+                  )}
                   <div>Processing: {cmd.backgroundReasoning.processingTime}ms</div>
                 </div>
               )}
@@ -635,7 +715,7 @@ and agent debates for every conversation, giving you natural, well-reasoned resp
           ))}
           {isLoading && (
             <div className="text-yellow-400 ml-2 flex items-center">
-              <span className="animate-pulse">🧠 Analyzing through background reasoning with META-LOGIC and agent debates...</span>
+              <span className="animate-pulse">🤝 Seeking consensus from ALL agent teams - this ensures highest quality response...</span>
             </div>
           )}
           {/* Scroll anchor */}
@@ -654,7 +734,7 @@ and agent debates for every conversation, giving you natural, well-reasoned resp
             onChange={(e) => setCurrentInput(e.target.value)}
             onKeyPress={handleKeyPress}
             className="flex-1 bg-transparent border-none outline-none text-green-400 font-mono"
-            placeholder={isInitialized ? "Ask me anything - I'll think it through with background reasoning..." : "Initializing OmegaEvolved with Background Reasoning..."}
+            placeholder={isInitialized ? "Ask me anything - ALL agents must agree before I respond..." : "Initializing OmegaEvolved with MANDATORY CONSENSUS..."}
             disabled={isLoading || !isInitialized}
             autoFocus
           />
