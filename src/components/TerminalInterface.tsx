@@ -3,9 +3,9 @@ import { MachineGodCore, SystemStatus, ConversationResponse, UserFeedback } from
 import { SocialMediaSpeechProcessor } from '../core/SocialMediaSpeechProcessor';
 import { SystemAuditor } from '../core/SystemAuditor';
 import { StructuredReasoningProcessor } from '../core/StructuredReasoningProcessor';
-import { TrainingTestSystem } from '../core/TrainingTestSystem';
+import { EnhancedTrainingSystem } from '../core/EnhancedTrainingSystem';
 import { UserFeedbackWidget } from './UserFeedbackWidget';
-import { TrainingTestInterface } from './TrainingTestInterface';
+import { EnhancedTrainingInterface } from './EnhancedTrainingInterface';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { OpenLMMBenchmarks, LMMBenchmarkResult } from '../core/OpenLMMBenchmarks';
 
@@ -55,7 +55,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
   const [socialMediaProcessor] = useState(() => new SocialMediaSpeechProcessor());
   const [systemAuditor] = useState(() => new SystemAuditor());
   const [structuredReasoning] = useState(() => new StructuredReasoningProcessor());
-  const [trainingSystem] = useState(() => new TrainingTestSystem());
+  const [enhancedTraining] = useState(() => new EnhancedTrainingSystem());
   const [lmmBenchmarks] = useState(() => new OpenLMMBenchmarks());
   const [isInitialized, setIsInitialized] = useState(false);
   const [conversationContext, setConversationContext] = useState<string[]>([]);
@@ -63,14 +63,14 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
   const [showTrainingTest, setShowTrainingTest] = useState(false);
   const [trainingComplete, setTrainingComplete] = useState(false);
   const [trainingProgress, setTrainingProgress] = useState<TrainingProgress>({
-    currentLevel: 'Training Mode',
-    targetLevel: 'Natural Conversation Unlocked',
+    currentLevel: 'Enhanced Training Mode',
+    targetLevel: 'Natural Conversation with Contextual Learning',
     progressPercentage: 0,
-    eta: 'Complete 25-question test',
+    eta: 'Complete enhanced 25-question test',
     reasoningAbility: 0.1,
     algorithmCount: 0,
     generation: 0,
-    capabilities: ['Training mode only'],
+    capabilities: ['Enhanced training with contextual reasoning'],
     multiModalProgress: 0,
     totalConversations: 0,
     apiConnectivity: 'unhealthy',
@@ -83,36 +83,38 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const bootSequence = [
-    "MACHINEGOD TRAINING SYSTEM v3.0.0",
-    "(c) 2024 - 25-QUESTION RAPID FIRE TRAINING BEFORE NATURAL CONVERSATION",
+    "MACHINEGOD ENHANCED TRAINING SYSTEM v4.0.0",
+    "(c) 2024 - CONTEXTUAL REASONING + ADAPTIVE LEARNING",
     "",
-    "🎯 Initializing Training Test System...",
-    "✓ 25 rapid-fire questions loaded",
-    "✓ User validation system: READY",
-    "✓ Learning from corrections: ENABLED",
-    "✓ Natural conversation: LOCKED until training complete",
+    "🧠 Initializing Enhanced Training with Contextual Reasoning...",
+    "✓ Redundancy checking: ENABLED",
+    "✓ Contextual guessing: ACTIVE", 
+    "✓ Better 'no' response handling: READY",
+    "✓ Explanation parsing: ENHANCED",
+    "✓ Known facts storage: INITIALIZED",
+    "✓ Personality profiling: ACTIVE",
     "",
-    "📚 Training Categories:",
-    "✓ Logic & Reasoning (5 questions)",
-    "✓ Language & Communication (5 questions)", 
-    "✓ Knowledge & Facts (5 questions)",
-    "✓ Problem Solving (5 questions)",
-    "✓ Social Intelligence (5 questions)",
+    "🎯 Enhanced Training Features:",
+    "✓ Smart question skipping based on inferred answers",
+    "✓ Contextual guesses from previous responses",
+    "✓ Deep learning from user corrections",
+    "✓ Personality development tracking",
+    "✓ Adaptive reasoning patterns",
     "",
-    "🔒 TRAINING MODE ACTIVE",
+    "🔒 ENHANCED TRAINING MODE ACTIVE",
     "",
-    "You need to complete a 25-question training test before I can have",
-    "natural conversations with you. This helps me learn your preferences",
-    "and ensures I give you the best responses possible!",
+    "This enhanced training system learns your preferences as we go",
+    "and makes smart guesses to skip redundant questions. It builds",
+    "a personality profile and adapts to your communication style.",
     "",
-    "For each question:",
-    "1. I'll ask you something",
-    "2. You answer it",
-    "3. I'll respond based on your answer", 
-    "4. You tell me if my response was correct (yes/no)",
-    "5. If no, you explain what I should have said",
+    "The system will:",
+    "1. Ask you questions and learn from your answers",
+    "2. Make educated guesses based on what it's learned",
+    "3. When you say 'no', ask for explanations to improve",
+    "4. Skip questions it can already answer from context",
+    "5. Build a comprehensive personality profile",
     "",
-    "Ready to start the training? Type 'start training' to begin! 🚀"
+    "Ready to start enhanced training? Type 'start training' to begin! 🚀"
   ];
 
   // Update training progress
@@ -144,13 +146,18 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
           console.error('Error updating training metrics:', error);
         }
       } else {
-        // Update training test progress
-        const testProgress = trainingSystem.getTrainingProgress();
+        // Update enhanced training progress
+        const testProgress = enhancedTraining.getTrainingProgress();
         setTrainingProgress(prev => ({
           ...prev,
           progressPercentage: (testProgress.correctCount / testProgress.requiredCorrect) * 100,
           eta: `${testProgress.requiredCorrect - testProgress.correctCount} questions remaining`,
-          capabilities: [`Training: ${testProgress.correctCount}/${testProgress.requiredCorrect} correct`]
+          capabilities: [
+            `Enhanced Training: ${testProgress.correctCount}/${testProgress.requiredCorrect} correct`,
+            `Personality: ${testProgress.personalityDeveloped?.toFixed(0)}% developed`,
+            `Facts learned: ${testProgress.factsLearned}`,
+            `Smart inferences: ${testProgress.inferencesMade}`
+          ]
         }));
       }
     };
@@ -192,7 +199,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
         
         setCommands(prev => [...prev, {
           command: '',
-          response: "🎯 System ready for training! Type 'start training' to begin the 25-question test.",
+          response: "🧠 Enhanced training system ready! Type 'start training' to begin contextual learning.",
           timestamp: new Date()
         }]);
       } catch (error) {
@@ -218,9 +225,25 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     setShowTrainingTest(false);
     setTrainingComplete(true);
     
+    const personalityProfile = enhancedTraining.getPersonalityProfile();
+    const knownFacts = enhancedTraining.getKnownFacts();
+    
     setCommands(prev => [...prev, {
       command: '',
-      response: "🎉 TRAINING COMPLETE! You've successfully answered 25 questions correctly!\n\n🔓 Natural conversation mode is now UNLOCKED!\n\nI can now talk to you naturally with social media speech, conduct real research,\nand have proper conversations. Thanks for training me, bestie! 💯\n\nWhat would you like to chat about?",
+      response: `🎉 ENHANCED TRAINING COMPLETE! 
+
+🧠 Personality Profile Developed:
+• Communication: ${personalityProfile.formality > 0.3 ? 'Formal' : personalityProfile.formality < -0.3 ? 'Casual' : 'Balanced'}
+• Response Style: ${personalityProfile.directness > 0.3 ? 'Direct' : personalityProfile.directness < -0.3 ? 'Detailed' : 'Moderate'}
+• Humor: ${personalityProfile.humor > 0.3 ? 'Enjoys humor' : personalityProfile.humor < -0.3 ? 'Serious' : 'Neutral'}
+• Tech Level: ${personalityProfile.techLevel > 0.3 ? 'Technical' : personalityProfile.techLevel < -0.3 ? 'Simple' : 'Mixed'}
+
+📚 Facts Learned: ${knownFacts.length} preferences and patterns
+
+🔓 Natural conversation mode is now UNLOCKED with your personalized profile!
+
+I can now talk to you naturally with social media speech, conduct real research,
+and adapt to your specific communication preferences. Let's chat! 💯`,
       timestamp: new Date()
     }]);
 
@@ -249,55 +272,62 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
       if (!trainingComplete) {
         if (input.toLowerCase().includes('start training') || input.toLowerCase().includes('begin training')) {
           setShowTrainingTest(true);
-          response = "🎯 Starting 25-question training test! A new window will open with the training interface.";
+          response = "🧠 Starting enhanced training with contextual reasoning! The training interface will guide you through adaptive learning.";
         } else if (input.toLowerCase() === 'help') {
           response = `
-🎯 TRAINING MODE HELP
+🧠 ENHANCED TRAINING MODE HELP
 
-You're currently in training mode. Before I can have natural conversations,
-you need to complete a 25-question rapid-fire test.
+You're in enhanced training mode with contextual reasoning capabilities.
 
 Commands available:
-• start training - Begin the 25-question test
-• training progress - Check your current progress
+• start training - Begin the enhanced 25-question test
+• training progress - Check your current progress and personality development
 • help - Show this help message
 
-The training test will:
-1. Ask you 25 questions across different categories
-2. You answer each question
-3. I respond based on your answer
-4. You validate if my response is correct (yes/no)
-5. If wrong, you explain what the correct answer should be
-6. I learn from your corrections
+The enhanced training features:
+🎯 Smart question skipping - Won't ask what it can already infer
+🧠 Contextual guessing - Makes educated guesses based on your previous answers
+📚 Deep learning - When you say "no", it asks why and learns from explanations
+👤 Personality profiling - Builds a comprehensive profile of your preferences
+🔄 Adaptive reasoning - Gets smarter as it learns more about you
 
-Once you get 25 correct answers, natural conversation mode unlocks! 🔓
+This creates a truly personalized AI that understands your unique communication style! 🚀
 `;
         } else if (input.toLowerCase().includes('training progress') || input.toLowerCase().includes('progress')) {
-          const testProgress = trainingSystem.getTrainingProgress();
+          const testProgress = enhancedTraining.getTrainingProgress();
+          const personalityProfile = enhancedTraining.getPersonalityProfile();
           response = `
-📊 Training Progress:
+🧠 Enhanced Training Progress:
 
 ✅ Correct Answers: ${testProgress.correctCount} / ${testProgress.requiredCorrect}
 📝 Total Attempts: ${testProgress.totalAttempts}
 🎯 Remaining: ${testProgress.requiredCorrect - testProgress.correctCount} questions
 📈 Progress: ${((testProgress.correctCount / testProgress.requiredCorrect) * 100).toFixed(1)}%
 
+👤 Personality Development: ${testProgress.personalityDeveloped?.toFixed(0)}%
+📚 Facts Learned: ${testProgress.factsLearned} preferences
+🧠 Smart Inferences: ${testProgress.inferencesMade} contextual guesses
+
+Current Personality Profile:
+• Formality: ${personalityProfile.formality > 0.3 ? 'Formal' : personalityProfile.formality < -0.3 ? 'Casual' : 'Developing...'}
+• Style: ${personalityProfile.directness > 0.3 ? 'Direct' : personalityProfile.directness < -0.3 ? 'Detailed' : 'Learning...'}
+• Humor: ${personalityProfile.humor > 0.3 ? 'Enjoys humor' : personalityProfile.humor < -0.3 ? 'Serious' : 'Neutral'}
+
 ${testProgress.sessionActive ? 
-  `🔥 Training session active! Current category: ${testProgress.currentCategory || 'Mixed'}` :
+  '🔥 Training session active! Continue in the training interface.' :
   '💤 No active training session. Type "start training" to begin!'
 }
 
 ${testProgress.isComplete ? 
   '🎉 Training complete! Natural conversation unlocked!' :
-  'Keep going! You need 25 correct answers to unlock natural conversation.'
+  'Keep going! The system gets smarter with each answer you provide.'
 }
 `;
         } else {
-          response = `🔒 Natural conversation is locked until you complete the 25-question training test.\n\nType 'start training' to begin, or 'help' for more information.\n\nThis training helps me learn your preferences and ensures I give you the best responses! 🎯`;
+          response = `🔒 Natural conversation is locked until you complete the enhanced training.\n\nType 'start training' to begin the adaptive learning system, or 'help' for more information.\n\nThis enhanced training builds a personalized profile and learns your preferences! 🧠`;
         }
       } else {
-        // Training complete - normal conversation mode
-        // Add to conversation context
+        // Training complete - normal conversation mode with personality
         setConversationContext(prev => [...prev.slice(-5), input]);
 
         let confidence = 0;
@@ -314,20 +344,21 @@ ${testProgress.isComplete ?
         // Handle system commands
         if (input.toLowerCase() === 'help') {
           response = `
-Yo! Here's what I can help with now that training is complete! 🔥
+Yo! Here's what I can help with now that enhanced training is complete! 🔥
 
-💬 NATURAL CONVERSATION:
-  Just talk to me normally! Ask questions, have conversations, request help with tasks.
-  I respond like a real person - with natural language, slang, and modern expressions.
+💬 PERSONALIZED CONVERSATION:
+  I now know your communication style and preferences from our training!
+  Talk to me naturally - I'll adapt to your personality profile.
 
-🧠 LOGIC STORAGE SYSTEM:
-  I use a 6-tier logic storage system with 256 units per tier
+🧠 ENHANCED CAPABILITIES:
+  • 6-tier logic storage system
+  • Social media speech (256MB reference)
+  • Real-time web research
+  • Contextual reasoning from your training
+  • Personalized response style
 
-🗣️ SOCIAL MEDIA SPEECH (256MB):
-  I talk like people on social media - casual, modern, with slang
-
-🔍 REAL-TIME RESEARCH:
-  I can search the web in real-time to find information for you
+🎯 YOUR PERSONALITY PROFILE:
+  I remember your preferences and adapt my responses accordingly!
 
 📊 REASONING BENCHMARKS:
   benchmark [test] - Run various reasoning tests
@@ -336,16 +367,33 @@ Yo! Here's what I can help with now that training is complete! 🔥
   audit system - Run comprehensive system audit
 
 👍👎 FEEDBACK SYSTEM:
-  Click thumbs up/down on any response to help me improve
+  I continue learning from your feedback to improve!
 
-Just talk to me like you would any person - that's what I'm designed for, fr! 💯
+Just talk to me naturally - I know your style now, bestie! 💯
 `;
         } else {
-          // Process through full system
+          // Process through full system with personality awareness
           const result = await machineGod.processConversation(input, conversationContext);
           
-          // Apply social media speech processing
-          const socialResponse = socialMediaProcessor.makeSocialMediaStyle(result.response, input);
+          // Apply social media speech processing with personality
+          const personalityProfile = enhancedTraining.getPersonalityProfile();
+          let socialResponse = socialMediaProcessor.makeSocialMediaStyle(result.response, input);
+          
+          // Adjust response based on learned personality
+          if (personalityProfile.formality > 0.3) {
+            // More formal style
+            socialResponse = socialResponse.replace(/\b(gonna|wanna|gotta)\b/g, (match) => {
+              return match === 'gonna' ? 'going to' : match === 'wanna' ? 'want to' : 'have to';
+            });
+          } else if (personalityProfile.formality < -0.3) {
+            // More casual style - keep all the slang
+          }
+          
+          if (personalityProfile.humor < -0.3) {
+            // Remove humor for serious users
+            socialResponse = socialResponse.replace(/\b(lol|lmao|😂|🤣)\b/g, '');
+          }
+          
           socialMediaProcessed = true;
           
           // Apply structured reasoning for complex queries
@@ -438,15 +486,15 @@ Just talk to me like you would any person - that's what I'm designed for, fr! �
         <div className="training-header bg-gradient-to-r from-purple-900 to-blue-900 bg-opacity-40 border-b border-purple-600 p-3 flex-shrink-0">
           <div className="flex justify-between items-center text-sm mb-2">
             <span className="text-purple-300">
-              {trainingComplete ? '🧠 6-Tier Logic + 🗣️ Social Media Speech' : '🎯 Training Mode'}
+              {trainingComplete ? '🧠 Enhanced AI + 🗣️ Personalized Speech' : '🧠 Enhanced Training Mode'}
             </span>
             <span className="text-cyan-300">
-              {trainingComplete ? `Learning: ${trainingProgress.generation}` : 'Training Required'}
+              {trainingComplete ? `Learning: ${trainingProgress.generation}` : 'Contextual Learning'}
             </span>
             <span className="text-green-300">{trainingProgress.progressPercentage.toFixed(1)}%</span>
             <span className="text-yellow-300">ETA: {trainingProgress.eta}</span>
             <span className="text-pink-300">
-              {trainingComplete ? '🔥 Speech: 256MB' : '🔒 Locked'}
+              {trainingComplete ? '🎯 Personalized' : '🔒 Locked'}
             </span>
           </div>
           <div className="bg-gray-700 rounded-full h-2">
@@ -454,7 +502,7 @@ Just talk to me like you would any person - that's what I'm designed for, fr! �
               className={`h-2 rounded-full transition-all duration-1000 ${
                 trainingComplete 
                   ? 'bg-gradient-to-r from-purple-500 via-blue-500 to-green-500'
-                  : 'bg-gradient-to-r from-red-500 to-yellow-500'
+                  : 'bg-gradient-to-r from-orange-500 to-purple-500'
               }`}
               style={{ width: `${trainingProgress.progressPercentage}%` }}
             ></div>
@@ -487,15 +535,15 @@ Just talk to me like you would any person - that's what I'm designed for, fr! �
                 
                 {/* Training mode indicators */}
                 {!trainingComplete && cmd.command && (
-                  <div className="ml-2 mt-1 text-yellow-400 text-xs flex items-center">
-                    <span>🔒 Training mode - natural conversation locked</span>
+                  <div className="ml-2 mt-1 text-orange-400 text-xs flex items-center">
+                    <span>🧠 Enhanced training mode - building your personality profile</span>
                   </div>
                 )}
                 
-                {/* Social media processing indicator */}
+                {/* Personalized processing indicator */}
                 {cmd.socialMediaProcessed && trainingComplete && (
                   <div className="ml-2 mt-1 text-pink-400 text-xs flex items-center">
-                    <span>🗣️ Social media speech applied (256MB reference)</span>
+                    <span>🎯 Personalized response based on your training profile</span>
                   </div>
                 )}
                 
@@ -508,7 +556,7 @@ Just talk to me like you would any person - that's what I'm designed for, fr! �
                 
                 {trainingComplete && cmd.logicalAnalysisApplied && (
                   <div className="ml-2 mt-1 text-purple-400 text-xs flex items-center">
-                    <span>🧠 Structured reasoning applied</span>
+                    <span>🧠 Enhanced structured reasoning applied</span>
                   </div>
                 )}
                 
@@ -525,7 +573,7 @@ Just talk to me like you would any person - that's what I'm designed for, fr! �
                 {/* Show feedback given confirmation */}
                 {cmd.feedbackGiven && (
                   <div className="ml-2 mt-1 text-gray-500 text-xs">
-                    ✓ Thanks for the feedback, bestie! 🙏
+                    ✓ Thanks for the feedback! I'm learning your preferences! 🙏
                   </div>
                 )}
               </div>
@@ -534,8 +582,8 @@ Just talk to me like you would any person - that's what I'm designed for, fr! �
               <div className="text-yellow-400 ml-2 flex items-center">
                 <span className="animate-pulse">
                   {trainingComplete 
-                    ? '💬 Thinking with social media speech...' 
-                    : '🎯 Processing training command...'
+                    ? '💬 Thinking with your personalized profile...' 
+                    : '🧠 Processing enhanced training command...'
                   }
                 </span>
               </div>
@@ -558,8 +606,8 @@ Just talk to me like you would any person - that's what I'm designed for, fr! �
               className="flex-1 bg-transparent border-none outline-none text-green-400 font-mono"
               placeholder={
                 trainingComplete 
-                  ? "Ask me anything - I'll respond naturally with social media speech, no cap! 🔥"
-                  : "Type 'start training' to begin the 25-question test..."
+                  ? "Ask me anything - I know your style now and will respond personally! 🎯"
+                  : "Type 'start training' to begin enhanced contextual learning..."
               }
               disabled={isLoading || !isInitialized}
               autoFocus
@@ -569,8 +617,8 @@ Just talk to me like you would any person - that's what I'm designed for, fr! �
         </div>
       </div>
 
-      {/* Training Test Interface */}
-      <TrainingTestInterface
+      {/* Enhanced Training Interface */}
+      <EnhancedTrainingInterface
         isVisible={showTrainingTest}
         onTrainingComplete={handleTrainingComplete}
       />
