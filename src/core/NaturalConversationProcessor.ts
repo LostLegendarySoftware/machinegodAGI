@@ -3,6 +3,8 @@
  * Makes AI responses sound more human and less technical
  */
 
+import { SlangProcessor } from './SlangProcessor';
+
 export interface ConversationStyle {
   name: string;
   description: string;
@@ -13,6 +15,7 @@ export interface ConversationStyle {
 export class NaturalConversationProcessor {
   private conversationStyles: Map<string, ConversationStyle> = new Map();
   private currentStyle: string = 'casual';
+  private slangProcessor: SlangProcessor;
   private technicalTerms: Set<string> = new Set([
     'algorithm', 'neural network', 'machine learning', 'artificial intelligence',
     'parameter', 'optimization', 'gradient descent', 'backpropagation',
@@ -60,7 +63,8 @@ export class NaturalConversationProcessor {
 
   constructor() {
     this.initializeConversationStyles();
-    console.log('💬 Natural Conversation Processor initialized');
+    this.slangProcessor = new SlangProcessor();
+    console.log('💬 Natural Conversation Processor initialized with slang capabilities');
   }
 
   private initializeConversationStyles() {
@@ -162,6 +166,11 @@ export class NaturalConversationProcessor {
     naturalResponse = this.addConversationalElements(naturalResponse, style);
     naturalResponse = this.varyStructure(naturalResponse);
     naturalResponse = this.addPersonality(naturalResponse, style);
+    
+    // Apply slang processing for casual style
+    if (style === 'casual') {
+      naturalResponse = this.slangProcessor.addSlang(naturalResponse, context);
+    }
     
     return naturalResponse;
   }
@@ -514,6 +523,13 @@ export class NaturalConversationProcessor {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Set slang intensity
+   */
+  setSlangIntensity(intensity: number): void {
+    this.slangProcessor.setSlangIntensity(intensity);
   }
 
   /**

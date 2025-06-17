@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { TerminalInterface } from './components/TerminalInterface';
 import { SystemDashboard } from './components/SystemDashboard';
 import { ParticleSystem } from './components/ParticleSystem';
+import { LogicStorageDisplay } from './components/LogicStorageDisplay';
 import { SystemStatus } from './core/MachineGodCore';
-import { Terminal, Monitor, Activity, Settings, Brain, Users, Zap, Archive } from 'lucide-react';
+import { Terminal, Monitor, Activity, Settings, Brain, Users, Zap, Archive, Database } from 'lucide-react';
 
-type TabType = 'terminal' | 'dashboard' | 'meta-logic' | 'ariel' | 'warp' | 'helix' | 'settings';
+type TabType = 'terminal' | 'dashboard' | 'meta-logic' | 'ariel' | 'warp' | 'helix' | 'settings' | 'storage';
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>('terminal');
@@ -17,7 +18,10 @@ function App() {
     training: { currentLevel: 'ChatGPT-4 Baseline', progressPercentage: 15, eta: 'Calculating...', reasoningAbility: 0.4, active: false },
     memory: { totalConversations: 0, userSessions: 0, trainingCheckpoints: 0, multiModalProgress: 0.25 },
     api: { network: 'mainnet', requestCount: 0, tokenActive: false, lastHealthCheck: null, connectivity: 'unhealthy' },
-    truthProtocol: { adversarialCycles: 0, truthSignatures: 0, stratumCompliance: {}, active: false }
+    truthProtocol: { adversarialCycles: 0, truthSignatures: 0, stratumCompliance: {}, active: false },
+    tasking: { totalTasks: 0, activeAgents: 0, researchCapability: false, logicalAnalysis: false },
+    benchmarks: { totalBenchmarks: 0, averageScore: 0, topBenchmark: '', leaderboardRank: 0 },
+    logicStorage: { totalAlgorithms: 0, totalPatterns: 0, compressionRatio: 0, topPerformingTier: 0, tierUtilization: [0, 0, 0, 0, 0, 0] }
   });
 
   const tabs = [
@@ -27,6 +31,7 @@ function App() {
     { id: 'ariel', label: 'ARIEL', icon: Users },
     { id: 'warp', label: 'WARP', icon: Zap },
     { id: 'helix', label: 'HELIX', icon: Archive },
+    { id: 'storage', label: 'Logic Storage', icon: Database },
     { id: 'settings', label: 'Settings', icon: Settings }
   ] as const;
 
@@ -36,6 +41,8 @@ function App() {
         return <TerminalInterface onSystemStatusChange={setSystemStatus} />;
       case 'dashboard':
         return <SystemDashboard status={systemStatus} />;
+      case 'storage':
+        return <LogicStorageDisplay machineGod={new MachineGodCore()} />;
       case 'meta-logic':
         return (
           <div className="p-6 bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg h-full">

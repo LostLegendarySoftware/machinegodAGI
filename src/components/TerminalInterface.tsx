@@ -13,6 +13,8 @@ interface TerminalCommand {
   memoryId?: string;
   researchConducted?: boolean;
   logicalAnalysisApplied?: boolean;
+  slangApplied?: boolean;
+  logicAlgorithmsUsed?: string[];
   benchmarkResult?: LMMBenchmarkResult;
 }
 
@@ -49,6 +51,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
   const [feedbackReason, setFeedbackReason] = useState('');
   const [feedbackImprovement, setFeedbackImprovement] = useState('');
   const [isBenchmarking, setIsBenchmarking] = useState(false);
+  const [slangIntensity, setSlangIntensity] = useState(0.5);
   const [trainingProgress, setTrainingProgress] = useState<TrainingProgress>({
     currentLevel: 'ChatGPT-4 Baseline',
     targetLevel: 'Full Multi-Modal AGI',
@@ -71,14 +74,23 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
 
   const bootSequence = [
     "MACHINEGOD NATURAL CONVERSATION v3.0.0",
-    "(c) 2024 - TRUE NATURAL AI WITH REAL RESEARCH",
+    "(c) 2024 - TRUE NATURAL AI WITH PROPER LOGIC STORAGE",
     "",
     "💬 Initializing Natural Conversation Mode...",
     "✓ Human-like response patterns: LOADED",
-    "✓ No technical jargon filter: ACTIVE",
+    "✓ Slang and casual speech: ACTIVE",
     "✓ Conversational flow optimization: ENABLED",
     "✓ User feedback learning: READY",
     "✓ Background quality assurance: SILENT MODE",
+    "",
+    "🧠 6-Tier Logic Storage System:",
+    "✓ Tier 1: Common Sense & Meta-Logic (256 units)",
+    "✓ Tier 2: Natural Language Processing (256 units)",
+    "✓ Tier 3: Agentic Training (256 units)",
+    "✓ Tier 4: Slang & Natural Speaking (256 units)",
+    "✓ Tier 5: Image Generation & Spatial Analysis (256 units)",
+    "✓ Tier 6: Video Generation & 3D Modeling (256 units)",
+    "✓ Total: 1536 logic data units ACTIVE",
     "",
     "🔍 REAL Research Capabilities:",
     "✓ Google Custom Search API: CONNECTED",
@@ -86,6 +98,13 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     "✓ Source credibility assessment: ENABLED",
     "✓ Fact-checking system: READY",
     "✓ Logical analysis framework: LOADED",
+    "",
+    "🗣️ Slang & Natural Speech:",
+    "✓ Modern slang patterns: LOADED",
+    "✓ Casual speech patterns: ACTIVE",
+    "✓ Conversational fillers: ENABLED",
+    "✓ Emoji integration: READY",
+    "✓ Regional dialect support: AVAILABLE",
     "",
     "📊 LMM Reasoning Benchmarks:",
     "✓ MathVista: READY",
@@ -108,15 +127,15 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     "✓ Response adaptation: CONTINUOUS",
     "✓ Learning from mistakes: ENABLED",
     "",
-    "NATURAL CONVERSATION SYSTEM WITH REAL RESEARCH READY",
+    "NATURAL CONVERSATION SYSTEM WITH PROPER LOGIC STORAGE READY",
     "",
-    "Hey! I'm your AI assistant with real-time research capabilities. I talk like a normal person",
+    "Hey! I'm your AI assistant with proper logic storage. I talk like a normal person",
     "and can search the web in real-time to answer your questions with up-to-date information.",
     "",
     "If you like or dislike any of my responses, just click the thumbs up or down",
     "and I'll learn from your feedback to get better at helping you.",
     "",
-    "What would you like to chat about or research today?"
+    "What would you like to chat about today?"
   ];
 
   // Update training progress
@@ -191,7 +210,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
         
         setCommands(prev => [...prev, {
           command: '',
-          response: "🎯 Natural conversation system with REAL research ready - just talk to me normally!",
+          response: "🎯 Natural conversation system with proper logic storage ready - just talk to me normally!",
           timestamp: new Date()
         }]);
       } catch (error) {
@@ -236,6 +255,8 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
       let memoryId = '';
       let researchConducted = false;
       let logicalAnalysisApplied = false;
+      let slangApplied = false;
+      let logicAlgorithmsUsed: string[] = [];
       let benchmarkResult: LMMBenchmarkResult | undefined;
 
       // Check for system commands first
@@ -245,7 +266,16 @@ Hey! Here's what I can help with:
 
 💬 NATURAL CONVERSATION:
   Just talk to me normally! Ask questions, have conversations, request help with tasks.
-  I respond like a regular person - no technical jargon unless you want it.
+  I respond like a regular person - with natural language and even slang when appropriate.
+
+🧠 LOGIC STORAGE SYSTEM:
+  I use a 6-tier logic storage system with 256 units per tier:
+  • Tier 1: Common Sense & Meta-Logic
+  • Tier 2: Natural Language Processing
+  • Tier 3: Agentic Training
+  • Tier 4: Slang & Natural Speaking
+  • Tier 5: Image Generation & Spatial Analysis
+  • Tier 6: Video Generation & 3D Modeling
 
 🔍 REAL-TIME RESEARCH:
   I can search the web in real-time to find information for you
@@ -260,23 +290,23 @@ Hey! Here's what I can help with:
   benchmark logicvista - Test logical reasoning and inference
   benchmark report - Show benchmark results report
 
+🗣️ SLANG SETTINGS:
+  slang high - Use more slang and casual speech
+  slang medium - Use moderate slang (default)
+  slang low - Use minimal slang
+  slang off - Turn off slang completely
+
 📝 FEEDBACK SYSTEM:
   👍 👎 Click thumbs up/down on any response to help me improve
   I learn from your feedback and get better over time
 
 🔧 SYSTEM COMMANDS (if you're curious):
   status     - Show system status
+  storage    - Show logic storage statistics
   feedback   - Show feedback statistics  
   training   - Show learning progress
   clear      - Clear terminal
   reset      - Reset conversation
-
-🎯 WHAT I'M GOOD AT:
-  • Real-time web research and fact-checking
-  • Natural conversation and questions
-  • Explaining things in simple terms
-  • Helping with tasks and problems
-  • Learning from your feedback
 
 Just talk to me like you would any person - that's what I'm designed for!
 `;
@@ -309,18 +339,39 @@ Thanks for helping me improve! Your feedback makes me better at conversations.
         setConversationContext([]);
         response = 'Conversation reset! What would you like to talk about?';
       } else if (input.toLowerCase() === 'status') {
-        const researchStats = machineGod.getResearchStats();
+        const logicStats = machineGod.getLogicStorageStats();
         response = `
-🔍 REAL Research System Status:
+🧠 Logic Storage System Status:
 
-• Research Tasks: ${researchStats.researchTasksCompleted}
-• Analysis Tasks: ${researchStats.analysisTasksCompleted}
-• Google Search API: CONNECTED
-• Logical Analysis: ACTIVE
-• Average Confidence: ${(researchStats.averageTaskConfidence * 100).toFixed(1)}%
-• Average Processing Time: ${Math.round(researchStats.averageTaskTime)}ms
+• Total Algorithms: ${logicStats.stats.totalAlgorithms}
+• Total Patterns: ${logicStats.stats.totalPatterns}
+• Active Units: ${logicStats.stats.activeUnits} of ${logicStats.stats.totalUnits}
+• Compression Ratio: ${(logicStats.stats.compressionRatio * 100).toFixed(1)}%
+• Top Performing Tier: ${logicStats.tiers[logicStats.stats.topPerformingTier].description}
 
-The system is fully operational with real-time web search capabilities.
+🔝 Top Performing Algorithms:
+${logicStats.topAlgorithms.map((alg, i) => `${i+1}. ${alg.name} (${(alg.performance * 100).toFixed(1)}%)`).join('\n')}
+
+The system is fully operational with proper 6-tier logic storage.
+`;
+      } else if (input.toLowerCase() === 'storage') {
+        const logicStats = machineGod.getLogicStorageStats();
+        response = `
+🧠 6-Tier Logic Storage System:
+
+${logicStats.tiers.map(tier => 
+  `Tier ${tier.id+1}: ${tier.description}
+   • Usage: ${tier.utilizationPercentage.toFixed(1)}% (${Math.round(tier.usedCapacity/1024/1024)}MB / ${Math.round(tier.totalCapacity/1024/1024)}MB)
+   • Compression: ${((1-tier.compressionRatio) * 100).toFixed(1)}%`
+).join('\n\n')}
+
+📊 Overall Statistics:
+• Total Algorithms: ${logicStats.stats.totalAlgorithms}
+• Total Patterns: ${logicStats.stats.totalPatterns}
+• Active Units: ${logicStats.stats.activeUnits} of ${logicStats.stats.totalUnits}
+• Average Performance: ${(logicStats.stats.averagePerformance * 100).toFixed(1)}%
+
+This 6-tier system ensures proper storage of different types of knowledge and capabilities.
 `;
       } else if (input.toLowerCase().startsWith('benchmark ')) {
         const benchmarkCommand = input.toLowerCase().substring(10).trim();
@@ -392,6 +443,34 @@ Invalid benchmark command. Available benchmarks:
 `;
           }
         }
+      } else if (input.toLowerCase().startsWith('slang ')) {
+        const slangCommand = input.toLowerCase().substring(6).trim();
+        
+        if (slangCommand === 'high') {
+          machineGod.setSlangIntensity(0.8);
+          response = "Slang intensity set to high! I'll talk with lots more slang and casual speech now. 🔥";
+          setSlangIntensity(0.8);
+        } else if (slangCommand === 'medium') {
+          machineGod.setSlangIntensity(0.5);
+          response = "Slang intensity set to medium - I'll use a moderate amount of slang now. 👌";
+          setSlangIntensity(0.5);
+        } else if (slangCommand === 'low') {
+          machineGod.setSlangIntensity(0.2);
+          response = "Slang intensity set to low. I'll use just a little bit of slang now.";
+          setSlangIntensity(0.2);
+        } else if (slangCommand === 'off') {
+          machineGod.setSlangIntensity(0);
+          response = "Slang turned off. I'll speak more formally now without using slang terms.";
+          setSlangIntensity(0);
+        } else {
+          response = `
+Invalid slang command. Available options:
+- slang high - Use more slang and casual speech
+- slang medium - Use moderate slang (default)
+- slang low - Use minimal slang
+- slang off - Turn off slang completely
+`;
+        }
       } else {
         // Main conversation processing with Natural Flow
         if (isInitialized) {
@@ -403,6 +482,8 @@ Invalid benchmark command. Available benchmarks:
           memoryId = result.memoryId;
           researchConducted = result.researchConducted || false;
           logicalAnalysisApplied = result.logicalAnalysisApplied || false;
+          slangApplied = result.slangApplied || false;
+          logicAlgorithmsUsed = result.logicAlgorithmsUsed || [];
 
           // Update system status after processing
           const status = machineGod.getSystemStatus();
@@ -423,6 +504,8 @@ Invalid benchmark command. Available benchmarks:
           memoryId,
           researchConducted,
           logicalAnalysisApplied,
+          slangApplied,
+          logicAlgorithmsUsed,
           benchmarkResult
         };
         return newCommands;
@@ -501,11 +584,11 @@ Invalid benchmark command. Available benchmarks:
       {/* Training Progress Header */}
       <div className="training-header bg-gradient-to-r from-purple-900 to-blue-900 bg-opacity-40 border-b border-purple-600 p-3 flex-shrink-0">
         <div className="flex justify-between items-center text-sm mb-2">
-          <span className="text-purple-300">💬 Natural Conversation</span>
+          <span className="text-purple-300">🧠 6-Tier Logic Storage</span>
           <span className="text-cyan-300">Learning: {trainingProgress.generation}</span>
           <span className="text-green-300">{trainingProgress.progressPercentage.toFixed(1)}%</span>
           <span className="text-yellow-300">ETA: {trainingProgress.eta}</span>
-          <span className="text-pink-300">🔍 REAL Research</span>
+          <span className="text-pink-300">🗣️ Slang: {slangIntensity === 0 ? 'Off' : slangIntensity < 0.3 ? 'Low' : slangIntensity < 0.7 ? 'Medium' : 'High'}</span>
         </div>
         <div className="bg-gray-700 rounded-full h-2">
           <div 
@@ -557,6 +640,20 @@ Invalid benchmark command. Available benchmarks:
               {cmd.logicalAnalysisApplied && (
                 <div className="ml-2 mt-1 text-purple-400 text-xs flex items-center">
                   <span>🧠 Logical analysis applied</span>
+                </div>
+              )}
+              
+              {/* Slang indicator */}
+              {cmd.slangApplied && (
+                <div className="ml-2 mt-1 text-pink-400 text-xs flex items-center">
+                  <span>🗣️ Natural speech with slang applied</span>
+                </div>
+              )}
+              
+              {/* Logic algorithms used */}
+              {cmd.logicAlgorithmsUsed && cmd.logicAlgorithmsUsed.length > 0 && (
+                <div className="ml-2 mt-1 text-cyan-400 text-xs flex items-center">
+                  <span>🧠 Used {cmd.logicAlgorithmsUsed.length} logic algorithms</span>
                 </div>
               )}
               
@@ -645,7 +742,7 @@ Invalid benchmark command. Available benchmarks:
             onChange={(e) => setCurrentInput(e.target.value)}
             onKeyPress={handleKeyPress}
             className="flex-1 bg-transparent border-none outline-none text-green-400 font-mono"
-            placeholder={isInitialized ? "Ask me anything - I can search the web in real-time..." : "Initializing natural conversation system..."}
+            placeholder={isInitialized ? "Ask me anything - I'll respond naturally with proper logic..." : "Initializing 6-tier logic storage system..."}
             disabled={isLoading || !isInitialized}
             autoFocus
           />
