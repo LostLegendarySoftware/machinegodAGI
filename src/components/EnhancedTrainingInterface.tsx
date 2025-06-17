@@ -18,7 +18,7 @@ export const EnhancedTrainingInterface: React.FC<EnhancedTrainingInterfaceProps>
   const [waitingForValidation, setWaitingForValidation] = useState(false);
   const [waitingForExplanation, setWaitingForExplanation] = useState(false);
   const [lastAIResponse, setLastAIResponse] = useState('');
-  const [progress, setProgress] = useState<any>({ correct: 0, total: 25, remaining: 25 });
+  const [progress, setProgress] = useState<any>({ correct: 0, total: 15, remaining: 15 });
   const [sessionStarted, setSessionStarted] = useState(false);
   const [personalityProfile, setPersonalityProfile] = useState<any>(null);
   const [knownFacts, setKnownFacts] = useState<any[]>([]);
@@ -71,7 +71,7 @@ export const EnhancedTrainingInterface: React.FC<EnhancedTrainingInterfaceProps>
       const result = trainingSystem.processResponse(userInput, currentPrompt.questionId!, false);
       
       if (result.waitingForValidation) {
-        setLastAIResponse(result.aiResponse);
+        setLastAIResponse(result.aiResponse || '');
         setWaitingForValidation(true);
       }
     }
@@ -161,7 +161,7 @@ export const EnhancedTrainingInterface: React.FC<EnhancedTrainingInterfaceProps>
               <Target className="text-purple-400 mr-2" size={16} />
               <span className="text-purple-300 font-medium">Progress</span>
             </div>
-            <div className="text-2xl font-bold text-white">{progress.correct}/25</div>
+            <div className="text-2xl font-bold text-white">{progress.correct}/15</div>
             <div className="text-xs text-gray-400">{progress.remaining} remaining</div>
           </div>
           
