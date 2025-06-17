@@ -791,4 +791,35 @@ export class PersistentMemory {
       trainingCheckpoints: this.trainingCheckpoints
     };
   }
+
+  /**
+   * Get memory statistics for system status reporting
+   */
+  getMemoryStats(): {
+    totalConversations: number;
+    userSessions: number;
+    trainingCheckpoints: number;
+  } {
+    let totalConversations = 0;
+    
+    // Count conversations across all users and tiers
+    for (const userConversations of this.conversations.values()) {
+      for (const tierMemories of userConversations.values()) {
+        totalConversations += tierMemories.length;
+      }
+    }
+    
+    return {
+      totalConversations,
+      userSessions: this.userSessions.size,
+      trainingCheckpoints: this.trainingCheckpoints.length
+    };
+  }
+
+  /**
+   * Get training progress information
+   */
+  getTrainingProgress(): MultiModalProgress {
+    return this.multiModalProgress;
+  }
 }
