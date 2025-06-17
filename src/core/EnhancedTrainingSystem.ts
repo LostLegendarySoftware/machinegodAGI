@@ -1,6 +1,6 @@
 /**
- * Enhanced Training System - COMPLETELY FIXED
- * 15 questions, sequential progression, NO LOOPS EVER
+ * Enhanced Training System - FINAL FIX
+ * 15 questions, ALWAYS moves forward, NO LOOPS, creative unique responses
  */
 
 export interface TrainingQuestion {
@@ -44,8 +44,9 @@ export class EnhancedTrainingSystem {
   private personality: PersonalityProfile;
   private currentSession: any = null;
   private readonly REQUIRED_CORRECT = 15;
-  private currentQuestionIndex: number = 0; // Sequential index
-  private questionsAsked: number = 0; // Total questions asked
+  private currentQuestionIndex: number = 0;
+  private questionsCompleted: number = 0;
+  private creativeGuesses: string[] = [];
 
   constructor() {
     this.personality = {
@@ -59,7 +60,8 @@ export class EnhancedTrainingSystem {
     };
     
     this.initializeQuestions();
-    console.log('🧠 Enhanced Training System initialized - 15 questions, NO LOOPS');
+    this.initializeCreativeGuesses();
+    console.log('🧠 Enhanced Training System - FINAL VERSION - NO LOOPS EVER');
   }
 
   private initializeQuestions() {
@@ -141,7 +143,27 @@ export class EnhancedTrainingSystem {
       }
     ];
 
-    console.log(`📚 Loaded exactly ${this.trainingQuestions.length} sequential questions`);
+    console.log(`📚 Loaded exactly ${this.trainingQuestions.length} questions - SEQUENTIAL ONLY`);
+  }
+
+  private initializeCreativeGuesses() {
+    this.creativeGuesses = [
+      "Based on your energy, I'm sensing you prefer direct, no-nonsense communication",
+      "Your writing style suggests you appreciate both humor and efficiency",
+      "I'm getting the vibe that you like things explained clearly but not dumbed down",
+      "From our interaction, I think you value authenticity over formality",
+      "Your approach tells me you prefer solutions over lengthy explanations",
+      "I sense you're someone who appreciates when AI feels more human and less robotic",
+      "Your communication style suggests you like balanced responses - not too short, not too long",
+      "I'm picking up that you prefer when I'm proactive rather than waiting for instructions",
+      "Based on how you phrase things, I think you like when I remember context from our conversation",
+      "Your style suggests you prefer empathy first, then practical solutions",
+      "I sense you appreciate direct feedback rather than sugar-coating",
+      "From your approach, I think you learn best through examples and hands-on practice",
+      "Your communication pattern suggests you make decisions quickly and trust your instincts",
+      "I'm getting the impression that helping others and making an impact motivates you most",
+      "Based on our interaction timing, I sense you're most receptive to new info in the morning or evening"
+    ];
   }
 
   /**
@@ -158,37 +180,50 @@ export class EnhancedTrainingSystem {
       sessionActive: true
     };
 
-    // Reset counters
+    // Reset ALL counters
     this.currentQuestionIndex = 0;
-    this.questionsAsked = 0;
+    this.questionsCompleted = 0;
 
-    console.log(`🧠 Started training session - 15 questions, sequential progression`);
+    console.log(`🧠 Training session started - 15 questions, ALWAYS FORWARD`);
     return this.currentSession;
   }
 
   /**
-   * Get next question - COMPLETELY FIXED
+   * Get next prompt - CREATIVE GUESSES EVERY TIME
    */
   getNextPrompt(): { type: 'question' | 'guess', content: string, questionId?: string, confidence?: number } {
     if (!this.currentSession || this.currentSession.isComplete) {
       return { type: 'question', content: 'Training session not active' };
     }
 
-    // Check if we've completed training
-    if (this.currentSession.correctCount >= this.REQUIRED_CORRECT) {
+    // Check if training is complete
+    if (this.questionsCompleted >= this.REQUIRED_CORRECT) {
       this.currentSession.isComplete = true;
       return { 
         type: 'question', 
-        content: '🎉 Training complete! I\'ve learned your preferences and communication style.' 
+        content: '🎉 Training complete! I\'ve learned your unique communication style and preferences.' 
       };
     }
 
-    // Check if we've asked all questions
+    // Check if we've gone through all questions
     if (this.currentQuestionIndex >= this.trainingQuestions.length) {
       this.currentSession.isComplete = true;
       return { 
         type: 'question', 
-        content: `🎉 All questions completed! I've learned ${this.currentSession.correctCount} things about you.` 
+        content: `🎉 All questions completed! I've learned ${this.questionsCompleted} things about your style.` 
+      };
+    }
+
+    // ALWAYS make a creative guess first (except for first question)
+    if (this.questionsCompleted > 0 && Math.random() > 0.3) {
+      const creativeGuess = this.generateCreativeGuess();
+      const currentQuestion = this.trainingQuestions[this.currentQuestionIndex];
+      
+      return {
+        type: 'guess',
+        content: `${creativeGuess} - Is that accurate?`,
+        questionId: currentQuestion.id,
+        confidence: 0.7 + Math.random() * 0.2
       };
     }
 
@@ -202,8 +237,50 @@ export class EnhancedTrainingSystem {
     };
   }
 
+  private generateCreativeGuess(): string {
+    // Generate unique creative guesses based on what we've learned
+    const personalityInsights = [
+      `I think you're someone who values ${this.personality.directness > 0 ? 'straight-forward' : 'thoughtful'} communication`,
+      `Based on our chat, you seem like you prefer ${this.personality.formality > 0 ? 'professional' : 'casual'} interactions`,
+      `I'm sensing you're the type who likes ${this.personality.humor > 0 ? 'some humor mixed in' : 'serious, focused discussions'}`,
+      `From your vibe, I think you appreciate ${this.personality.techLevel > 0 ? 'technical depth' : 'clear, simple explanations'}`,
+      `Your energy suggests you're someone who wants ${this.personality.empathy > 0 ? 'understanding first' : 'solutions first'}`
+    ];
+
+    const contextualGuesses = [
+      "I'm getting the sense that you like AI that feels more human and less robotic",
+      "Based on how you communicate, I think you prefer efficiency over lengthy explanations",
+      "Your style tells me you value authenticity and directness in conversations",
+      "I sense you're someone who appreciates when I remember our conversation context",
+      "From our interaction, I think you like when I'm proactive rather than just reactive"
+    ];
+
+    const evolutionaryGuesses = [
+      "I'm evolving to understand that you prefer responses that feel natural and conversational",
+      "My reasoning is developing to match your preference for balanced, thoughtful answers",
+      "I'm learning that you value AI that can adapt and grow from our interactions",
+      "Based on our conversation flow, I think you like when I show genuine understanding",
+      "I'm developing the sense that you prefer AI that learns your style rather than being generic"
+    ];
+
+    // Combine all guess types and pick randomly
+    const allGuesses = [...personalityInsights, ...contextualGuesses, ...evolutionaryGuesses];
+    const randomGuess = allGuesses[Math.floor(Math.random() * allGuesses.length)];
+    
+    // Add some creative variation
+    const variations = [
+      `Here's what I'm thinking: ${randomGuess}`,
+      `My intuition tells me: ${randomGuess}`,
+      `I'm developing the understanding that: ${randomGuess}`,
+      `Based on our interaction pattern: ${randomGuess}`,
+      `My evolving reasoning suggests: ${randomGuess}`
+    ];
+
+    return variations[Math.floor(Math.random() * variations.length)];
+  }
+
   /**
-   * Process user response - COMPLETELY FIXED
+   * Process user response - ALWAYS MOVES FORWARD
    */
   processResponse(input: string, questionId: string, wasGuess: boolean = false): {
     success: boolean;
@@ -213,11 +290,15 @@ export class EnhancedTrainingSystem {
     aiResponse?: string;
     waitingForValidation?: boolean;
   } {
+    if (wasGuess) {
+      return this.processGuessResponse(input, questionId);
+    }
+
     // Store the user's answer
     this.storeUserAnswer(questionId, input);
     
     // Generate AI response
-    const aiResponse = this.generateAIResponse(questionId, input);
+    const aiResponse = this.generateCreativeAIResponse(questionId, input);
     
     // Create attempt record
     const attempt = {
@@ -241,8 +322,40 @@ export class EnhancedTrainingSystem {
     };
   }
 
+  private processGuessResponse(input: string, questionId: string): any {
+    const isPositive = this.isPositiveResponse(input);
+    
+    // ALWAYS count as progress and move forward
+    this.questionsCompleted++;
+    this.currentQuestionIndex++;
+    
+    if (isPositive) {
+      this.currentSession.correctCount++;
+      return {
+        success: true,
+        needsMoreInfo: false,
+        nextPrompt: this.getNextPrompt(),
+        feedback: 'Awesome! I\'m learning your style. Moving to the next insight...'
+      };
+    } else {
+      // Still count as progress, just ask for clarification
+      this.currentSession.correctCount++;
+      return {
+        success: false,
+        needsMoreInfo: true,
+        feedback: 'Got it! Help me understand better - what would be more accurate?'
+      };
+    }
+  }
+
+  private isPositiveResponse(input: string): boolean {
+    const positive = ['yes', 'yeah', 'yep', 'correct', 'right', 'accurate', 'true', 'exactly', 'spot on', 'that\'s right'];
+    const lowerInput = input.toLowerCase();
+    return positive.some(word => lowerInput.includes(word));
+  }
+
   /**
-   * Process validation - COMPLETELY FIXED
+   * Process validation - ALWAYS MOVES FORWARD
    */
   processValidation(validation: 'yes' | 'no', explanation?: string): {
     correct: boolean;
@@ -258,24 +371,20 @@ export class EnhancedTrainingSystem {
 
     lastAttempt.userValidation = validation;
 
+    // ALWAYS count as progress regardless of validation
+    this.questionsCompleted++;
+    this.currentSession.correctCount++;
+    
     if (validation === 'yes') {
-      // Correct answer - count it
-      this.currentSession.correctCount++;
       this.learnFromSuccess(lastAttempt);
     } else if (explanation) {
-      // Learn from explanation but still count as progress
       this.learnFromExplanation(lastAttempt, explanation);
-      this.currentSession.correctCount++; // Still count it as learning
-    } else {
-      // No explanation but still move forward
-      this.currentSession.correctCount++;
     }
 
     // ALWAYS move to next question
     this.currentQuestionIndex++;
-    this.questionsAsked++;
 
-    const isComplete = this.currentSession.correctCount >= this.REQUIRED_CORRECT || 
+    const isComplete = this.questionsCompleted >= this.REQUIRED_CORRECT || 
                       this.currentQuestionIndex >= this.trainingQuestions.length;
     
     if (isComplete) {
@@ -285,15 +394,55 @@ export class EnhancedTrainingSystem {
     return {
       correct: validation === 'yes',
       progress: {
-        correct: this.currentSession.correctCount,
+        correct: this.questionsCompleted,
         total: this.REQUIRED_CORRECT,
-        remaining: Math.max(0, this.REQUIRED_CORRECT - this.currentSession.correctCount),
-        questionsAsked: this.questionsAsked
+        remaining: Math.max(0, this.REQUIRED_CORRECT - this.questionsCompleted),
+        questionsAsked: this.questionsCompleted
       },
       isComplete,
       nextPrompt: isComplete ? null : this.getNextPrompt(),
-      learningApplied: explanation ? `Learned from your feedback: ${explanation.substring(0, 50)}...` : undefined
+      learningApplied: explanation ? `Evolved understanding: ${explanation.substring(0, 50)}...` : 'Learning pattern reinforced'
     };
+  }
+
+  private generateCreativeAIResponse(questionId: string, userAnswer: string): string {
+    const question = this.trainingQuestions.find(q => q.id === questionId);
+    if (!question) return 'I understand.';
+
+    // Generate creative, evolving responses
+    const creativeResponses = {
+      communication: [
+        `Perfect! I'm evolving to match your ${userAnswer} style. This helps me communicate in a way that feels natural to you.`,
+        `Got it! My communication algorithms are adapting to your preference for ${userAnswer}. I'm learning your unique style.`,
+        `Excellent! I'm developing a deeper understanding of how you like to interact: ${userAnswer}. This shapes my personality.`
+      ],
+      technical: [
+        `Noted! My technical explanation engine is calibrating to your ${userAnswer} comfort level. I'm becoming more aligned with your needs.`,
+        `Perfect! I'm evolving my technical communication to match your preference: ${userAnswer}. This helps me explain things better.`,
+        `Great insight! My reasoning is adapting to provide ${userAnswer} explanations that work best for your learning style.`
+      ],
+      personality: [
+        `Fascinating! This tells me a lot about your personality: ${userAnswer}. I'm building a unique profile of how you think and feel.`,
+        `This is valuable! Your response "${userAnswer}" helps me understand your emotional and social preferences. I'm evolving to match.`,
+        `Insightful! I'm developing empathy patterns based on your preference: ${userAnswer}. This makes our interactions more meaningful.`
+      ],
+      preferences: [
+        `Understood! I'm encoding your preference "${userAnswer}" into my decision-making process. This personalizes how I help you.`,
+        `Perfect! My behavioral algorithms are adapting to your preference: ${userAnswer}. I'm becoming more tailored to your needs.`,
+        `Excellent! This preference "${userAnswer}" is now part of my evolving understanding of how to serve you best.`
+      ],
+      learning: [
+        `Great! I'm optimizing my teaching methods for your ${userAnswer} learning style. This makes me a better educational partner.`,
+        `Perfect! My knowledge transfer algorithms are adapting to your preference: ${userAnswer}. I'm evolving as your learning companion.`,
+        `Wonderful! Understanding that you learn through ${userAnswer} helps me structure information in the most effective way for you.`
+      ]
+    };
+
+    const responses = creativeResponses[question.category] || [
+      `I understand: "${userAnswer}". This insight helps me evolve to better match your unique style and preferences.`
+    ];
+
+    return responses[Math.floor(Math.random() * responses.length)];
   }
 
   private storeUserAnswer(questionId: string, answer: string): void {
@@ -301,26 +450,6 @@ export class EnhancedTrainingSystem {
     if (question) {
       this.storeKnownFact(`answer_${questionId}`, answer, 'explicit', 1.0);
       this.updatePersonalityFromAnswer(question.category, answer);
-    }
-  }
-
-  private generateAIResponse(questionId: string, userAnswer: string): string {
-    const question = this.trainingQuestions.find(q => q.id === questionId);
-    if (!question) return 'I understand.';
-
-    switch (question.category) {
-      case 'communication':
-        return `Got it! I'll remember that you prefer ${userAnswer}. This helps me communicate better with you.`;
-      case 'technical':
-        return `Perfect! I now know your technical preference: ${userAnswer}. I'll adjust my explanations accordingly.`;
-      case 'personality':
-        return `Thanks for sharing! "${userAnswer}" tells me a lot about your personality and how you like to interact.`;
-      case 'preferences':
-        return `Noted! Your preference for "${userAnswer}" will help me serve you better in the future.`;
-      case 'learning':
-        return `Excellent! Knowing you learn best through "${userAnswer}" will help me teach and explain things more effectively.`;
-      default:
-        return `I understand: "${userAnswer}". This helps me get to know you better.`;
     }
   }
 
@@ -446,15 +575,15 @@ export class EnhancedTrainingSystem {
 
     return {
       sessionActive: true,
-      correctCount: this.currentSession.correctCount,
+      correctCount: this.questionsCompleted,
       totalAttempts: this.currentSession.totalAttempts,
       requiredCorrect: this.REQUIRED_CORRECT,
       isComplete: this.currentSession.isComplete,
       personalityDeveloped: Math.min(100, personalityDeveloped * 20),
       factsLearned: this.knownFacts.size,
-      inferencesMade: 0,
-      questionsAsked: this.questionsAsked,
-      questionsRemaining: Math.max(0, this.REQUIRED_CORRECT - this.currentSession.correctCount)
+      inferencesMade: this.questionsCompleted,
+      questionsAsked: this.questionsCompleted,
+      questionsRemaining: Math.max(0, this.REQUIRED_CORRECT - this.questionsCompleted)
     };
   }
 }
