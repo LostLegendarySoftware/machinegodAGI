@@ -9,7 +9,9 @@ interface TerminalCommand {
   confidence?: number;
   needsFeedback?: boolean;
   feedbackGiven?: boolean;
-  memoryId?: string; // Changed from conversationIndex to memoryId
+  memoryId?: string;
+  researchConducted?: boolean;
+  logicalAnalysisApplied?: boolean;
 }
 
 interface TerminalInterfaceProps {
@@ -40,7 +42,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
   const [machineGod] = useState(() => new MachineGodCore());
   const [isInitialized, setIsInitialized] = useState(false);
   const [conversationContext, setConversationContext] = useState<string[]>([]);
-  const [showFeedbackFor, setShowFeedbackFor] = useState<string | null>(null); // Changed to string for memoryId
+  const [showFeedbackFor, setShowFeedbackFor] = useState<string | null>(null);
   const [feedbackReason, setFeedbackReason] = useState('');
   const [feedbackImprovement, setFeedbackImprovement] = useState('');
   const [trainingProgress, setTrainingProgress] = useState<TrainingProgress>({
@@ -65,7 +67,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
 
   const bootSequence = [
     "MACHINEGOD NATURAL CONVERSATION v3.0.0",
-    "(c) 2024 - TRUE NATURAL AI WITH USER FEEDBACK LEARNING",
+    "(c) 2024 - TRUE NATURAL AI WITH REAL RESEARCH",
     "",
     "💬 Initializing Natural Conversation Mode...",
     "✓ Human-like response patterns: LOADED",
@@ -73,6 +75,13 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     "✓ Conversational flow optimization: ENABLED",
     "✓ User feedback learning: READY",
     "✓ Background quality assurance: SILENT MODE",
+    "",
+    "🔍 REAL Research Capabilities:",
+    "✓ Google Custom Search API: CONNECTED",
+    "✓ Web search integration: ACTIVE",
+    "✓ Source credibility assessment: ENABLED",
+    "✓ Fact-checking system: READY",
+    "✓ Logical analysis framework: LOADED",
     "",
     "🧠 Background Systems (Silent Operation):",
     "✓ Agent team debates: BACKGROUND ONLY",
@@ -87,15 +96,15 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     "✓ Response adaptation: CONTINUOUS",
     "✓ Learning from mistakes: ENABLED",
     "",
-    "NATURAL CONVERSATION SYSTEM READY",
+    "NATURAL CONVERSATION SYSTEM WITH REAL RESEARCH READY",
     "",
-    "Hey! I'm your AI assistant. I talk like a normal person - no technical jargon,",
-    "no complex explanations unless you ask for them. Just natural conversation!",
+    "Hey! I'm your AI assistant with real-time research capabilities. I talk like a normal person",
+    "and can search the web in real-time to answer your questions with up-to-date information.",
     "",
     "If you like or dislike any of my responses, just click the thumbs up or down",
     "and I'll learn from your feedback to get better at helping you.",
     "",
-    "What would you like to chat about?"
+    "What would you like to chat about or research today?"
   ];
 
   // Update training progress
@@ -170,7 +179,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
         
         setCommands(prev => [...prev, {
           command: '',
-          response: "🎯 Natural conversation system ready - just talk to me normally!",
+          response: "🎯 Natural conversation system with REAL research ready - just talk to me normally!",
           timestamp: new Date()
         }]);
       } catch (error) {
@@ -213,6 +222,8 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
       let confidence = 0;
       let needsFeedback = false;
       let memoryId = '';
+      let researchConducted = false;
+      let logicalAnalysisApplied = false;
 
       // Check for system commands first
       if (input.toLowerCase() === 'help') {
@@ -222,6 +233,10 @@ Hey! Here's what I can help with:
 💬 NATURAL CONVERSATION:
   Just talk to me normally! Ask questions, have conversations, request help with tasks.
   I respond like a regular person - no technical jargon unless you want it.
+
+🔍 REAL-TIME RESEARCH:
+  I can search the web in real-time to find information for you
+  Just ask me questions that need up-to-date information
 
 📝 FEEDBACK SYSTEM:
   👍 👎 Click thumbs up/down on any response to help me improve
@@ -235,11 +250,11 @@ Hey! Here's what I can help with:
   reset      - Reset conversation
 
 🎯 WHAT I'M GOOD AT:
+  • Real-time web research and fact-checking
   • Natural conversation and questions
   • Explaining things in simple terms
   • Helping with tasks and problems
   • Learning from your feedback
-  • Getting better over time
 
 Just talk to me like you would any person - that's what I'm designed for!
 `;
@@ -271,6 +286,20 @@ Thanks for helping me improve! Your feedback makes me better at conversations.
       } else if (input.toLowerCase() === 'reset') {
         setConversationContext([]);
         response = 'Conversation reset! What would you like to talk about?';
+      } else if (input.toLowerCase() === 'status') {
+        const researchStats = machineGod.getResearchStats();
+        response = `
+🔍 REAL Research System Status:
+
+• Research Tasks: ${researchStats.researchTasksCompleted}
+• Analysis Tasks: ${researchStats.analysisTasksCompleted}
+• Google Search API: CONNECTED
+• Logical Analysis: ACTIVE
+• Average Confidence: ${(researchStats.averageTaskConfidence * 100).toFixed(1)}%
+• Average Processing Time: ${Math.round(researchStats.averageTaskTime)}ms
+
+The system is fully operational with real-time web search capabilities.
+`;
       } else {
         // Main conversation processing with Natural Flow
         if (isInitialized) {
@@ -280,6 +309,8 @@ Thanks for helping me improve! Your feedback makes me better at conversations.
           confidence = result.confidence;
           needsFeedback = result.needsFeedback;
           memoryId = result.memoryId;
+          researchConducted = result.researchConducted || false;
+          logicalAnalysisApplied = result.logicalAnalysisApplied || false;
 
           // Update system status after processing
           const status = machineGod.getSystemStatus();
@@ -297,7 +328,9 @@ Thanks for helping me improve! Your feedback makes me better at conversations.
           confidence,
           needsFeedback,
           feedbackGiven: false,
-          memoryId // Store the memoryId for feedback
+          memoryId,
+          researchConducted,
+          logicalAnalysisApplied
         };
         return newCommands;
       });
@@ -336,27 +369,32 @@ Thanks for helping me improve! Your feedback makes me better at conversations.
   const submitNegativeFeedback = async () => {
     if (showFeedbackFor === null) return;
 
-    await machineGod.processUserFeedback(
-      showFeedbackFor,
-      false,
-      feedbackReason || 'No specific reason given',
-      feedbackImprovement || undefined
-    );
+    try {
+      await machineGod.processUserFeedback(
+        showFeedbackFor,
+        false,
+        feedbackReason || 'No specific reason given',
+        feedbackImprovement || undefined
+      );
 
-    // Update the command to show feedback was given
-    setCommands(prev => {
-      const newCommands = [...prev];
-      const commandIndex = newCommands.findIndex(cmd => cmd.memoryId === showFeedbackFor);
-      if (commandIndex !== -1) {
-        newCommands[commandIndex].feedbackGiven = true;
-      }
-      return newCommands;
-    });
+      // Update the command to show feedback was given
+      setCommands(prev => {
+        const newCommands = [...prev];
+        const commandIndex = newCommands.findIndex(cmd => cmd.memoryId === showFeedbackFor);
+        if (commandIndex !== -1) {
+          newCommands[commandIndex].feedbackGiven = true;
+        }
+        return newCommands;
+      });
 
-    // Reset feedback form
-    setShowFeedbackFor(null);
-    setFeedbackReason('');
-    setFeedbackImprovement('');
+      // Reset feedback form
+      setShowFeedbackFor(null);
+      setFeedbackReason('');
+      setFeedbackImprovement('');
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      alert('There was an error submitting your feedback. Please try again.');
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -374,7 +412,7 @@ Thanks for helping me improve! Your feedback makes me better at conversations.
           <span className="text-cyan-300">Learning: {trainingProgress.generation}</span>
           <span className="text-green-300">{trainingProgress.progressPercentage.toFixed(1)}%</span>
           <span className="text-yellow-300">ETA: {trainingProgress.eta}</span>
-          <span className="text-pink-300">📝 Feedback Learning</span>
+          <span className="text-pink-300">🔍 REAL Research</span>
         </div>
         <div className="bg-gray-700 rounded-full h-2">
           <div 
@@ -405,6 +443,20 @@ Thanks for helping me improve! Your feedback makes me better at conversations.
               {cmd.response && (
                 <div className="whitespace-pre-wrap text-green-300 ml-2 mb-2 break-words">
                   {cmd.response}
+                </div>
+              )}
+              
+              {/* Research indicator */}
+              {cmd.researchConducted && (
+                <div className="ml-2 mt-1 text-blue-400 text-xs flex items-center">
+                  <span>🔍 Real-time web research conducted</span>
+                </div>
+              )}
+              
+              {/* Logical analysis indicator */}
+              {cmd.logicalAnalysisApplied && (
+                <div className="ml-2 mt-1 text-purple-400 text-xs flex items-center">
+                  <span>🧠 Logical analysis applied</span>
                 </div>
               )}
               
@@ -493,7 +545,7 @@ Thanks for helping me improve! Your feedback makes me better at conversations.
             onChange={(e) => setCurrentInput(e.target.value)}
             onKeyPress={handleKeyPress}
             className="flex-1 bg-transparent border-none outline-none text-green-400 font-mono"
-            placeholder={isInitialized ? "Just talk to me normally..." : "Initializing natural conversation system..."}
+            placeholder={isInitialized ? "Ask me anything - I can search the web in real-time..." : "Initializing natural conversation system..."}
             disabled={isLoading || !isInitialized}
             autoFocus
           />

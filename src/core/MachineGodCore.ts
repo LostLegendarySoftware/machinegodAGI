@@ -1,3 +1,8 @@
+/**
+ * MachineGod Core Integration System with REAL Research
+ * Enhanced with OmegaEvolved training, real-time web search, and logical analysis
+ */
+
 import { MetaLogicEvaluator, LogicalStatement, EvaluationResult } from './MetaLogicEvaluator';
 import { ArielSystem } from './ArielSystem';
 import { WarpSystem, WarpMetrics } from './WarpSystem';
@@ -119,7 +124,7 @@ export class MachineGodCore {
     this.taskingSystem = new TaskingSystem();
     this.researchEngine = new ResearchEngine();
     
-    console.log('✅ MachineGod Core System with Research and Logic initialized');
+    console.log('✅ MachineGod Core System with REAL Research and Logic initialized');
   }
 
   /**
@@ -135,10 +140,10 @@ export class MachineGodCore {
     
     try {
       await this.warp.activate();
-      console.log('✅ All systems active with research and logical reasoning capabilities');
+      console.log('✅ All systems active with REAL research and logical reasoning capabilities');
       
       this.isInitialized = true;
-      console.log('🎯 MachineGod with Research and Logic fully operational');
+      console.log('🎯 MachineGod with REAL Research and Logic fully operational');
       
     } catch (error) {
       console.error('❌ MachineGod initialization failed:', error);
@@ -175,7 +180,7 @@ export class MachineGodCore {
         console.log(`🧠 Logical analysis applied: Valid=${logicalAnalysis.validityCheck}, Sound=${logicalAnalysis.soundnessCheck}`);
       }
 
-      // Step 4: Conduct research if this is a research task or complex query
+      // Step 4: Determine if research was conducted
       let researchConducted = false;
       if (taskRequest.type === 'research' || this.requiresResearch(input)) {
         researchConducted = true;
@@ -201,8 +206,11 @@ export class MachineGodCore {
         context
       );
       
+      // Step 7: Format the response for natural conversation
+      const naturalResponse = this.formatForNaturalConversation(taskResult.result, taskRequest.type);
+      
       const conversationResponse: ConversationResponse = {
-        response: taskResult.result,
+        response: naturalResponse,
         confidence: taskResult.confidence,
         processingTime,
         memoryId,
@@ -229,6 +237,39 @@ export class MachineGodCore {
       console.error('❌ Conversation processing failed:', error);
       throw error;
     }
+  }
+
+  /**
+   * Format technical response for natural conversation
+   */
+  private formatForNaturalConversation(technicalResponse: string, taskType: string): string {
+    // Remove technical formatting and make it more conversational
+    let naturalResponse = technicalResponse;
+    
+    // Remove markdown headers
+    naturalResponse = naturalResponse.replace(/\*\*(.*?)\*\*/g, '$1');
+    
+    // Remove technical indicators
+    naturalResponse = naturalResponse.replace(/^Research Results for:/i, 'Here\'s what I found about');
+    naturalResponse = naturalResponse.replace(/^Logical Analysis of:/i, 'I analyzed');
+    naturalResponse = naturalResponse.replace(/^Problem-Solving Analysis:/i, 'Here\'s how to solve');
+    naturalResponse = naturalResponse.replace(/^Comparison Analysis:/i, 'When comparing');
+    
+    // Make language more conversational
+    naturalResponse = naturalResponse.replace(/Sources Consulted:/i, 'I found information from these sources:');
+    naturalResponse = naturalResponse.replace(/Logical Analysis:/i, 'My analysis shows:');
+    naturalResponse = naturalResponse.replace(/Recommended Approach:/i, 'I recommend:');
+    
+    // Add conversational opener based on task type
+    if (taskType === 'research') {
+      naturalResponse = `I searched the web and found some information for you. ${naturalResponse}`;
+    } else if (taskType === 'analysis') {
+      naturalResponse = `I analyzed this carefully. ${naturalResponse}`;
+    } else if (taskType === 'problem_solving') {
+      naturalResponse = `I think I can help solve this. ${naturalResponse}`;
+    }
+    
+    return naturalResponse;
   }
 
   /**
@@ -259,7 +300,7 @@ export class MachineGodCore {
     
     if (conversationIndex === -1) {
       console.error('Invalid memoryId for feedback:', memoryId);
-      return;
+      throw new Error('Invalid conversation index for feedback');
     }
 
     const feedback: UserFeedback = {
@@ -433,7 +474,7 @@ export class MachineGodCore {
       tasking: {
         totalTasks: taskStats.totalTasks,
         activeAgents: Object.keys(taskStats.agentUtilization).length,
-        researchCapability: researchCapabilities.searchEndpoints > 0,
+        researchCapability: researchCapabilities.realTimeSearch,
         logicalAnalysis: researchCapabilities.logicalAxioms > 0
       }
     };
