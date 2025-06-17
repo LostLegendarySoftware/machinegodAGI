@@ -486,7 +486,7 @@ export class NaturalConversationProcessor {
         if (Math.random() > 0.5) {
           const empatheticPhrases = [
             'I understand how you might feel about this.',
-            'It's completely normal to have questions about this.',
+            'It\'s completely normal to have questions about this.',
             'Many people find this challenging.',
             'I can see why this matters to you.'
           ];
