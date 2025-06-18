@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TerminalInterface } from './components/TerminalInterface';
 import { SystemDashboard } from './components/SystemDashboard';
 import { ParticleSystem } from './components/ParticleSystem';
@@ -6,7 +6,16 @@ import { LogicStorageDisplay } from './components/LogicStorageDisplay';
 import { BenchmarkLeaderboard } from './components/BenchmarkLeaderboard';
 import { SystemStatus } from './core/MachineGodCore';
 import { MachineGodCore } from './core/MachineGodCore';
-import { Terminal, Monitor, Activity, Settings, Brain, Users, Zap, Archive, Database, BarChart2, Sparkles } from 'lucide-react';
+import { Terminal, Monitor, Activity, Settings, Brain, Users, Zap, Archive, Database, BarChart2, Sparkles, User, LogOut } from 'lucide-react';
+import { AuthModal } from './components/AuthModal';
+import { UserDashboard } from './components/UserDashboard';
+import { OfflineIndicator } from './components/OfflineIndicator';
+import { SubscriptionBanner } from './components/SubscriptionBanner';
+import { TermsAndPrivacyModal } from './components/TermsAndPrivacyModal';
+import { OnboardingFlow } from './components/OnboardingFlow';
+import { CustomerSupportWidget } from './components/CustomerSupportWidget';
+import { AuthService } from './services/AuthService';
+import { ErrorReportingService } from './services/ErrorReportingService';
 
 type TabType = 'terminal' | 'dashboard' | 'meta-logic' | 'ariel' | 'warp' | 'helix' | 'settings' | 'storage' | 'benchmarks' | 'natural-learning';
 
@@ -30,6 +39,21 @@ function App() {
     naturalLearning: { totalAssets: 0, averageQuality: 0, learningRate: 0.1, patternCount: 0, continuousLearning: true }
   });
 
+  // Auth state
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isUserDashboardOpen, setIsUserDashboardOpen] = useState(false);
+  
+  // Legal modals
+  const [legalModalType, setLegalModalType] = useState<'terms' | 'privacy'>('terms');
+  const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
+  
+  // Onboarding
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(true);
+
   // Initialize or reuse global MachineGod instance
   const machineGod = (() => {
     if (!globalMachineGod) {
@@ -37,6 +61,58 @@ function App() {
     }
     return globalMachineGod;
   })();
+
+  // Initialize services
+  const authService = AuthService.getInstance();
+  const errorReportingService = ErrorReportingService.getInstance();
+
+  useEffect(() => {
+    // Check if onboarding has been completed
+    const onboardingCompleted = localStorage.getItem('onboarding_completed');
+    if (!onboardingCompleted) {
+      setIsOnboardingOpen(true);
+      setHasCompletedOnboarding(false);
+    }
+
+    // Subscribe to auth state changes
+    const unsubscribe = authService.subscribe(state => {
+      setIsAuthenticated(state.isAuthenticated);
+      setCurrentUser(state.user);
+    });
+
+    // Track page view
+    errorReportingService.trackPageView(window.location.pathname, 'MachineGod AI');
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleOnboardingComplete = () => {
+    setIsOnboardingOpen(false);
+    setHasCompletedOnboarding(true);
+  };
+
+  const handleLogin = () => {
+    setAuthMode('login');
+    setIsAuthModalOpen(true);
+  };
+
+  const handleRegister = () => {
+    setAuthMode('register');
+    setIsAuthModalOpen(true);
+  };
+
+  const handleLogout = async () => {
+    await authService.logout();
+  };
+
+  const handleOpenUserDashboard = () => {
+    setIsUserDashboardOpen(true);
+  };
+
+  const handleOpenLegalModal = (type: 'terms' | 'privacy') => {
+    setLegalModalType(type);
+    setIsLegalModalOpen(true);
+  };
 
   const tabs = [
     { id: 'terminal', label: 'Terminal', icon: Terminal },
@@ -388,14 +464,53 @@ function App() {
                 </p>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-400">System Status</div>
-              <div className="text-green-400 font-bold">
-                {systemStatus.training.active ? 'OPERATIONAL' : 'INITIALIZING'}
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <div className="text-sm text-gray-400">System Status</div>
+                <div className="text-green-400 font-bold">
+                  {systemStatus.training.active ? 'OPERATIONAL' : 'INITIALIZING'}
+                </div>
+                {systemStatus.naturalLearning.continuousLearning && (
+                  <div className="text-xs text-green-300">🌟 Natural Learning Active</div>
+                )}
               </div>
-              {systemStatus.naturalLearning.continuousLearning && (
-                <div className="text-xs text-green-300">🌟 Natural Learning Active</div>
-              )}
+              
+              {/* Auth buttons */}
+              <div>
+                {isAuthenticated ? (
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={handleOpenUserDashboard}
+                      className="flex items-center space-x-1 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
+                    >
+                      <User size={16} />
+                      <span>{currentUser?.displayName || 'Account'}</span>
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="p-1 text-gray-400 hover:text-white"
+                      title="Log Out"
+                    >
+                      <LogOut size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={handleLogin}
+                      className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
+                    >
+                      Sign In
+                    </button>
+                    <button
+                      onClick={handleRegister}
+                      className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
+                    >
+                      Register
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </header>
@@ -478,16 +593,17 @@ function App() {
 
         {/* Main Content Area - Scrollable */}
         <main className="flex-1 p-4 overflow-y-auto">
+          {isAuthenticated && <SubscriptionBanner onUpgrade={handleOpenUserDashboard} />}
           {renderTabContent()}
         </main>
 
         {/* Footer - Sticky */}
         <footer className="bg-black bg-opacity-80 border-t border-purple-600 p-3 sticky bottom-0 z-20">
-          <div className="flex justify-between items-center text-sm text-gray-400">
+          <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
             <div>
               MachineGod v5.0.0 Natural Learning - Continuous Improvement AGI System
             </div>
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 mt-2 md:mt-0">
               <span>Uptime: {new Date().toLocaleTimeString()}</span>
               <span>•</span>
               <span>Operations: {systemStatus.metaLogic.evaluationsCount + systemStatus.ariel.debateCount}</span>
@@ -503,8 +619,54 @@ function App() {
               )}
             </div>
           </div>
+          <div className="flex justify-center mt-2 space-x-4 text-xs text-gray-500">
+            <button 
+              onClick={() => handleOpenLegalModal('terms')}
+              className="hover:text-gray-300"
+            >
+              Terms of Service
+            </button>
+            <span>•</span>
+            <button 
+              onClick={() => handleOpenLegalModal('privacy')}
+              className="hover:text-gray-300"
+            >
+              Privacy Policy
+            </button>
+            <span>•</span>
+            <span>© 2025 MachineGod AI</span>
+          </div>
         </footer>
       </div>
+
+      {/* Modals and Overlays */}
+      <AuthModal 
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        mode={authMode}
+        onModeChange={setAuthMode}
+      />
+
+      <UserDashboard
+        isOpen={isUserDashboardOpen}
+        onClose={() => setIsUserDashboardOpen(false)}
+      />
+
+      <TermsAndPrivacyModal
+        isOpen={isLegalModalOpen}
+        onClose={() => setIsLegalModalOpen(false)}
+        type={legalModalType}
+      />
+
+      <OnboardingFlow
+        isOpen={isOnboardingOpen}
+        onClose={() => setIsOnboardingOpen(false)}
+        onComplete={handleOnboardingComplete}
+      />
+
+      {/* Floating Components */}
+      <OfflineIndicator />
+      <CustomerSupportWidget />
     </div>
   );
 }
