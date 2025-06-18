@@ -3,6 +3,15 @@
  * Coordinates all system assets for continuous natural learning
  */
 
+import { LogicDataStorage } from './LogicDataStorage';
+import { SocialMediaSpeechProcessor } from './SocialMediaSpeechProcessor';
+import { NaturalConversationProcessor } from './NaturalConversationProcessor';
+import { PersistentMemory } from './PersistentMemory';
+import { ArielSystem } from './ArielSystem';
+import { WarpSystem } from './WarpSystem';
+import { HelixCompression } from './HelixCompression';
+import { OpenLMMBenchmarks } from './OpenLMMBenchmarks';
+
 export interface TrainingAsset {
   type: 'conversation' | 'feedback' | 'benchmark' | 'research' | 'debate';
   data: any;
@@ -46,14 +55,14 @@ export class NaturalTrainingOrchestrator {
 
   constructor(machineGod: any) {
     this.machineGod = machineGod;
-    this.logicStorage = machineGod.logicStorage || new (require('./LogicDataStorage').LogicDataStorage)();
-    this.socialProcessor = machineGod.socialProcessor || new (require('./SocialMediaSpeechProcessor').SocialMediaSpeechProcessor)();
-    this.naturalProcessor = machineGod.naturalProcessor || new (require('./NaturalConversationProcessor').NaturalConversationProcessor)();
-    this.memory = machineGod.memory || new (require('./PersistentMemory').PersistentMemory)();
-    this.ariel = machineGod.ariel || new (require('./ArielSystem').ArielSystem)();
-    this.warp = machineGod.warp || new (require('./WarpSystem').WarpSystem)();
-    this.helix = machineGod.helix || new (require('./HelixCompression').HelixCompression)();
-    this.benchmarks = machineGod.benchmarks || new (require('./OpenLMMBenchmarks').OpenLMMBenchmarks)();
+    this.logicStorage = machineGod.logicStorage || new LogicDataStorage();
+    this.socialProcessor = machineGod.socialProcessor || new SocialMediaSpeechProcessor();
+    this.naturalProcessor = machineGod.naturalProcessor || new NaturalConversationProcessor();
+    this.memory = machineGod.memory || new PersistentMemory();
+    this.ariel = machineGod.ariel || new ArielSystem();
+    this.warp = machineGod.warp || new WarpSystem();
+    this.helix = machineGod.helix || new HelixCompression();
+    this.benchmarks = machineGod.benchmarks || new OpenLMMBenchmarks();
     
     this.startContinuousLearning();
     console.log('🧠 Natural Training Orchestrator initialized - all assets coordinated for learning');
