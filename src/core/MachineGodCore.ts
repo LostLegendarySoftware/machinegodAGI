@@ -112,6 +112,8 @@ export interface ConversationResponse {
   visualThoughts?: any[];
   brainActivity?: any;
   naturalLearningApplied?: boolean;
+  personalityTraits?: any;
+  adaptiveResponse?: boolean;
 }
 
 export interface UserFeedback {
@@ -119,6 +121,7 @@ export interface UserFeedback {
   reason?: string;
   improvement?: string;
   timestamp: Date;
+  slangTermsUsed?: string[];
 }
 
 export class MachineGodCore {
@@ -145,6 +148,22 @@ export class MachineGodCore {
   private lastHealthCheck: Date | null = null;
   private apiConnectivity: 'healthy' | 'degraded' | 'unhealthy' = 'unhealthy';
   private benchmarkResults: any[] = [];
+  private debugMode: boolean = false;
+  private personalityProfile: {
+    formality: number; // -1 to 1 (casual to formal)
+    directness: number; // -1 to 1 (detailed to direct)
+    humor: number; // -1 to 1 (serious to humorous)
+    empathy: number; // -1 to 1 (logical to empathetic)
+    techLevel: number; // -1 to 1 (simple to technical)
+  } = {
+    formality: 0,
+    directness: 0,
+    humor: 0,
+    empathy: 0,
+    techLevel: 0
+  };
+  private userPreferences: Map<string, any> = new Map();
+  private adaptiveResponseEnabled: boolean = true;
 
   constructor() {
     console.log('🚀 Initializing MachineGod with Natural Training Orchestrator...');
@@ -167,6 +186,9 @@ export class MachineGodCore {
     // Initialize Natural Training Orchestrator AFTER other systems
     this.naturalTraining = new NaturalTrainingOrchestrator(this);
     
+    // Enable debug mode for development
+    this.setDebugMode(true);
+    
     console.log('✅ MachineGod Core System initialized with continuous natural learning');
   }
 
@@ -184,6 +206,16 @@ export class MachineGodCore {
     try {
       await this.warp.activate();
       console.log('✅ All systems active with natural learning orchestration');
+      
+      // Set initial personality traits
+      this.naturalProcessor.setPersonalityTraits(this.personalityProfile);
+      this.slangProcessor.setPersonalityAlignment({
+        formality: this.personalityProfile.formality,
+        humor: this.personalityProfile.humor
+      });
+      
+      // Enable natural learning debug mode
+      this.naturalTraining.setDebugMode(this.debugMode);
       
       this.isInitialized = true;
       console.log('🎯 MachineGod with continuous natural learning fully operational');
@@ -205,7 +237,9 @@ export class MachineGodCore {
     const startTime = Date.now();
     this.operationCount++;
     
-    console.log(`💬 Processing with natural learning: "${input}"`);
+    if (this.debugMode) {
+      console.log(`💬 Processing with natural learning: "${input}"`);
+    }
 
     try {
       // Step 1: Process input through brain-like logic storage
@@ -213,32 +247,44 @@ export class MachineGodCore {
       
       // Step 2: Analyze the task and determine what type of processing is needed
       const taskRequest = this.taskingSystem.analyzeTask(input);
-      console.log(`🎯 Task identified: ${taskRequest.type} (complexity: ${taskRequest.complexity})`);
+      if (this.debugMode) {
+        console.log(`🎯 Task identified: ${taskRequest.type} (complexity: ${taskRequest.complexity})`);
+      }
 
-      // Step 3: Execute the task using appropriate research and reasoning
+      // Step 3: Check for user preferences and adapt personality
+      const userId = this.extractUserId(context);
+      if (userId) {
+        this.loadUserPreferences(userId, input);
+      }
+
+      // Step 4: Execute the task using appropriate research and reasoning
       const taskResult = await this.taskingSystem.executeTask(taskRequest);
       
-      // Step 4: Apply additional logical analysis if needed
+      // Step 5: Apply additional logical analysis if needed
       let logicalAnalysisApplied = false;
       if (taskRequest.type === 'analysis' || taskRequest.complexity > 7) {
         const logicalAnalysis = await this.researchEngine.applyLogicalAnalysis(input);
         logicalAnalysisApplied = true;
-        console.log(`🧠 Logical analysis applied: Valid=${logicalAnalysis.validityCheck}, Sound=${logicalAnalysis.soundnessCheck}`);
+        if (this.debugMode) {
+          console.log(`🧠 Logical analysis applied: Valid=${logicalAnalysis.validityCheck}, Sound=${logicalAnalysis.soundnessCheck}`);
+        }
       }
 
-      // Step 5: Determine if research was conducted
+      // Step 6: Determine if research was conducted
       let researchConducted = false;
       if (taskRequest.type === 'research' || this.requiresResearch(input)) {
         researchConducted = true;
-        console.log(`🔍 Research conducted with ${taskResult.sources?.length || 0} sources`);
+        if (this.debugMode) {
+          console.log(`🔍 Research conducted with ${taskResult.sources?.length || 0} sources`);
+        }
       }
 
-      // Step 6: Run background consensus and verification
+      // Step 7: Run background consensus and verification
       this.runBackgroundProcessing(input, taskResult);
       
       const processingTime = Date.now() - startTime;
       
-      // Step 7: Store conversation in memory
+      // Step 8: Store conversation in memory
       const memoryId = this.memory.storeConversation(
         input,
         taskResult.result,
@@ -252,10 +298,13 @@ export class MachineGodCore {
         context
       );
       
-      // Step 8: Make the response sound natural and human-like with slang
+      // Step 9: Make the response sound natural and human-like with slang
       const naturalResponse = this.naturalProcessor.makeResponseNatural(taskResult.result, input);
       
-      // Step 9: NATURAL LEARNING - Process this interaction for continuous learning
+      // Extract slang terms used for feedback tracking
+      const slangTermsUsed = this.extractSlangTerms(naturalResponse);
+      
+      // Step 10: NATURAL LEARNING - Process this interaction for continuous learning
       await this.naturalTraining.processInteractionForLearning(
         'conversation',
         {
@@ -266,7 +315,9 @@ export class MachineGodCore {
           context: input,
           naturalness: true,
           research: researchConducted,
-          logicalAnalysis: logicalAnalysisApplied
+          logicalAnalysis: logicalAnalysisApplied,
+          slangTerms: slangTermsUsed,
+          personalityTraits: this.personalityProfile
         },
         context
       );
@@ -289,7 +340,9 @@ export class MachineGodCore {
           emergentVisualizations: brainProcessing.emergentVisualizations,
           newConnections: brainProcessing.newConnections.length
         },
-        naturalLearningApplied: true
+        naturalLearningApplied: true,
+        personalityTraits: {...this.personalityProfile},
+        adaptiveResponse: this.adaptiveResponseEnabled
       };
       
       // Store in conversation history with memoryId
@@ -299,8 +352,10 @@ export class MachineGodCore {
         memoryId
       });
       
-      console.log(`✅ Natural learning response generated in ${processingTime}ms with ${(taskResult.confidence * 100).toFixed(1)}% confidence`);
-      console.log(`🧠 Activated ${brainProcessing.activatedConcepts.length} concepts, formed ${brainProcessing.newConnections.length} new connections`);
+      if (this.debugMode) {
+        console.log(`✅ Natural learning response generated in ${processingTime}ms with ${(taskResult.confidence * 100).toFixed(1)}% confidence`);
+        console.log(`🧠 Activated ${brainProcessing.activatedConcepts.length} concepts, formed ${brainProcessing.newConnections.length} new connections`);
+      }
       
       return conversationResponse;
       
@@ -326,16 +381,27 @@ export class MachineGodCore {
       throw new Error('Invalid conversation index for feedback');
     }
 
+    // Extract slang terms used in the response
+    const slangTermsUsed = this.extractSlangTerms(this.conversationHistory[conversationIndex].response.response);
+
     const feedback: UserFeedback = {
       liked,
       reason,
       improvement,
-      timestamp: new Date()
+      timestamp: new Date(),
+      slangTermsUsed
     };
 
     this.conversationHistory[conversationIndex].feedback = feedback;
 
-    console.log(`📝 User feedback: ${liked ? '👍 Liked' : '👎 Disliked'} - ${reason || 'No reason given'}`);
+    if (this.debugMode) {
+      console.log(`📝 User feedback: ${liked ? '👍 Liked' : '👎 Disliked'} - ${reason || 'No reason given'}`);
+    }
+
+    // Record feedback for slang terms
+    if (slangTermsUsed.length > 0) {
+      this.slangProcessor.recordFeedback(memoryId, liked, slangTermsUsed);
+    }
 
     // NATURAL LEARNING - Process feedback for continuous improvement
     await this.naturalTraining.processInteractionForLearning(
@@ -346,7 +412,9 @@ export class MachineGodCore {
         reason,
         improvement,
         context: this.conversationHistory[conversationIndex].input,
-        response: this.conversationHistory[conversationIndex].response.response
+        response: this.conversationHistory[conversationIndex].response.response,
+        slangTerms: slangTermsUsed,
+        personalityTraits: this.personalityProfile
       },
       ['feedback', liked ? 'positive' : 'negative']
     );
@@ -359,11 +427,17 @@ export class MachineGodCore {
         reason,
         improvement
       );
+      
+      // Adjust personality based on negative feedback
+      this.adjustPersonalityFromFeedback(reason, improvement, false);
     } else if (liked) {
       await this.reinforcePositiveFeedback(
         this.conversationHistory[conversationIndex].input,
         this.conversationHistory[conversationIndex].response.response
       );
+      
+      // Reinforce personality based on positive feedback
+      this.adjustPersonalityFromFeedback(reason, undefined, true);
     }
   }
 
@@ -371,7 +445,9 @@ export class MachineGodCore {
    * Run LMM benchmark test with natural learning
    */
   async runLMMBenchmark(benchmarkId: string): Promise<any> {
-    console.log(`📊 Running LMM benchmark with natural learning: ${benchmarkId}`);
+    if (this.debugMode) {
+      console.log(`📊 Running LMM benchmark with natural learning: ${benchmarkId}`);
+    }
     
     try {
       const result = await this.lmmBenchmarks.runLMMBenchmark(
@@ -552,12 +628,28 @@ export class MachineGodCore {
     const learningOptimizations = await this.naturalTraining.optimizeLearning();
     optimizations.push(...learningOptimizations);
     
-    optimizations.push('Neural plasticity enhanced');
-    optimizations.push('Visual-linguistic connections strengthened');
-    optimizations.push('Concept diffusion patterns optimized');
-    optimizations.push('Brain region coordination improved');
-    optimizations.push('Memory consolidation enhanced');
-    optimizations.push('Continuous natural learning accelerated');
+    // Optimize natural conversation processor
+    this.naturalProcessor.setPersonalityTraits({
+      formality: this.personalityProfile.formality,
+      directness: this.personalityProfile.directness,
+      humor: this.personalityProfile.humor,
+      empathy: this.personalityProfile.empathy,
+      techLevel: this.personalityProfile.techLevel
+    });
+    optimizations.push('Natural conversation processor aligned with personality profile');
+    
+    // Optimize slang processor
+    this.slangProcessor.setPersonalityAlignment({
+      formality: this.personalityProfile.formality,
+      humor: this.personalityProfile.humor
+    });
+    optimizations.push('Slang processor aligned with personality profile');
+    
+    // Enable adaptive mode
+    this.adaptiveResponseEnabled = true;
+    this.naturalProcessor.setAdaptiveMode(true);
+    this.slangProcessor.setAdaptiveMode(true);
+    optimizations.push('Adaptive response mode enabled for all processors');
     
     return optimizations;
   }
@@ -588,7 +680,9 @@ export class MachineGodCore {
     reason: string,
     improvement?: string
   ): Promise<void> {
-    console.log(`🔄 Learning from negative feedback through brain plasticity: ${reason}`);
+    if (this.debugMode) {
+      console.log(`🔄 Learning from negative feedback through brain plasticity: ${reason}`);
+    }
 
     try {
       // Process feedback through brain-like learning
@@ -620,7 +714,9 @@ export class MachineGodCore {
    * Reinforce positive feedback using brain-like mechanisms
    */
   private async reinforcePositiveFeedback(input: string, response: string): Promise<void> {
-    console.log(`✅ Reinforcing positive feedback through neural strengthening`);
+    if (this.debugMode) {
+      console.log(`✅ Reinforcing positive feedback through neural strengthening`);
+    }
 
     // Process positive feedback through brain-like reinforcement
     await this.logicStorage.processInputWithVisualization(
@@ -662,7 +758,9 @@ export class MachineGodCore {
           await this.logicStorage.optimizeStorage();
         }
 
-        console.log('🔄 Background processing with natural learning completed');
+        if (this.debugMode) {
+          console.log('🔄 Background processing with natural learning completed');
+        }
       } catch (error) {
         console.error('Background processing error:', error);
       }
@@ -672,6 +770,232 @@ export class MachineGodCore {
   private shouldApplyTruthVerification(input: string): boolean {
     const truthKeywords = ['true', 'false', 'fact', 'correct', 'wrong', 'verify', 'prove', 'logic'];
     return truthKeywords.some(keyword => input.toLowerCase().includes(keyword));
+  }
+
+  /**
+   * Extract slang terms used in a response
+   */
+  private extractSlangTerms(response: string): string[] {
+    const terms: string[] = [];
+    
+    // Get all slang terms
+    const allSlangTerms: string[] = [];
+    this.slangProcessor.getSlangSettings(); // Just to make sure it's initialized
+    
+    // This is a simplified approach - in a real implementation, we would
+    // have access to the actual slang terms used by the SlangProcessor
+    const commonSlangTerms = [
+      'like', 'basically', 'literally', 'honestly', 'actually', 'seriously',
+      'tbh', 'ngl', 'imo', 'idk', 'lol', 'fr', 'btw',
+      'vibe', 'mood', 'flex', 'slay', 'bet', 'no cap', 'facts',
+      'fire', 'lit', 'goated', 'bussin', 'sus', 'yeet'
+    ];
+    
+    // Check for slang terms in response
+    const words = response.toLowerCase().split(/\s+/);
+    words.forEach(word => {
+      if (commonSlangTerms.includes(word) && !terms.includes(word)) {
+        terms.push(word);
+      }
+    });
+    
+    return terms;
+  }
+  
+  /**
+   * Adjust personality based on feedback
+   */
+  private adjustPersonalityFromFeedback(reason?: string, improvement?: string, positive: boolean = true): void {
+    if (!reason && !improvement) return;
+    
+    const feedback = (reason || '') + ' ' + (improvement || '');
+    const lowerFeedback = feedback.toLowerCase();
+    
+    // Adjust formality
+    if (lowerFeedback.includes('formal') || lowerFeedback.includes('professional')) {
+      this.personalityProfile.formality += positive ? 0.1 : -0.1;
+    } else if (lowerFeedback.includes('casual') || lowerFeedback.includes('informal') || lowerFeedback.includes('friendly')) {
+      this.personalityProfile.formality -= positive ? 0.1 : -0.1;
+    }
+    
+    // Adjust directness
+    if (lowerFeedback.includes('direct') || lowerFeedback.includes('concise') || lowerFeedback.includes('brief')) {
+      this.personalityProfile.directness += positive ? 0.1 : -0.1;
+    } else if (lowerFeedback.includes('detail') || lowerFeedback.includes('thorough') || lowerFeedback.includes('comprehensive')) {
+      this.personalityProfile.directness -= positive ? 0.1 : -0.1;
+    }
+    
+    // Adjust humor
+    if (lowerFeedback.includes('humor') || lowerFeedback.includes('funny') || lowerFeedback.includes('joke')) {
+      this.personalityProfile.humor += positive ? 0.1 : -0.1;
+    } else if (lowerFeedback.includes('serious') || lowerFeedback.includes('professional')) {
+      this.personalityProfile.humor -= positive ? 0.1 : -0.1;
+    }
+    
+    // Adjust empathy
+    if (lowerFeedback.includes('empathy') || lowerFeedback.includes('understand') || lowerFeedback.includes('compassion')) {
+      this.personalityProfile.empathy += positive ? 0.1 : -0.1;
+    } else if (lowerFeedback.includes('logical') || lowerFeedback.includes('rational') || lowerFeedback.includes('objective')) {
+      this.personalityProfile.empathy -= positive ? 0.1 : -0.1;
+    }
+    
+    // Adjust tech level
+    if (lowerFeedback.includes('technical') || lowerFeedback.includes('advanced') || lowerFeedback.includes('expert')) {
+      this.personalityProfile.techLevel += positive ? 0.1 : -0.1;
+    } else if (lowerFeedback.includes('simple') || lowerFeedback.includes('basic') || lowerFeedback.includes('beginner')) {
+      this.personalityProfile.techLevel -= positive ? 0.1 : -0.1;
+    }
+    
+    // Clamp values to range [-1, 1]
+    Object.keys(this.personalityProfile).forEach(key => {
+      const k = key as keyof typeof this.personalityProfile;
+      this.personalityProfile[k] = Math.max(-1, Math.min(1, this.personalityProfile[k]));
+    });
+    
+    // Update processors with new personality
+    this.naturalProcessor.setPersonalityTraits(this.personalityProfile);
+    this.slangProcessor.setPersonalityAlignment({
+      formality: this.personalityProfile.formality,
+      humor: this.personalityProfile.humor
+    });
+    
+    if (this.debugMode) {
+      console.log('👤 Personality adjusted based on feedback:', this.personalityProfile);
+    }
+  }
+  
+  /**
+   * Extract user ID from context
+   */
+  private extractUserId(context: string[]): string | null {
+    // In a real implementation, this would extract user ID from context
+    // For now, return a default ID
+    return 'default-user';
+  }
+  
+  /**
+   * Load user preferences
+   */
+  private loadUserPreferences(userId: string, input: string): void {
+    if (!this.userPreferences.has(userId)) {
+      // Initialize default preferences
+      this.userPreferences.set(userId, {
+        preferredStyle: 'casual',
+        topicInterests: [],
+        lastInteractions: []
+      });
+    }
+    
+    const preferences = this.userPreferences.get(userId);
+    
+    // Update last interactions
+    preferences.lastInteractions.push({
+      input,
+      timestamp: new Date()
+    });
+    
+    // Keep only last 10 interactions
+    if (preferences.lastInteractions.length > 10) {
+      preferences.lastInteractions.shift();
+    }
+    
+    // Extract topics of interest
+    const topics = this.extractTopics(input);
+    topics.forEach(topic => {
+      if (!preferences.topicInterests.includes(topic)) {
+        preferences.topicInterests.push(topic);
+      }
+    });
+    
+    // Keep only top 20 topics
+    if (preferences.topicInterests.length > 20) {
+      preferences.topicInterests = preferences.topicInterests.slice(-20);
+    }
+    
+    this.userPreferences.set(userId, preferences);
+  }
+  
+  /**
+   * Extract topics from input
+   */
+  private extractTopics(input: string): string[] {
+    // Simple topic extraction - can be enhanced
+    const words = input.toLowerCase().split(/\s+/);
+    const topics = words.filter(word => 
+      word.length > 4 && 
+      !['this', 'that', 'with', 'from', 'they', 'have', 'been', 'will', 'would', 'could', 'should'].includes(word)
+    );
+    return [...new Set(topics)].slice(0, 5);
+  }
+
+  /**
+   * Set debug mode
+   */
+  setDebugMode(enabled: boolean): void {
+    this.debugMode = enabled;
+    
+    // Propagate to other components
+    if (this.naturalTraining) {
+      this.naturalTraining.setDebugMode(enabled);
+    }
+    
+    console.log(`🐛 Debug mode ${enabled ? 'enabled' : 'disabled'}`);
+  }
+  
+  /**
+   * Set personality profile
+   */
+  setPersonalityProfile(profile: Partial<typeof this.personalityProfile>): void {
+    this.personalityProfile = {
+      ...this.personalityProfile,
+      ...profile
+    };
+    
+    // Ensure values are within range
+    Object.keys(this.personalityProfile).forEach(key => {
+      const k = key as keyof typeof this.personalityProfile;
+      this.personalityProfile[k] = Math.max(-1, Math.min(1, this.personalityProfile[k]));
+    });
+    
+    // Update processors with new personality
+    this.naturalProcessor.setPersonalityTraits(this.personalityProfile);
+    this.slangProcessor.setPersonalityAlignment({
+      formality: this.personalityProfile.formality,
+      humor: this.personalityProfile.humor
+    });
+    
+    console.log('👤 Personality profile updated:', this.personalityProfile);
+  }
+  
+  /**
+   * Get personality profile
+   */
+  getPersonalityProfile(): typeof this.personalityProfile {
+    return {...this.personalityProfile};
+  }
+  
+  /**
+   * Set adaptive response mode
+   */
+  setAdaptiveResponseMode(enabled: boolean): void {
+    this.adaptiveResponseEnabled = enabled;
+    this.naturalProcessor.setAdaptiveMode(enabled);
+    this.slangProcessor.setAdaptiveMode(enabled);
+    console.log(`🔄 Adaptive response mode ${enabled ? 'enabled' : 'disabled'}`);
+  }
+  
+  /**
+   * Get natural learning detailed stats
+   */
+  getNaturalLearningDetailedStats(): any {
+    return {
+      ...this.naturalTraining.getLearningStats(),
+      patternAnalysis: this.naturalTraining.getPatternAnalysis(),
+      slangUsage: this.slangProcessor.getSlangUsageStats(),
+      conversationStats: this.naturalProcessor.getConversationStats(),
+      personalityProfile: this.personalityProfile,
+      adaptiveMode: this.adaptiveResponseEnabled
+    };
   }
 
   // Keep all existing methods...
@@ -786,7 +1110,9 @@ export class MachineGodCore {
 
   setSlangIntensity(intensity: number): void {
     this.slangProcessor.setSlangIntensity(intensity);
-    console.log(`🗣️ Slang intensity set to ${intensity}`);
+    if (this.debugMode) {
+      console.log(`🗣️ Slang intensity set to ${intensity}`);
+    }
   }
 
   getSlangSettings() {
@@ -816,6 +1142,18 @@ export class MachineGodCore {
     this.naturalProcessor = new NaturalConversationProcessor();
     this.logicStorage = new LogicDataStorage();
     this.slangProcessor = new SlangProcessor();
+    
+    // Reset personality profile
+    this.personalityProfile = {
+      formality: 0,
+      directness: 0,
+      humor: 0,
+      empathy: 0,
+      techLevel: 0
+    };
+    
+    // Clear user preferences
+    this.userPreferences.clear();
     
     // Reinitialize Natural Training Orchestrator
     this.naturalTraining = new NaturalTrainingOrchestrator(this);

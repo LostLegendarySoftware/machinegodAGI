@@ -60,6 +60,22 @@ export class NaturalConversationProcessor {
     "That's the basic idea.",
     "That should give you a good overview."
   ];
+  private personalityTraits: {
+    formality: number; // -1 to 1 (casual to formal)
+    directness: number; // -1 to 1 (detailed to direct)
+    humor: number; // -1 to 1 (serious to humorous)
+    empathy: number; // -1 to 1 (logical to empathetic)
+    techLevel: number; // -1 to 1 (simple to technical)
+  } = {
+    formality: 0,
+    directness: 0,
+    humor: 0,
+    empathy: 0,
+    techLevel: 0
+  };
+  private userPreferences: Map<string, any> = new Map();
+  private responseHistory: Array<{input: string, output: string, style: string, rating?: number}> = [];
+  private adaptiveMode: boolean = true;
 
   constructor() {
     this.initializeConversationStyles();
@@ -157,7 +173,7 @@ export class NaturalConversationProcessor {
       return response;
     }
 
-    // Determine appropriate style based on context
+    // Determine appropriate style based on context and user preferences
     const style = this.determineAppropriateStyle(context);
     
     // Apply transformations to make response more natural
@@ -172,15 +188,33 @@ export class NaturalConversationProcessor {
       naturalResponse = this.slangProcessor.addSlang(naturalResponse, context);
     }
     
+    // Store in response history
+    this.responseHistory.push({
+      input: context,
+      output: naturalResponse,
+      style
+    });
+    
+    // Limit history size
+    if (this.responseHistory.length > 100) {
+      this.responseHistory.shift();
+    }
+    
     return naturalResponse;
   }
 
   /**
-   * Determine appropriate conversation style based on context
+   * Determine appropriate conversation style based on context and user preferences
    */
   private determineAppropriateStyle(context: string): string {
+    // If adaptive mode is off, just use current style
+    if (!this.adaptiveMode) {
+      return this.currentStyle;
+    }
+    
     const lowerContext = context.toLowerCase();
     
+    // Check for explicit style indicators in context
     if (lowerContext.includes('explain') || lowerContext.includes('how does') || 
         lowerContext.includes('what is') || lowerContext.includes('teach')) {
       return 'educational';
@@ -196,7 +230,83 @@ export class NaturalConversationProcessor {
       return 'professional';
     }
     
+    // Check user preferences if available
+    const userId = this.extractUserId(context);
+    if (userId && this.userPreferences.has(userId)) {
+      const preferences = this.userPreferences.get(userId);
+      if (preferences.preferredStyle) {
+        return preferences.preferredStyle;
+      }
+    }
+    
+    // Use personality traits to influence style
+    if (this.personalityTraits.formality > 0.5) {
+      return 'professional';
+    } else if (this.personalityTraits.empathy > 0.5) {
+      return 'empathetic';
+    } else if (this.personalityTraits.techLevel > 0.5) {
+      return 'educational';
+    }
+    
+    // Analyze previous interactions with similar context
+    const similarResponses = this.findSimilarResponses(context);
+    if (similarResponses.length > 0) {
+      // Find the style with highest average rating
+      const styleRatings: Record<string, {sum: number, count: number}> = {};
+      
+      similarResponses.forEach(resp => {
+        if (resp.rating) {
+          styleRatings[resp.style] = styleRatings[resp.style] || {sum: 0, count: 0};
+          styleRatings[resp.style].sum += resp.rating;
+          styleRatings[resp.style].count += 1;
+        }
+      });
+      
+      let bestStyle = this.currentStyle;
+      let bestRating = 0;
+      
+      Object.entries(styleRatings).forEach(([style, {sum, count}]) => {
+        const avgRating = sum / count;
+        if (avgRating > bestRating) {
+          bestRating = avgRating;
+          bestStyle = style;
+        }
+      });
+      
+      return bestStyle;
+    }
+    
     return 'casual'; // Default style
+  }
+  
+  /**
+   * Find similar previous responses
+   */
+  private findSimilarResponses(context: string): Array<{input: string, output: string, style: string, rating?: number}> {
+    const contextWords = new Set(context.toLowerCase().split(/\s+/).filter(w => w.length > 3));
+    
+    return this.responseHistory.filter(resp => {
+      const respWords = new Set(resp.input.toLowerCase().split(/\s+/).filter(w => w.length > 3));
+      let matches = 0;
+      
+      respWords.forEach(word => {
+        if (contextWords.has(word)) {
+          matches++;
+        }
+      });
+      
+      // Consider similar if at least 30% of words match
+      return matches / Math.max(1, respWords.size) > 0.3;
+    });
+  }
+  
+  /**
+   * Extract user ID from context (placeholder implementation)
+   */
+  private extractUserId(context: string): string | null {
+    // In a real implementation, this would extract user ID from context
+    // For now, return null
+    return null;
   }
 
   /**
@@ -228,6 +338,11 @@ export class NaturalConversationProcessor {
    * Replace technical terms with more conversational alternatives
    */
   private replaceTechnicalTerms(text: string): string {
+    // Skip if technical level is high
+    if (this.personalityTraits.techLevel > 0.5) {
+      return text;
+    }
+    
     let result = text;
     
     this.technicalTerms.forEach(term => {
@@ -298,8 +413,9 @@ export class NaturalConversationProcessor {
     // Add conversation starter
     let result = '';
     
-    // Add filler phrase at the beginning
-    if (Math.random() > 0.5) {
+    // Add filler phrase at the beginning based on personality
+    const shouldAddFiller = this.personalityTraits.formality < 0.3 && Math.random() > 0.3;
+    if (shouldAddFiller) {
       const fillerIndex = Math.floor(Math.random() * this.fillerPhrases.length);
       result += this.fillerPhrases[fillerIndex] + ' ';
     }
@@ -309,7 +425,10 @@ export class NaturalConversationProcessor {
     
     // Process middle paragraphs with transition phrases
     for (let i = 1; i < paragraphs.length; i++) {
-      if (Math.random() > 0.3) { // 70% chance to add transition
+      // Add transitions based on directness trait
+      const shouldAddTransition = this.personalityTraits.directness < 0.3 && Math.random() > 0.3;
+      
+      if (shouldAddTransition) {
         const transitionIndex = Math.floor(Math.random() * this.transitionPhrases.length);
         result += '\n\n' + this.transitionPhrases[transitionIndex] + ' ' + paragraphs[i];
       } else {
@@ -317,8 +436,9 @@ export class NaturalConversationProcessor {
       }
     }
     
-    // Add conclusion phrase
-    if (paragraphs.length > 1 && Math.random() > 0.5) {
+    // Add conclusion phrase based on personality
+    const shouldAddConclusion = paragraphs.length > 1 && this.personalityTraits.directness < 0.5 && Math.random() > 0.3;
+    if (shouldAddConclusion) {
       const conclusionIndex = Math.floor(Math.random() * this.conclusionPhrases.length);
       result += '\n\n' + this.conclusionPhrases[conclusionIndex];
     }
@@ -347,8 +467,10 @@ export class NaturalConversationProcessor {
         continue;
       }
       
-      // Apply transformations with some probability
-      if (i > 0 && Math.random() > 0.7) {
+      // Apply transformations with some probability based on personality
+      const transformProbability = 0.3 + (0.4 * (1 - Math.abs(this.personalityTraits.formality)));
+      
+      if (i > 0 && Math.random() < transformProbability) {
         // Convert some statements to questions
         if (sentence.endsWith('.') && !sentence.includes('?')) {
           const transformed = this.convertToQuestion(sentence);
@@ -413,26 +535,21 @@ export class NaturalConversationProcessor {
   }
 
   /**
-   * Add personality elements based on style
+   * Add personality elements based on style and personality traits
    */
   private addPersonality(text: string, style: string): string {
-    const styleObj = this.conversationStyles.get(style) || this.conversationStyles.get('casual')!;
-    
     let result = text;
     
     // Add style-specific elements
     switch (style) {
       case 'casual':
-        // Add contractions
-        result = result.replace(' is not ', ' isn\'t ');
-        result = result.replace(' are not ', ' aren\'t ');
-        result = result.replace(' do not ', ' don\'t ');
-        result = result.replace(' does not ', ' doesn\'t ');
-        result = result.replace(' cannot ', ' can\'t ');
-        result = result.replace(' will not ', ' won\'t ');
+        // Add contractions based on formality trait
+        if (this.personalityTraits.formality < 0.3) {
+          result = this.addCasualContractions(result);
+        }
         
-        // Add casual phrases
-        if (Math.random() > 0.7) {
+        // Add casual phrases based on directness trait
+        if (this.personalityTraits.directness < 0.3 && Math.random() > 0.5) {
           const casualPhrases = ['you know', 'basically', 'pretty much', 'kind of', 'sort of'];
           const phrase = casualPhrases[Math.floor(Math.random() * casualPhrases.length)];
           
@@ -444,14 +561,19 @@ export class NaturalConversationProcessor {
             result = words.join(' ');
           }
         }
+        
+        // Add humor based on humor trait
+        if (this.personalityTraits.humor > 0.5 && Math.random() > 0.7) {
+          result = this.addHumorElement(result);
+        }
         break;
         
       case 'professional':
         // Ensure proper formatting
         result = result.replace(/\bi\b/g, 'I');
         
-        // Add professional phrases
-        if (Math.random() > 0.7) {
+        // Add professional phrases based on formality trait
+        if (this.personalityTraits.formality > 0.3 && Math.random() > 0.7) {
           const professionalPhrases = [
             'In my assessment,', 
             'From a professional standpoint,', 
@@ -470,8 +592,8 @@ export class NaturalConversationProcessor {
         break;
         
       case 'educational':
-        // Add educational phrases
-        if (Math.random() > 0.7) {
+        // Add educational phrases based on techLevel trait
+        if (this.personalityTraits.techLevel > 0 && Math.random() > 0.7) {
           const educationalPhrases = [
             'To illustrate this concept,',
             'A helpful analogy would be,',
@@ -491,8 +613,8 @@ export class NaturalConversationProcessor {
         break;
         
       case 'empathetic':
-        // Add empathetic phrases
-        if (Math.random() > 0.5) {
+        // Add empathetic phrases based on empathy trait
+        if (this.personalityTraits.empathy > 0 && Math.random() > 0.5) {
           const empatheticPhrases = [
             'I understand how you might feel about this.',
             'It\'s completely normal to have questions about this.',
@@ -512,6 +634,82 @@ export class NaturalConversationProcessor {
     }
     
     return result;
+  }
+  
+  /**
+   * Add casual contractions
+   */
+  private addCasualContractions(text: string): string {
+    let result = text;
+    
+    // Standard contractions
+    result = result.replace(/\b(I am)\b/g, "I'm");
+    result = result.replace(/\b(You are)\b/g, "You're");
+    result = result.replace(/\b(They are)\b/g, "They're");
+    result = result.replace(/\b(We are)\b/g, "We're");
+    result = result.replace(/\b(He is)\b/g, "He's");
+    result = result.replace(/\b(She is)\b/g, "She's");
+    result = result.replace(/\b(It is)\b/g, "It's");
+    result = result.replace(/\b(That is)\b/g, "That's");
+    result = result.replace(/\b(There is)\b/g, "There's");
+    result = result.replace(/\b(Here is)\b/g, "Here's");
+    result = result.replace(/\b(What is)\b/g, "What's");
+    result = result.replace(/\b(Who is)\b/g, "Who's");
+    result = result.replace(/\b(How is)\b/g, "How's");
+    
+    // Negative contractions
+    result = result.replace(/\b(do not)\b/g, "don't");
+    result = result.replace(/\b(does not)\b/g, "doesn't");
+    result = result.replace(/\b(did not)\b/g, "didn't");
+    result = result.replace(/\b(is not)\b/g, "isn't");
+    result = result.replace(/\b(are not)\b/g, "aren't");
+    result = result.replace(/\b(was not)\b/g, "wasn't");
+    result = result.replace(/\b(were not)\b/g, "weren't");
+    result = result.replace(/\b(have not)\b/g, "haven't");
+    result = result.replace(/\b(has not)\b/g, "hasn't");
+    result = result.replace(/\b(had not)\b/g, "hadn't");
+    result = result.replace(/\b(will not)\b/g, "won't");
+    result = result.replace(/\b(would not)\b/g, "wouldn't");
+    result = result.replace(/\b(should not)\b/g, "shouldn't");
+    result = result.replace(/\b(could not)\b/g, "couldn't");
+    result = result.replace(/\b(cannot)\b/g, "can't");
+    
+    // Super casual contractions (only if very casual)
+    if (this.personalityTraits.formality < -0.3) {
+      result = result.replace(/\b(going to)\b/g, "gonna");
+      result = result.replace(/\b(want to)\b/g, "wanna");
+      result = result.replace(/\b(have to)\b/g, "gotta");
+      result = result.replace(/\b(kind of)\b/g, "kinda");
+      result = result.replace(/\b(sort of)\b/g, "sorta");
+      result = result.replace(/\b(let me)\b/g, "lemme");
+      result = result.replace(/\b(give me)\b/g, "gimme");
+    }
+    
+    return result;
+  }
+  
+  /**
+   * Add humor element based on personality
+   */
+  private addHumorElement(text: string): string {
+    const humorElements = [
+      " (I'm not making this up!)",
+      " (Trust me on this one!)",
+      " (Seriously, it's true!)",
+      " (I promise it's not as complicated as it sounds!)",
+      " (Don't worry, I won't quiz you on this later!)"
+    ];
+    
+    const element = humorElements[Math.floor(Math.random() * humorElements.length)];
+    
+    // Find a suitable sentence to add humor to
+    const sentences = text.split(/(?<=[.!?])\s+/);
+    if (sentences.length < 2) return text + element;
+    
+    const targetIndex = Math.floor(Math.random() * (sentences.length - 1)) + 1;
+    sentences[targetIndex] = sentences[targetIndex].replace(/[.!?]$/, element + '.');
+    
+    return sentences.join(' ');
   }
 
   /**
@@ -533,6 +731,51 @@ export class NaturalConversationProcessor {
   }
 
   /**
+   * Set personality traits
+   */
+  setPersonalityTraits(traits: Partial<typeof this.personalityTraits>): void {
+    this.personalityTraits = {
+      ...this.personalityTraits,
+      ...traits
+    };
+    
+    // Ensure values are within range
+    Object.keys(this.personalityTraits).forEach(key => {
+      const k = key as keyof typeof this.personalityTraits;
+      this.personalityTraits[k] = Math.max(-1, Math.min(1, this.personalityTraits[k]));
+    });
+    
+    console.log('👤 Personality traits updated:', this.personalityTraits);
+  }
+  
+  /**
+   * Set user preferences
+   */
+  setUserPreferences(userId: string, preferences: any): void {
+    this.userPreferences.set(userId, {
+      ...(this.userPreferences.get(userId) || {}),
+      ...preferences
+    });
+  }
+  
+  /**
+   * Record response rating
+   */
+  recordResponseRating(index: number, rating: number): void {
+    if (index >= 0 && index < this.responseHistory.length) {
+      this.responseHistory[index].rating = rating;
+    }
+  }
+  
+  /**
+   * Toggle adaptive mode
+   */
+  setAdaptiveMode(enabled: boolean): void {
+    this.adaptiveMode = enabled;
+    console.log(`🔄 Adaptive conversation mode ${enabled ? 'enabled' : 'disabled'}`);
+  }
+
+  /**
    * Get current conversation style
    */
   getCurrentStyle(): string {
@@ -544,5 +787,49 @@ export class NaturalConversationProcessor {
    */
   getAvailableStyles(): string[] {
     return Array.from(this.conversationStyles.keys());
+  }
+  
+  /**
+   * Get personality traits
+   */
+  getPersonalityTraits(): typeof this.personalityTraits {
+    return {...this.personalityTraits};
+  }
+  
+  /**
+   * Get response history
+   */
+  getResponseHistory(): typeof this.responseHistory {
+    return [...this.responseHistory];
+  }
+  
+  /**
+   * Get conversation statistics
+   */
+  getConversationStats(): {
+    totalResponses: number;
+    styleDistribution: Record<string, number>;
+    averageRating: number;
+    adaptiveModeEnabled: boolean;
+  } {
+    const styleDistribution: Record<string, number> = {};
+    let totalRating = 0;
+    let ratingCount = 0;
+    
+    this.responseHistory.forEach(resp => {
+      styleDistribution[resp.style] = (styleDistribution[resp.style] || 0) + 1;
+      
+      if (resp.rating !== undefined) {
+        totalRating += resp.rating;
+        ratingCount++;
+      }
+    });
+    
+    return {
+      totalResponses: this.responseHistory.length,
+      styleDistribution,
+      averageRating: ratingCount > 0 ? totalRating / ratingCount : 0,
+      adaptiveModeEnabled: this.adaptiveMode
+    };
   }
 }
