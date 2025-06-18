@@ -29,6 +29,8 @@ interface TerminalCommand {
 
 interface TerminalInterfaceProps {
   onSystemStatusChange: (status: SystemStatus) => void;
+  // Add shared MachineGod instance
+  machineGod?: MachineGodCore;
 }
 
 interface TrainingProgress {
@@ -54,46 +56,99 @@ interface TrainingProgress {
   };
 }
 
-export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemStatusChange }) => {
-  const [commands, setCommands] = useState<TerminalCommand[]>([]);
+// Global instances to persist across tab switches
+let globalMachineGod: MachineGodCore | null = null;
+let globalSocialProcessor: SocialMediaSpeechProcessor | null = null;
+let globalSystemAuditor: SystemAuditor | null = null;
+let globalStructuredReasoning: StructuredReasoningProcessor | null = null;
+let globalEnhancedTraining: EnhancedTrainingSystem | null = null;
+let globalLmmBenchmarks: OpenLMMBenchmarks | null = null;
+let globalIsInitialized = false;
+let globalCommands: TerminalCommand[] = [];
+let globalConversationContext: string[] = [];
+let globalTrainingComplete = false;
+let globalTrainingProgress: TrainingProgress = {
+  currentLevel: 'Enhanced Training Mode',
+  targetLevel: 'Natural Conversation with Contextual Learning',
+  progressPercentage: 0,
+  eta: 'Complete enhanced 25-question test',
+  reasoningAbility: 0.1,
+  algorithmCount: 0,
+  generation: 0,
+  capabilities: ['Enhanced training with contextual reasoning'],
+  multiModalProgress: 0,
+  totalConversations: 0,
+  apiConnectivity: 'unhealthy',
+  apiRequests: 0,
+  truthCycles: 0,
+  truthSignatures: 0,
+  naturalLearning: {
+    totalAssets: 0,
+    averageQuality: 0,
+    learningRate: 0.1,
+    patternCount: 0
+  }
+};
+
+export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ 
+  onSystemStatusChange, 
+  machineGod: providedMachineGod 
+}) => {
+  const [commands, setCommands] = useState<TerminalCommand[]>(globalCommands);
   const [currentInput, setCurrentInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [machineGod] = useState(() => new MachineGodCore());
-  const [socialMediaProcessor] = useState(() => new SocialMediaSpeechProcessor());
-  const [systemAuditor] = useState(() => new SystemAuditor());
-  const [structuredReasoning] = useState(() => new StructuredReasoningProcessor());
-  const [enhancedTraining] = useState(() => new EnhancedTrainingSystem());
-  const [lmmBenchmarks] = useState(() => new OpenLMMBenchmarks());
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [conversationContext, setConversationContext] = useState<string[]>([]);
+  const [isInitialized, setIsInitialized] = useState(globalIsInitialized);
+  const [conversationContext, setConversationContext] = useState<string[]>(globalConversationContext);
   const [isBenchmarking, setIsBenchmarking] = useState(false);
   const [showTrainingTest, setShowTrainingTest] = useState(false);
-  const [trainingComplete, setTrainingComplete] = useState(false);
-  const [trainingProgress, setTrainingProgress] = useState<TrainingProgress>({
-    currentLevel: 'Enhanced Training Mode',
-    targetLevel: 'Natural Conversation with Contextual Learning',
-    progressPercentage: 0,
-    eta: 'Complete enhanced 25-question test',
-    reasoningAbility: 0.1,
-    algorithmCount: 0,
-    generation: 0,
-    capabilities: ['Enhanced training with contextual reasoning'],
-    multiModalProgress: 0,
-    totalConversations: 0,
-    apiConnectivity: 'unhealthy',
-    apiRequests: 0,
-    truthCycles: 0,
-    truthSignatures: 0,
-    naturalLearning: {
-      totalAssets: 0,
-      averageQuality: 0,
-      learningRate: 0.1,
-      patternCount: 0
-    }
-  });
+  const [trainingComplete, setTrainingComplete] = useState(globalTrainingComplete);
+  const [trainingProgress, setTrainingProgress] = useState<TrainingProgress>(globalTrainingProgress);
   const terminalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialize or reuse global instances
+  const machineGod = providedMachineGod || (() => {
+    if (!globalMachineGod) {
+      globalMachineGod = new MachineGodCore();
+    }
+    return globalMachineGod;
+  })();
+
+  const socialMediaProcessor = (() => {
+    if (!globalSocialProcessor) {
+      globalSocialProcessor = new SocialMediaSpeechProcessor();
+    }
+    return globalSocialProcessor;
+  })();
+
+  const systemAuditor = (() => {
+    if (!globalSystemAuditor) {
+      globalSystemAuditor = new SystemAuditor();
+    }
+    return globalSystemAuditor;
+  })();
+
+  const structuredReasoning = (() => {
+    if (!globalStructuredReasoning) {
+      globalStructuredReasoning = new StructuredReasoningProcessor();
+    }
+    return globalStructuredReasoning;
+  })();
+
+  const enhancedTraining = (() => {
+    if (!globalEnhancedTraining) {
+      globalEnhancedTraining = new EnhancedTrainingSystem();
+    }
+    return globalEnhancedTraining;
+  })();
+
+  const lmmBenchmarks = (() => {
+    if (!globalLmmBenchmarks) {
+      globalLmmBenchmarks = new OpenLMMBenchmarks();
+    }
+    return globalLmmBenchmarks;
+  })();
 
   const bootSequence = [
     "MACHINEGOD NATURAL LEARNING SYSTEM v5.0.0",
@@ -143,7 +198,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
           const systemStatus = machineGod.getSystemStatus();
           const naturalLearningStats = machineGod.getNaturalLearningStats();
           
-          setTrainingProgress(prev => ({
+          const newProgress = {
             currentLevel: trainingMetrics.currentLevel.name,
             targetLevel: 'Full Multi-Modal AGI with Natural Learning',
             progressPercentage: trainingMetrics.progressPercentage,
@@ -164,15 +219,18 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
             truthCycles: systemStatus.truthProtocol.adversarialCycles,
             truthSignatures: systemStatus.truthProtocol.truthSignatures,
             naturalLearning: naturalLearningStats
-          }));
+          };
+          
+          setTrainingProgress(newProgress);
+          globalTrainingProgress = newProgress;
         } catch (error) {
           console.error('Error updating training metrics:', error);
         }
       } else {
         // Update enhanced training progress
         const testProgress = enhancedTraining.getTrainingProgress();
-        setTrainingProgress(prev => ({
-          ...prev,
+        const newProgress = {
+          ...trainingProgress,
           progressPercentage: (testProgress.correctCount / testProgress.requiredCorrect) * 100,
           eta: `${testProgress.requiredCorrect - testProgress.correctCount} questions remaining`,
           capabilities: [
@@ -181,13 +239,16 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
             `Facts learned: ${testProgress.factsLearned}`,
             `Smart inferences: ${testProgress.inferencesMade}`
           ]
-        }));
+        };
+        
+        setTrainingProgress(newProgress);
+        globalTrainingProgress = newProgress;
       }
     };
 
     const interval = setInterval(updateTraining, 2000);
     return () => clearInterval(interval);
-  }, [isInitialized, trainingComplete, machineGod, enhancedTraining]);
+  }, [isInitialized, trainingComplete, machineGod, enhancedTraining, trainingProgress]);
 
   // Auto-scroll when new messages arrive
   useEffect(() => {
@@ -203,34 +264,67 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     return () => clearTimeout(timer);
   }, [commands, isLoading]);
 
+  // Sync global state
+  useEffect(() => {
+    globalCommands = commands;
+    globalConversationContext = conversationContext;
+    globalTrainingComplete = trainingComplete;
+    globalIsInitialized = isInitialized;
+  }, [commands, conversationContext, trainingComplete, isInitialized]);
+
   useEffect(() => {
     const initializeSystem = async () => {
+      // Skip boot sequence if already initialized
+      if (globalIsInitialized) {
+        setIsInitialized(true);
+        setTrainingComplete(globalTrainingComplete);
+        setCommands(globalCommands);
+        setConversationContext(globalConversationContext);
+        return;
+      }
+
       // Boot sequence animation
       for (let i = 0; i < bootSequence.length; i++) {
         await new Promise(resolve => setTimeout(resolve, 120));
-        setCommands(prev => [...prev, {
+        const newCommand = {
           command: '',
           response: bootSequence[i],
           timestamp: new Date()
-        }]);
+        };
+        setCommands(prev => {
+          const updated = [...prev, newCommand];
+          globalCommands = updated;
+          return updated;
+        });
       }
 
       // Initialize MachineGod core but keep it locked
       try {
         await machineGod.initialize();
         setIsInitialized(true);
+        globalIsInitialized = true;
         
-        setCommands(prev => [...prev, {
+        const finalCommand = {
           command: '',
           response: "🧠 Natural learning system ready! Type 'start training' to begin contextual learning, or just start chatting for natural learning.",
           timestamp: new Date()
-        }]);
+        };
+        setCommands(prev => {
+          const updated = [...prev, finalCommand];
+          globalCommands = updated;
+          return updated;
+        });
       } catch (error) {
-        setCommands(prev => [...prev, {
+        const errorCommand = {
           command: '',
           response: `❌ System initialization failed: ${error}`,
           timestamp: new Date()
-        }]);
+        };
+        setCommands(prev => {
+          const updated = [...prev, errorCommand];
+          globalCommands = updated;
+          return updated;
+        });
       }
     };
 
@@ -247,11 +341,12 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
   const handleTrainingComplete = () => {
     setShowTrainingTest(false);
     setTrainingComplete(true);
+    globalTrainingComplete = true;
     
     const personalityProfile = enhancedTraining.getPersonalityProfile();
     const knownFacts = enhancedTraining.getKnownFacts();
     
-    setCommands(prev => [...prev, {
+    const completionCommand = {
       command: '',
       response: `🎉 ENHANCED TRAINING COMPLETE! 
 
@@ -265,10 +360,16 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
 
 🔓 Natural conversation mode is now UNLOCKED with your personalized profile!
 
-🌟 NATURAL LEARNING NOW ACTIVE: Every conversation will continuously improve my abilities using all system assets including memory, research, debates, benchmarks, and cross-modal learning. No manual training needed - just chat naturally! 💯`,
+🌟 NATURAL LEARNING NOW ACTIVE: Every conversation will continuously improve my abilities using all system assets including memory, research, debates, benchmarks, and cross-modal learning. No manual training needed - just chat! 💯`,
       timestamp: new Date(),
       naturalLearningApplied: true
-    }]);
+    };
+
+    setCommands(prev => {
+      const updated = [...prev, completionCommand];
+      globalCommands = updated;
+      return updated;
+    });
 
     // Update system status
     const status = machineGod.getSystemStatus();
@@ -293,11 +394,17 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({ onSystemSt
     let structuredReasoningResult: any = undefined;
     let naturalLearningApplied = false;
     
-    setCommands(prev => [...prev, { 
+    const newCommand = { 
       command: input, 
       response: '', 
       timestamp
-    }]);
+    };
+    
+    setCommands(prev => {
+      const updated = [...prev, newCommand];
+      globalCommands = updated;
+      return updated;
+    });
     setCurrentInput('');
     setIsLoading(true);
 
@@ -377,7 +484,9 @@ What would you like to talk about? I'm ready to learn! 🚀`;
         }
       } else {
         // Training complete - normal conversation mode with natural learning
-        setConversationContext(prev => [...prev.slice(-5), input]);
+        const newContext = [...conversationContext.slice(-5), input];
+        setConversationContext(newContext);
+        globalConversationContext = newContext;
 
         // Handle system commands
         if (input.toLowerCase() === 'help') {
@@ -480,6 +589,7 @@ Just talk to me naturally - I'm constantly learning and improving, bestie! 💯
           structuredReasoning: structuredReasoningResult,
           naturalLearningApplied
         };
+        globalCommands = newCommands;
         return newCommands;
       });
 
@@ -487,6 +597,7 @@ Just talk to me naturally - I'm constantly learning and improving, bestie! 💯
       setCommands(prev => {
         const newCommands = [...prev];
         newCommands[newCommands.length - 1].response = `❌ Error: ${error}`;
+        globalCommands = newCommands;
         return newCommands;
       });
     } finally {
@@ -512,6 +623,7 @@ Just talk to me naturally - I'm constantly learning and improving, bestie! 💯
         if (commandIndex !== -1) {
           newCommands[commandIndex].feedbackGiven = true;
         }
+        globalCommands = newCommands;
         return newCommands;
       });
     } catch (error) {

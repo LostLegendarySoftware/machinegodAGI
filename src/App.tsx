@@ -10,6 +10,9 @@ import { Terminal, Monitor, Activity, Settings, Brain, Users, Zap, Archive, Data
 
 type TabType = 'terminal' | 'dashboard' | 'meta-logic' | 'ariel' | 'warp' | 'helix' | 'settings' | 'storage' | 'benchmarks' | 'natural-learning';
 
+// Global MachineGod instance to persist across tab switches
+let globalMachineGod: MachineGodCore | null = null;
+
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>('terminal');
   const [systemStatus, setSystemStatus] = useState<SystemStatus>({
@@ -27,6 +30,14 @@ function App() {
     naturalLearning: { totalAssets: 0, averageQuality: 0, learningRate: 0.1, patternCount: 0, continuousLearning: true }
   });
 
+  // Initialize or reuse global MachineGod instance
+  const machineGod = (() => {
+    if (!globalMachineGod) {
+      globalMachineGod = new MachineGodCore();
+    }
+    return globalMachineGod;
+  })();
+
   const tabs = [
     { id: 'terminal', label: 'Terminal', icon: Terminal },
     { id: 'dashboard', label: 'Dashboard', icon: Monitor },
@@ -43,13 +54,13 @@ function App() {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'terminal':
-        return <TerminalInterface onSystemStatusChange={setSystemStatus} />;
+        return <TerminalInterface onSystemStatusChange={setSystemStatus} machineGod={machineGod} />;
       case 'dashboard':
         return <SystemDashboard status={systemStatus} />;
       case 'storage':
-        return <LogicStorageDisplay machineGod={new MachineGodCore()} />;
+        return <LogicStorageDisplay machineGod={machineGod} />;
       case 'benchmarks':
-        return <BenchmarkLeaderboard machineGod={new MachineGodCore()} />;
+        return <BenchmarkLeaderboard machineGod={machineGod} />;
       case 'natural-learning':
         return (
           <div className="p-6 bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg h-full">
