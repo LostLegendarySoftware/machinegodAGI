@@ -25,8 +25,6 @@ interface TerminalCommand {
   socialMediaProcessed?: boolean;
   structuredReasoning?: any;
   naturalLearningApplied?: boolean;
-  personalityTraits?: any;
-  adaptiveResponse?: boolean;
 }
 
 interface TerminalInterfaceProps {
@@ -105,8 +103,6 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
   const [showTrainingTest, setShowTrainingTest] = useState(false);
   const [trainingComplete, setTrainingComplete] = useState(globalTrainingComplete);
   const [trainingProgress, setTrainingProgress] = useState<TrainingProgress>(globalTrainingProgress);
-  const [debugMode, setDebugMode] = useState(false);
-  const [personalityProfile, setPersonalityProfile] = useState<any>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -201,9 +197,6 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
           const memoryTrainingProgress = machineGod.getTrainingProgress();
           const systemStatus = machineGod.getSystemStatus();
           const naturalLearningStats = machineGod.getNaturalLearningStats();
-          const personalityProfile = machineGod.getPersonalityProfile();
-          
-          setPersonalityProfile(personalityProfile);
           
           const newProgress = {
             currentLevel: trainingMetrics.currentLevel.name,
@@ -287,17 +280,6 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
         setTrainingComplete(globalTrainingComplete);
         setCommands(globalCommands);
         setConversationContext(globalConversationContext);
-        
-        // Get personality profile if training is complete
-        if (globalTrainingComplete) {
-          try {
-            const profile = machineGod.getPersonalityProfile();
-            setPersonalityProfile(profile);
-          } catch (error) {
-            console.error('Error getting personality profile:', error);
-          }
-        }
-        
         return;
       }
 
@@ -319,7 +301,6 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
       // Initialize MachineGod core but keep it locked
       try {
         await machineGod.initialize();
-        machineGod.setDebugMode(debugMode);
         setIsInitialized(true);
         globalIsInitialized = true;
         
@@ -348,7 +329,7 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
     };
 
     initializeSystem();
-  }, [machineGod, debugMode]);
+  }, [machineGod]);
 
   // Focus input when terminal is clicked
   const handleTerminalClick = () => {
@@ -364,17 +345,6 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
     
     const personalityProfile = enhancedTraining.getPersonalityProfile();
     const knownFacts = enhancedTraining.getKnownFacts();
-    
-    // Set personality profile in MachineGod
-    machineGod.setPersonalityProfile({
-      formality: personalityProfile.formality,
-      directness: personalityProfile.directness,
-      humor: personalityProfile.humor,
-      empathy: personalityProfile.empathy || 0,
-      techLevel: personalityProfile.techLevel
-    });
-    
-    setPersonalityProfile(personalityProfile);
     
     const completionCommand = {
       command: '',
@@ -423,8 +393,6 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
     let socialMediaProcessed = false;
     let structuredReasoningResult: any = undefined;
     let naturalLearningApplied = false;
-    let personalityTraits = null;
-    let adaptiveResponse = false;
     
     const newCommand = { 
       command: input, 
@@ -443,161 +411,8 @@ export const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
     try {
       let response = '';
 
-      // Check for system commands
-      if (input.toLowerCase() === 'debug on') {
-        setDebugMode(true);
-        machineGod.setDebugMode(true);
-        response = "🐛 Debug mode enabled - detailed system information will be shown";
-      } else if (input.toLowerCase() === 'debug off') {
-        setDebugMode(false);
-        machineGod.setDebugMode(false);
-        response = "🐛 Debug mode disabled";
-      } else if (input.toLowerCase() === 'personality') {
-        const profile = machineGod.getPersonalityProfile();
-        response = `👤 Current Personality Profile:
-
-• Formality: ${profile.formality.toFixed(2)} (${profile.formality > 0.3 ? 'Formal' : profile.formality < -0.3 ? 'Casual' : 'Balanced'})
-• Directness: ${profile.directness.toFixed(2)} (${profile.directness > 0.3 ? 'Direct' : profile.directness < -0.3 ? 'Detailed' : 'Balanced'})
-• Humor: ${profile.humor.toFixed(2)} (${profile.humor > 0.3 ? 'Humorous' : profile.humor < -0.3 ? 'Serious' : 'Balanced'})
-• Empathy: ${profile.empathy.toFixed(2)} (${profile.empathy > 0.3 ? 'Empathetic' : profile.empathy < -0.3 ? 'Logical' : 'Balanced'})
-• Tech Level: ${profile.techLevel.toFixed(2)} (${profile.techLevel > 0.3 ? 'Technical' : profile.techLevel < -0.3 ? 'Simple' : 'Balanced'})
-
-This personality profile was developed based on your preferences and is used to customize responses to your style.`;
-      } else if (input.toLowerCase() === 'learning stats') {
-        const stats = machineGod.getNaturalLearningDetailedStats();
-        response = `🧠 Natural Learning Detailed Statistics:
-
-• Total Learning Assets: ${stats.totalAssets}
-• Average Quality: ${(stats.averageQuality * 100).toFixed(1)}%
-• Learning Rate: ${(stats.learningRate * 100).toFixed(1)}%
-• Pattern Count: ${stats.patternCount}
-• Learning Cycles: ${stats.learningCycles}
-• Processing Queue: ${stats.processingQueueLength} items
-
-🔍 Pattern Analysis:
-• Patterns by Context: ${Object.entries(stats.patternAnalysis.patternsByContext).map(([k, v]) => `${k}(${v})`).join(', ')}
-• Success Rate Distribution: ${Object.entries(stats.patternAnalysis.patternsBySuccessRate).map(([k, v]) => `${k}(${v})`).join(', ')}
-
-🗣️ Slang Usage:
-• Total Terms: ${stats.slangUsage.totalTerms}
-• Most Used: ${stats.slangUsage.mostUsedTerms.slice(0, 3).map(t => t.term).join(', ')}
-• Most Successful: ${stats.slangUsage.mostSuccessfulTerms.slice(0, 3).map(t => t.term).join(', ')}
-
-💬 Conversation Style:
-• Total Responses: ${stats.conversationStats.totalResponses}
-• Style Distribution: ${Object.entries(stats.conversationStats.styleDistribution).map(([k, v]) => `${k}(${v})`).join(', ')}
-• Average Rating: ${stats.conversationStats.averageRating.toFixed(2)}/5
-• Adaptive Mode: ${stats.conversationStats.adaptiveModeEnabled ? 'Enabled' : 'Disabled'}`;
-      } else if (input.toLowerCase() === 'adaptive on') {
-        machineGod.setAdaptiveResponseMode(true);
-        response = "🔄 Adaptive response mode enabled - responses will automatically adjust to your preferences";
-        adaptiveResponse = true;
-      } else if (input.toLowerCase() === 'adaptive off') {
-        machineGod.setAdaptiveResponseMode(false);
-        response = "🔄 Adaptive response mode disabled - responses will use fixed style";
-      } else if (input.toLowerCase().startsWith('set formality ')) {
-        const value = parseFloat(input.substring(14));
-        if (!isNaN(value) && value >= -1 && value <= 1) {
-          machineGod.setPersonalityProfile({ formality: value });
-          const profile = machineGod.getPersonalityProfile();
-          setPersonalityProfile(profile);
-          response = `👤 Formality set to ${value.toFixed(2)} (${value > 0.3 ? 'Formal' : value < -0.3 ? 'Casual' : 'Balanced'})`;
-        } else {
-          response = "❌ Invalid value. Please use a number between -1 (very casual) and 1 (very formal).";
-        }
-      } else if (input.toLowerCase().startsWith('set humor ')) {
-        const value = parseFloat(input.substring(10));
-        if (!isNaN(value) && value >= -1 && value <= 1) {
-          machineGod.setPersonalityProfile({ humor: value });
-          const profile = machineGod.getPersonalityProfile();
-          setPersonalityProfile(profile);
-          response = `👤 Humor set to ${value.toFixed(2)} (${value > 0.3 ? 'Humorous' : value < -0.3 ? 'Serious' : 'Balanced'})`;
-        } else {
-          response = "❌ Invalid value. Please use a number between -1 (very serious) and 1 (very humorous).";
-        }
-      } else if (input.toLowerCase().startsWith('set tech ')) {
-        const value = parseFloat(input.substring(9));
-        if (!isNaN(value) && value >= -1 && value <= 1) {
-          machineGod.setPersonalityProfile({ techLevel: value });
-          const profile = machineGod.getPersonalityProfile();
-          setPersonalityProfile(profile);
-          response = `👤 Tech level set to ${value.toFixed(2)} (${value > 0.3 ? 'Technical' : value < -0.3 ? 'Simple' : 'Balanced'})`;
-        } else {
-          response = "❌ Invalid value. Please use a number between -1 (very simple) and 1 (very technical).";
-        }
-      } else if (input.toLowerCase().startsWith('benchmark ')) {
-        const benchmarkId = input.substring(10).trim();
-        setIsBenchmarking(true);
-        try {
-          benchmarkResult = await machineGod.runLMMBenchmark(benchmarkId);
-          response = `📊 Benchmark ${benchmarkId} completed with score: ${benchmarkResult.percentage.toFixed(1)}%\n\n`;
-          response += `Rank: ${benchmarkResult.leaderboardComparison.rank}\n`;
-          response += `Percentile: ${benchmarkResult.leaderboardComparison.percentile.toFixed(1)}%\n\n`;
-          
-          if (benchmarkResult.leaderboardComparison.beatsModels.length > 0) {
-            response += `🏆 Beats: ${benchmarkResult.leaderboardComparison.beatsModels.join(', ')}\n`;
-          }
-          
-          if (benchmarkResult.leaderboardComparison.losesToModels.length > 0) {
-            response += `🎯 Chasing: ${benchmarkResult.leaderboardComparison.losesToModels.join(', ')}\n`;
-          }
-          
-          response += `\n${benchmarkResult.realWorldContext.globalRanking}`;
-        } catch (error) {
-          response = `❌ Benchmark error: ${error}`;
-        } finally {
-          setIsBenchmarking(false);
-        }
-      } else if (input.toLowerCase() === 'audit system') {
-        response = "🔍 System Audit Results:\n\n";
-        
-        // Audit natural learning
-        const learningStats = machineGod.getNaturalLearningStats();
-        response += `🧠 Natural Learning System: ${learningStats.totalAssets > 50 ? '✅ HEALTHY' : '⚠️ DEVELOPING'}\n`;
-        response += `• Assets: ${learningStats.totalAssets}\n`;
-        response += `• Quality: ${(learningStats.averageQuality * 100).toFixed(1)}%\n`;
-        response += `• Learning Rate: ${(learningStats.learningRate * 100).toFixed(1)}%\n`;
-        response += `• Patterns: ${learningStats.patternCount}\n\n`;
-        
-        // Audit conversation processor
-        const slangSettings = machineGod.getSlangSettings();
-        response += `💬 Conversation Processor: ${slangSettings.adaptiveMode ? '✅ ADAPTIVE' : '⚠️ FIXED'}\n`;
-        response += `• Slang Intensity: ${(slangSettings.intensity * 100).toFixed(1)}%\n`;
-        response += `• Personality Alignment: ${(Math.abs(slangSettings.personalityAlignment.formality) + Math.abs(slangSettings.personalityAlignment.humor)) > 0.5 ? '✅ STRONG' : '⚠️ DEVELOPING'}\n\n`;
-        
-        // Audit personality profile
-        const profile = machineGod.getPersonalityProfile();
-        response += `👤 Personality Profile: ${Object.values(profile).some(v => Math.abs(v) > 0.3) ? '✅ DEVELOPED' : '⚠️ UNDERDEVELOPED'}\n`;
-        response += `• Formality: ${profile.formality.toFixed(2)}\n`;
-        response += `• Directness: ${profile.directness.toFixed(2)}\n`;
-        response += `• Humor: ${profile.humor.toFixed(2)}\n`;
-        response += `• Empathy: ${profile.empathy.toFixed(2)}\n`;
-        response += `• Tech Level: ${profile.techLevel.toFixed(2)}\n\n`;
-        
-        // Audit feedback integration
-        const feedbackStats = machineGod.getFeedbackStats();
-        response += `📝 Feedback Integration: ${feedbackStats.totalFeedback > 0 ? '✅ ACTIVE' : '⚠️ NO DATA'}\n`;
-        response += `• Total Feedback: ${feedbackStats.totalFeedback}\n`;
-        response += `• Positive Rate: ${feedbackStats.positiveRate.toFixed(1)}%\n\n`;
-        
-        response += `🔧 Optimization Recommendations:\n`;
-        if (learningStats.totalAssets < 50) {
-          response += `• Increase conversation volume to improve learning\n`;
-        }
-        if (feedbackStats.totalFeedback < 10) {
-          response += `• Provide more feedback to guide learning\n`;
-        }
-        if (!Object.values(profile).some(v => Math.abs(v) > 0.5)) {
-          response += `• Use 'set formality/humor/tech' commands to strengthen personality\n`;
-        }
-        if (!slangSettings.adaptiveMode) {
-          response += `• Enable adaptive mode with 'adaptive on' for better personalization\n`;
-        }
-        
-        response += `\n✅ System is ${learningStats.totalAssets > 50 && feedbackStats.totalFeedback > 10 ? 'HEALTHY' : 'FUNCTIONAL BUT DEVELOPING'} - continuous natural learning is active`;
-      }
       // Check if training is complete
-      else if (!trainingComplete) {
+      if (!trainingComplete) {
         if (input.toLowerCase().includes('start training') || input.toLowerCase().includes('begin training')) {
           setShowTrainingTest(true);
           response = "🧠 Starting enhanced training with contextual reasoning! The training interface will guide you through adaptive learning.";
@@ -611,13 +426,6 @@ Commands available:
 • start training - Begin the enhanced 25-question test (optional)
 • training progress - Check your current progress and personality development
 • help - Show this help message
-• debug on/off - Enable/disable debug mode
-• personality - Show current personality profile
-• learning stats - Show detailed learning statistics
-• adaptive on/off - Enable/disable adaptive response mode
-• set formality/humor/tech [value] - Adjust personality traits (-1 to 1)
-• benchmark [test] - Run reasoning benchmark test
-• audit system - Run comprehensive system audit
 
 🌟 NATURAL LEARNING FEATURES:
 🔄 Continuous Learning - Every conversation improves the system automatically
@@ -662,32 +470,17 @@ ${testProgress.isComplete ?
 `;
         } else {
           // NATURAL LEARNING: Allow conversation even without training
-          const newContext = [...conversationContext.slice(-5), input];
-          setConversationContext(newContext);
-          globalConversationContext = newContext;
-          
-          try {
-            // Process through MachineGod with natural learning
-            const result = await machineGod.processConversation(input, newContext);
-            
-            response = result.response;
-            confidence = result.confidence;
-            needsFeedback = result.needsFeedback;
-            memoryId = result.memoryId;
-            researchConducted = result.researchConducted || false;
-            logicalAnalysisApplied = result.logicalAnalysisApplied || false;
-            slangApplied = result.slangApplied || false;
-            logicAlgorithmsUsed = result.logicAlgorithmsUsed || [];
-            naturalLearningApplied = result.naturalLearningApplied || false;
-            personalityTraits = result.personalityTraits;
-            adaptiveResponse = result.adaptiveResponse || false;
-            
-            // Update system status
-            const status = machineGod.getSystemStatus();
-            onSystemStatusChange(status);
-          } catch (error) {
-            response = `❌ Error processing conversation: ${error}`;
-          }
+          response = `🌟 Natural Learning Active! I can chat with you right now and learn from our conversation.
+
+While formal training helps establish preferences quickly, I'm designed to learn naturally from every interaction. Feel free to:
+
+• Ask me anything and I'll learn from your questions
+• Give me feedback and I'll adapt my responses
+• Chat naturally and I'll pick up your communication style
+• Type 'start training' if you want the structured personality setup
+
+What would you like to talk about? I'm ready to learn! 🚀`;
+          naturalLearningApplied = true;
         }
       } else {
         // Training complete - normal conversation mode with natural learning
@@ -733,27 +526,48 @@ Just talk to me naturally - I'm constantly learning and improving, bestie! 💯
 `;
         } else {
           // Process through full system with natural learning
-          try {
-            const result = await machineGod.processConversation(input, newContext);
-            
-            response = result.response;
-            confidence = result.confidence;
-            needsFeedback = result.needsFeedback;
-            memoryId = result.memoryId;
-            researchConducted = result.researchConducted || false;
-            logicalAnalysisApplied = result.logicalAnalysisApplied || false;
-            slangApplied = result.slangApplied || false;
-            logicAlgorithmsUsed = result.logicAlgorithmsUsed || [];
-            naturalLearningApplied = result.naturalLearningApplied || false;
-            personalityTraits = result.personalityTraits;
-            adaptiveResponse = result.adaptiveResponse || false;
-            
-            // Update system status
-            const status = machineGod.getSystemStatus();
-            onSystemStatusChange(status);
-          } catch (error) {
-            response = `❌ Error processing conversation: ${error}`;
+          const result = await machineGod.processConversation(input, conversationContext);
+          
+          // Apply social media speech processing with personality
+          const personalityProfile = enhancedTraining.getPersonalityProfile();
+          let socialResponse = socialMediaProcessor.makeSocialMediaStyle(result.response, input);
+          
+          // Adjust response based on learned personality
+          if (personalityProfile.formality > 0.3) {
+            // More formal style
+            socialResponse = socialResponse.replace(/\b(gonna|wanna|gotta)\b/g, (match) => {
+              return match === 'gonna' ? 'going to' : match === 'wanna' ? 'want to' : 'have to';
+            });
+          } else if (personalityProfile.formality < -0.3) {
+            // More casual style - keep all the slang
           }
+          
+          if (personalityProfile.humor < -0.3) {
+            // Remove humor for serious users
+            socialResponse = socialResponse.replace(/\b(lol|lmao|😂|🤣)\b/g, '');
+          }
+          
+          socialMediaProcessed = true;
+          
+          // Apply structured reasoning for complex queries
+          if (input.length > 50 || input.includes('why') || input.includes('how') || input.includes('explain')) {
+            structuredReasoningResult = await structuredReasoning.processWithStructuredReasoning(input);
+            logicalAnalysisApplied = true;
+          }
+          
+          response = socialResponse;
+          confidence = result.confidence;
+          needsFeedback = result.needsFeedback;
+          memoryId = result.memoryId;
+          researchConducted = result.researchConducted || false;
+          logicalAnalysisApplied = result.logicalAnalysisApplied || logicalAnalysisApplied;
+          slangApplied = true;
+          logicAlgorithmsUsed = result.logicAlgorithmsUsed || [];
+          naturalLearningApplied = result.naturalLearningApplied || false;
+
+          // Update system status
+          const status = machineGod.getSystemStatus();
+          onSystemStatusChange(status);
         }
       }
 
@@ -771,11 +585,9 @@ Just talk to me naturally - I'm constantly learning and improving, bestie! 💯
           slangApplied,
           logicAlgorithmsUsed,
           benchmarkResult,
-          socialMediaProcessed: slangApplied,
+          socialMediaProcessed,
           structuredReasoning: structuredReasoningResult,
-          naturalLearningApplied,
-          personalityTraits,
-          adaptiveResponse
+          naturalLearningApplied
         };
         globalCommands = newCommands;
         return newCommands;
@@ -796,7 +608,13 @@ Just talk to me naturally - I'm constantly learning and improving, bestie! 💯
   const handleFeedback = async (memoryId: string, liked: boolean, improvement?: string) => {
     try {
       // Process feedback through MachineGod with natural learning
-      await machineGod.processUserFeedback(memoryId, liked, liked ? 'User liked response' : 'User disliked response', improvement);
+      await machineGod.processUserFeedback(memoryId, liked, improvement ? 'User provided improvement' : undefined, improvement);
+      
+      // Also record in social media processor
+      const conversation = commands.find(cmd => cmd.memoryId === memoryId);
+      if (conversation) {
+        socialMediaProcessor.recordFeedback(memoryId, liked, conversation.response, improvement);
+      }
       
       // Update the command to show feedback was given
       setCommands(prev => {
@@ -808,10 +626,6 @@ Just talk to me naturally - I'm constantly learning and improving, bestie! 💯
         globalCommands = newCommands;
         return newCommands;
       });
-      
-      // Update personality profile
-      const profile = machineGod.getPersonalityProfile();
-      setPersonalityProfile(profile);
     } catch (error) {
       console.error('Error submitting feedback:', error);
     }
@@ -882,25 +696,6 @@ Just talk to me naturally - I'm constantly learning and improving, bestie! 💯
                 {cmd.response && (
                   <div className="whitespace-pre-wrap text-green-300 ml-2 mb-2 break-words">
                     {cmd.response}
-                  </div>
-                )}
-                
-                {/* Debug mode indicators */}
-                {debugMode && cmd.command && (
-                  <div className="ml-2 mt-1 text-gray-500 text-xs">
-                    {cmd.confidence !== undefined && (
-                      <span className="mr-2">Confidence: {(cmd.confidence * 100).toFixed(1)}%</span>
-                    )}
-                    {cmd.personalityTraits && (
-                      <span className="mr-2">
-                        Personality: F:{cmd.personalityTraits.formality.toFixed(1)} 
-                        H:{cmd.personalityTraits.humor.toFixed(1)} 
-                        T:{cmd.personalityTraits.techLevel.toFixed(1)}
-                      </span>
-                    )}
-                    {cmd.adaptiveResponse && (
-                      <span className="mr-2">Adaptive: ✓</span>
-                    )}
                   </div>
                 )}
                 

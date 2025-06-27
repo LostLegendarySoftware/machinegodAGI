@@ -16,16 +16,6 @@ export class SlangProcessor {
   private regionalSlang: string = 'general'; // general, american, british, australian, etc.
   private useEmojis: boolean = true;
   private casualContractions: boolean = true;
-  private userFeedback: Map<string, {liked: boolean, count: number}> = new Map();
-  private slangUsageHistory: Map<string, {uses: number, success: number}> = new Map();
-  private adaptiveMode: boolean = true;
-  private personalityAlignment: {
-    formality: number; // -1 to 1 (casual to formal)
-    humor: number; // -1 to 1 (serious to humorous)
-  } = {
-    formality: 0,
-    humor: 0
-  };
   
   constructor() {
     this.initializeSlangCategories();
@@ -95,13 +85,6 @@ export class SlangProcessor {
         usage: 'common'
       }
     ];
-    
-    // Initialize usage history
-    this.slangCategories.forEach(category => {
-      category.terms.forEach(term => {
-        this.slangUsageHistory.set(term, {uses: 0, success: 0});
-      });
-    });
   }
   
   /**
@@ -118,15 +101,6 @@ export class SlangProcessor {
       return text;
     }
     
-    // Adjust slang intensity based on personality alignment
-    const effectiveIntensity = this.adaptiveMode 
-      ? Math.max(0, Math.min(1, this.slangIntensity - (this.personalityAlignment.formality * 0.5)))
-      : this.slangIntensity;
-    
-    if (effectiveIntensity < 0.1) {
-      return text;
-    }
-    
     let result = text;
     
     // Add casual contractions
@@ -138,12 +112,12 @@ export class SlangProcessor {
     const sentences = result.split(/(?<=[.!?])\s+/);
     const processedSentences = sentences.map((sentence, index) => {
       // First sentence might get a greeting
-      if (index === 0 && Math.random() < effectiveIntensity * 0.5) {
+      if (index === 0 && Math.random() < 0.3) {
         return this.addCasualGreeting(sentence);
       }
       
       // Add slang based on intensity
-      if (Math.random() < effectiveIntensity) {
+      if (Math.random() < this.slangIntensity) {
         return this.addSlangToSentence(sentence);
       }
       
@@ -152,16 +126,13 @@ export class SlangProcessor {
     
     result = processedSentences.join(' ');
     
-    // Add emojis based on humor trait
-    const emojiProbability = this.useEmojis ? 
-      effectiveIntensity * (1 + this.personalityAlignment.humor) : 0;
-    
-    if (Math.random() < emojiProbability) {
+    // Add emojis
+    if (this.useEmojis && Math.random() < this.slangIntensity * 1.5) {
       result = this.addEmojis(result);
     }
     
     // Add emphasis phrase at the end
-    if (Math.random() < effectiveIntensity * 0.7) {
+    if (Math.random() < this.slangIntensity * 0.7) {
       result = this.addEmphasisPhrase(result);
     }
     
@@ -236,19 +207,7 @@ export class SlangProcessor {
    */
   private addCasualGreeting(sentence: string): string {
     const greetings = this.getSlangCategory('casual_greetings').terms;
-    
-    // Filter greetings based on success rate
-    const successfulGreetings = greetings.filter(greeting => {
-      const usage = this.slangUsageHistory.get(greeting);
-      return !usage || usage.uses === 0 || (usage.success / usage.uses) > 0.5;
-    });
-    
-    const greeting = successfulGreetings.length > 0 
-      ? successfulGreetings[Math.floor(Math.random() * successfulGreetings.length)]
-      : greetings[Math.floor(Math.random() * greetings.length)];
-    
-    // Track usage
-    this.trackSlangUsage(greeting);
+    const greeting = greetings[Math.floor(Math.random() * greetings.length)];
     
     // 50% chance to add an emoji after greeting
     const emoji = this.useEmojis && Math.random() > 0.5 ? 
@@ -279,18 +238,7 @@ export class SlangProcessor {
       return sentence;
     }
     
-    // Filter terms based on success rate
-    const successfulTerms = category.terms.filter(term => {
-      const usage = this.slangUsageHistory.get(term);
-      return !usage || usage.uses === 0 || (usage.success / usage.uses) > 0.5;
-    });
-    
-    const slangTerm = successfulTerms.length > 0
-      ? successfulTerms[Math.floor(Math.random() * successfulTerms.length)]
-      : category.terms[Math.floor(Math.random() * category.terms.length)];
-    
-    // Track usage
-    this.trackSlangUsage(slangTerm);
+    const slangTerm = category.terms[Math.floor(Math.random() * category.terms.length)];
     
     // Different insertion strategies based on category
     switch (category.name) {
@@ -363,23 +311,14 @@ export class SlangProcessor {
     const emojiCategory = this.getSlangCategory('trendy_emojis');
     const emojis = emojiCategory.terms;
     
-    // Filter emojis based on success rate
-    const successfulEmojis = emojis.filter(emoji => {
-      const usage = this.slangUsageHistory.get(emoji);
-      return !usage || usage.uses === 0 || (usage.success / usage.uses) > 0.5;
-    });
-    
     // Choose 1-2 random emojis
     const emojiCount = Math.random() > 0.7 ? 2 : 1;
     const selectedEmojis: string[] = [];
     
     for (let i = 0; i < emojiCount; i++) {
-      const emojiPool = successfulEmojis.length > 0 ? successfulEmojis : emojis;
-      const emoji = emojiPool[Math.floor(Math.random() * emojiPool.length)];
-      
+      const emoji = emojis[Math.floor(Math.random() * emojis.length)];
       if (!selectedEmojis.includes(emoji)) {
         selectedEmojis.push(emoji);
-        this.trackSlangUsage(emoji);
       }
     }
     
@@ -418,36 +357,12 @@ export class SlangProcessor {
   private addEmphasisPhrase(text: string): string {
     const emphasisCategory = this.getSlangCategory('emphasis_phrases');
     const phrases = emphasisCategory.terms;
-    
-    // Filter phrases based on success rate
-    const successfulPhrases = phrases.filter(phrase => {
-      const usage = this.slangUsageHistory.get(phrase);
-      return !usage || usage.uses === 0 || (usage.success / usage.uses) > 0.5;
-    });
-    
-    const phrase = successfulPhrases.length > 0
-      ? successfulPhrases[Math.floor(Math.random() * successfulPhrases.length)]
-      : phrases[Math.floor(Math.random() * phrases.length)];
-    
-    // Track usage
-    this.trackSlangUsage(phrase);
+    const phrase = phrases[Math.floor(Math.random() * phrases.length)];
     
     // Add agreement phrase
     const agreementCategory = this.getSlangCategory('agreement_phrases');
     const agreements = agreementCategory.terms;
-    
-    // Filter agreements based on success rate
-    const successfulAgreements = agreements.filter(agreement => {
-      const usage = this.slangUsageHistory.get(agreement);
-      return !usage || usage.uses === 0 || (usage.success / usage.uses) > 0.5;
-    });
-    
-    const agreement = successfulAgreements.length > 0
-      ? successfulAgreements[Math.floor(Math.random() * successfulAgreements.length)]
-      : agreements[Math.floor(Math.random() * agreements.length)];
-    
-    // Track usage
-    this.trackSlangUsage(agreement);
+    const agreement = agreements[Math.floor(Math.random() * agreements.length)];
     
     if (Math.random() > 0.5) {
       return `${text} ${phrase}, ${agreement}.`;
@@ -462,21 +377,7 @@ export class SlangProcessor {
   private getRandomEmoji(): string {
     const emojiCategory = this.getSlangCategory('trendy_emojis');
     const emojis = emojiCategory.terms;
-    
-    // Filter emojis based on success rate
-    const successfulEmojis = emojis.filter(emoji => {
-      const usage = this.slangUsageHistory.get(emoji);
-      return !usage || usage.uses === 0 || (usage.success / usage.uses) > 0.5;
-    });
-    
-    const emoji = successfulEmojis.length > 0
-      ? successfulEmojis[Math.floor(Math.random() * successfulEmojis.length)]
-      : emojis[Math.floor(Math.random() * emojis.length)];
-    
-    // Track usage
-    this.trackSlangUsage(emoji);
-    
-    return emoji;
+    return emojis[Math.floor(Math.random() * emojis.length)];
   }
   
   /**
@@ -506,35 +407,6 @@ export class SlangProcessor {
     
     const lowerContext = context.toLowerCase();
     return formalIndicators.some(indicator => lowerContext.includes(indicator));
-  }
-  
-  /**
-   * Track slang term usage
-   */
-  private trackSlangUsage(term: string): void {
-    const usage = this.slangUsageHistory.get(term) || {uses: 0, success: 0};
-    usage.uses += 1;
-    this.slangUsageHistory.set(term, usage);
-  }
-  
-  /**
-   * Record feedback for slang usage
-   */
-  recordFeedback(responseId: string, liked: boolean, terms: string[]): void {
-    terms.forEach(term => {
-      // Update user feedback
-      this.userFeedback.set(term, {
-        liked,
-        count: (this.userFeedback.get(term)?.count || 0) + 1
-      });
-      
-      // Update success rate in usage history
-      const usage = this.slangUsageHistory.get(term);
-      if (usage) {
-        usage.success = liked ? usage.success + 1 : usage.success;
-        this.slangUsageHistory.set(term, usage);
-      }
-    });
   }
   
   /**
@@ -572,29 +444,6 @@ export class SlangProcessor {
   }
   
   /**
-   * Set personality alignment
-   */
-  setPersonalityAlignment(alignment: Partial<typeof this.personalityAlignment>): void {
-    this.personalityAlignment = {
-      ...this.personalityAlignment,
-      ...alignment
-    };
-    
-    // Ensure values are within range
-    Object.keys(this.personalityAlignment).forEach(key => {
-      const k = key as keyof typeof this.personalityAlignment;
-      this.personalityAlignment[k] = Math.max(-1, Math.min(1, this.personalityAlignment[k]));
-    });
-  }
-  
-  /**
-   * Toggle adaptive mode
-   */
-  setAdaptiveMode(enabled: boolean): void {
-    this.adaptiveMode = enabled;
-  }
-  
-  /**
    * Get current slang settings
    */
   getSlangSettings(): {
@@ -602,85 +451,12 @@ export class SlangProcessor {
     region: string;
     useEmojis: boolean;
     useContractions: boolean;
-    adaptiveMode: boolean;
-    personalityAlignment: typeof this.personalityAlignment;
   } {
     return {
       intensity: this.slangIntensity,
       region: this.regionalSlang,
       useEmojis: this.useEmojis,
-      useContractions: this.casualContractions,
-      adaptiveMode: this.adaptiveMode,
-      personalityAlignment: {...this.personalityAlignment}
+      useContractions: this.casualContractions
     };
-  }
-  
-  /**
-   * Get slang usage statistics
-   */
-  getSlangUsageStats(): {
-    totalTerms: number;
-    mostUsedTerms: Array<{term: string, uses: number, successRate: number}>;
-    mostSuccessfulTerms: Array<{term: string, uses: number, successRate: number}>;
-    leastSuccessfulTerms: Array<{term: string, uses: number, successRate: number}>;
-  } {
-    const usageStats = Array.from(this.slangUsageHistory.entries())
-      .filter(([_, stats]) => stats.uses > 0)
-      .map(([term, stats]) => ({
-        term,
-        uses: stats.uses,
-        successRate: stats.uses > 0 ? stats.success / stats.uses : 0
-      }));
-    
-    return {
-      totalTerms: usageStats.length,
-      mostUsedTerms: [...usageStats].sort((a, b) => b.uses - a.uses).slice(0, 10),
-      mostSuccessfulTerms: [...usageStats]
-        .filter(stat => stat.uses >= 3)
-        .sort((a, b) => b.successRate - a.successRate)
-        .slice(0, 10),
-      leastSuccessfulTerms: [...usageStats]
-        .filter(stat => stat.uses >= 3)
-        .sort((a, b) => a.successRate - b.successRate)
-        .slice(0, 10)
-    };
-  }
-  
-  /**
-   * Add new slang term
-   */
-  addSlangTerm(term: string, category: string, usage: SlangCategory['usage'] = 'moderate'): boolean {
-    const targetCategory = this.slangCategories.find(cat => cat.name === category);
-    if (!targetCategory) return false;
-    
-    if (!targetCategory.terms.includes(term)) {
-      targetCategory.terms.push(term);
-      this.slangUsageHistory.set(term, {uses: 0, success: 0});
-      return true;
-    }
-    
-    return false;
-  }
-  
-  /**
-   * Remove slang term
-   */
-  removeSlangTerm(term: string): boolean {
-    let removed = false;
-    
-    this.slangCategories.forEach(category => {
-      const index = category.terms.indexOf(term);
-      if (index !== -1) {
-        category.terms.splice(index, 1);
-        removed = true;
-      }
-    });
-    
-    if (removed) {
-      this.slangUsageHistory.delete(term);
-      this.userFeedback.delete(term);
-    }
-    
-    return removed;
   }
 }
