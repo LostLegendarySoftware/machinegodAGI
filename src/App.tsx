@@ -5,7 +5,8 @@ import { MachineGodCore } from './core/MachineGodCore';
 import IntroAnimation from './components/IntroAnimation';
 import { PhoenixVisualization } from './components/PhoenixVisualization';
 import { FuturisticHUD } from './components/FuturisticHUD';
-import { Terminal, Send } from 'lucide-react';
+import { HUDPanel } from './components/HUDPanel';
+import { Terminal, Send, Activity, Brain, Cpu, Search, MessageSquare, Crown, Sparkles } from 'lucide-react';
 
 // Global MachineGod instance to persist across tab switches
 let globalMachineGod: MachineGodCore | null = null;
