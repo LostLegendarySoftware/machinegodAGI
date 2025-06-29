@@ -2,12 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Tangerine:wght@400;700&display=swap');
+@font-face {
+  font-family: 'Scorched';
+  src: url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&display=swap');
+}
+
+@font-face {
+  font-family: 'Cursive';
+  src: url('https://fonts.googleapis.com/css2?family=Tangerine:wght@700&display=swap');
+}
 
 @layer base {
   body {
     @apply bg-black text-white;
+  }
+}
+
+@layer components {
+  .font-scorched {
+    font-family: 'Cinzel Decorative', serif;
+  }
+  
+  .font-cursive {
+    font-family: 'Tangerine', cursive;
   }
 }
 
@@ -49,104 +66,5 @@
   }
   100% {
     left: 100%;
-  }
-}
-
-/* Ember and smoke effects */
-.ember {
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  background: #ff4500;
-  border-radius: 50%;
-  filter: blur(1px);
-  opacity: 0;
-  animation: ember 3s ease-out infinite;
-}
-
-@keyframes ember {
-  0% {
-    opacity: 0;
-    transform: translateY(0) scale(1);
-  }
-  10% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 0.3;
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-30px) scale(0);
-  }
-}
-
-.smoke-particle {
-  position: absolute;
-  background: rgba(200, 200, 200, 0.1);
-  border-radius: 50%;
-  filter: blur(8px);
-  animation: smoke 4s ease-out infinite;
-}
-
-@keyframes smoke {
-  0% {
-    opacity: 0;
-    transform: translateY(0) scale(1);
-  }
-  10% {
-    opacity: 0.4;
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-50px) scale(3);
-  }
-}
-
-/* Signature animation */
-.signature-animation {
-  position: relative;
-  display: inline-block;
-}
-
-.signature-animation::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  background-color: black;
-  animation: typewriter 3s steps(30) forwards;
-}
-
-/* Glowing eyes animation */
-.glowing-eyes {
-  animation: glowPulse 2s ease-in-out infinite;
-}
-
-@keyframes glowPulse {
-  0%, 100% {
-    filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.7));
-  }
-  50% {
-    filter: drop-shadow(0 0 10px rgba(255, 0, 0, 1));
-  }
-}
-
-/* Cloak animation */
-.cloak-animation {
-  animation: cloakMove 8s ease-in-out infinite;
-}
-
-@keyframes cloakMove {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  25% {
-    transform: translateY(-5px) rotate(-1deg);
-  }
-  75% {
-    transform: translateY(5px) rotate(1deg);
   }
 }
