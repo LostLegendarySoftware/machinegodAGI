@@ -92,7 +92,7 @@ const IntroAnimation: React.FC = () => {
 
       {/* Hooded Figure - properly sized as a seal */}
       <div className="relative z-10 mb-8">
-        <div className="w-40 h-40 relative overflow-hidden rounded-full">
+        <div className="w-20 h-20 relative overflow-hidden rounded-full bg-black bg-opacity-50">
           <img 
             src="/hooded-figure.png" 
             alt="" 
