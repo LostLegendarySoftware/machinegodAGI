@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { SystemStatus } from './core/MachineGodCore';
 import { MachineGodCore } from './core/MachineGodCore';
@@ -41,8 +41,8 @@ function App() {
   const [visualizationMode, setVisualizationMode] = useState<'default' | 'explanation' | 'analysis'>('default');
   const [explanationContent, setExplanationContent] = useState('');
   
-  const messagesEndRef = React.useRef<HTMLDivElement>(null);
-  const inputRef = React.useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Initialize or reuse global MachineGod instance
   const machineGod = (() => {
