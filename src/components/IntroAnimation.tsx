@@ -35,7 +35,7 @@ const IntroAnimation: React.FC = () => {
     const width = element.offsetWidth;
     const height = element.offsetHeight;
     
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 30; i++) {
       setTimeout(() => {
         const ember = document.createElement('div');
         ember.className = 'ember';
@@ -54,7 +54,7 @@ const IntroAnimation: React.FC = () => {
   const createSmokeEffect = (element: HTMLElement) => {
     const width = element.offsetWidth;
     
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 15; i++) {
       setTimeout(() => {
         const smoke = document.createElement('div');
         smoke.className = 'smoke-particle';
@@ -90,12 +90,12 @@ const IntroAnimation: React.FC = () => {
         />
       </div>
 
-      {/* Hooded Figure - completely replacing the phoenix */}
+      {/* Hooded Figure - properly sized as a seal */}
       <div className="relative z-10 mb-8">
         <div className="w-40 h-40 relative overflow-hidden rounded-full">
           <img 
             src="/hooded-figure.png" 
-            alt="Hooded Figure" 
+            alt="" 
             className="w-full h-full object-contain"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black opacity-30 rounded-full"></div>
@@ -131,7 +131,7 @@ const IntroAnimation: React.FC = () => {
           showSignature ? 'opacity-100' : 'opacity-0'
         }`}
       >
-        <p className="text-2xl text-amber-300 italic font-tangerine transform rotate-12 relative">
+        <p className="text-2xl text-red-900 italic font-tangerine transform rotate-12 relative">
           <span className="inline-block w-full whitespace-nowrap relative after:content-[''] after:absolute after:top-0 after:right-0 after:w-full after:h-full after:bg-black after:animate-typewriter">
             By: Mesiah Bishop
           </span>

@@ -36,12 +36,10 @@ interface PhoenixVisualizationProps {
   explanationContent?: string;
 }
 
-// Phoenix model with fire effects
-const Phoenix = ({ emotionalState, quantumState, visualizationMode }) => {
-  const phoenixRef = useRef<THREE.Group>();
-  const bodyRef = useRef<THREE.Mesh>();
-  const wingsRef = useRef<THREE.Group>();
-  const flameRef = useRef<THREE.PointLight>();
+// Hooded Figure model with glowing eyes and animation
+const HoodedFigure = ({ emotionalState, quantumState }) => {
+  const figureRef = useRef<THREE.Group>();
+  const eyesRef = useRef<THREE.PointLight>();
   
   // Calculate color based on emotional state
   const getEmotionColor = () => {
@@ -73,172 +71,96 @@ const Phoenix = ({ emotionalState, quantumState, visualizationMode }) => {
     return color;
   };
   
-  // Create wing geometry
-  const createWing = (side: number) => {
-    const wingGroup = new THREE.Group();
-    
-    // Main wing
-    const wingGeometry = new THREE.BufferGeometry();
-    const vertices = new Float32Array([
-      0, 0, 0,
-      side * 2, 0.5, -0.5,
-      side * 2.5, 1.2, 0,
-      side * 2, 1.8, 0.5,
-      side * 1.5, 2.2, 0,
-      side * 1, 1.5, -0.5,
-      side * 0.5, 0.8, 0
-    ]);
-    
-    const indices = [
-      0, 1, 6,
-      1, 2, 6,
-      2, 3, 6,
-      3, 4, 6,
-      4, 5, 6,
-      5, 0, 6
-    ];
-    
-    wingGeometry.setIndex(indices);
-    wingGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-    wingGeometry.computeVertexNormals();
-    
-    const wingMesh = new THREE.Mesh(
-      wingGeometry,
-      new THREE.MeshStandardMaterial({ 
-        color: new THREE.Color('#ff3d00'),
-        emissive: new THREE.Color('#ff7d00'),
-        emissiveIntensity: 0.5,
-        roughness: 0.3,
-        metalness: 0.7
-      })
-    );
-    
-    wingGroup.add(wingMesh);
-    
-    return wingGroup;
-  };
-  
-  // Setup phoenix on mount
-  useEffect(() => {
-    if (phoenixRef.current) {
-      // Add wings
-      const leftWing = createWing(-1);
-      const rightWing = createWing(1);
-      phoenixRef.current.add(leftWing);
-      phoenixRef.current.add(rightWing);
-      
-      // Store refs
-      wingsRef.current = new THREE.Group();
-      wingsRef.current.add(leftWing, rightWing);
-    }
-  }, []);
-  
   // Animation loop
   useFrame((state, delta) => {
-    if (phoenixRef.current) {
-      // Body movement
-      phoenixRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.1;
+    if (figureRef.current) {
+      // Subtle floating movement
+      figureRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
       
-      // Wing flapping
-      if (wingsRef.current) {
-        const wingFlap = Math.sin(state.clock.elapsedTime * 5) * 0.2;
-        wingsRef.current.children[0].rotation.z = Math.PI / 4 + wingFlap;
-        wingsRef.current.children[1].rotation.z = -Math.PI / 4 - wingFlap;
-      }
+      // Subtle rotation
+      figureRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.1;
+      
+      // Cloak movement
+      const cloakParts = figureRef.current.children.filter(child => 
+        child.name.includes('cloak') || child.name.includes('hood')
+      );
+      
+      cloakParts.forEach(part => {
+        if (part.rotation) {
+          part.rotation.z = Math.sin(state.clock.elapsedTime * 0.7) * 0.02;
+        }
+      });
     }
     
-    if (bodyRef.current) {
-      // Pulse based on quantum entanglement
-      const pulse = 1 + Math.sin(state.clock.elapsedTime * 3) * 0.05 * quantumState.entanglement;
-      bodyRef.current.scale.set(pulse, pulse, pulse);
+    if (eyesRef.current) {
+      // Glowing eyes effect
+      const intensity = 1.5 + Math.sin(state.clock.elapsedTime * 2) * 0.5;
+      eyesRef.current.intensity = intensity;
       
-      // Update material color based on emotional state
-      if (bodyRef.current.material) {
-        (bodyRef.current.material as THREE.MeshStandardMaterial).color = getEmotionColor();
-        (bodyRef.current.material as THREE.MeshStandardMaterial).emissive = getEmotionColor();
-        (bodyRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 
-          0.5 + Math.sin(state.clock.elapsedTime * 2) * 0.2 * quantumState.coherence;
-      }
-    }
-    
-    if (flameRef.current) {
-      // Flame intensity based on emotional state
-      const intensity = 1 + 
-        emotionalState.joy * 0.5 + 
-        emotionalState.anger * 0.8 + 
-        emotionalState.anticipation * 0.3;
-      
-      flameRef.current.intensity = intensity;
-      
-      // Flame color based on emotional state
-      const color = getEmotionColor();
-      flameRef.current.color = color;
+      // Eye movement
+      const eyeMovementX = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
+      const eyeMovementY = Math.cos(state.clock.elapsedTime * 0.7) * 0.05;
+      eyesRef.current.position.x = 0 + eyeMovementX;
+      eyesRef.current.position.y = 0.8 + eyeMovementY;
     }
   });
   
   return (
-    <group ref={phoenixRef} position={[0, 0, 0]}>
-      {/* Phoenix body */}
-      <mesh ref={bodyRef}>
-        <sphereGeometry args={[0.7, 16, 16]} />
+    <group ref={figureRef} position={[0, 0, 0]}>
+      {/* Hooded figure body */}
+      <mesh>
+        <cylinderGeometry args={[0.7, 1, 2, 16]} />
         <meshStandardMaterial 
-          color="#ff5d00"
-          emissive="#ff9d00"
-          emissiveIntensity={0.5}
-          roughness={0.3}
-          metalness={0.7}
+          color="#1a1a2e"
+          roughness={0.7}
+          metalness={0.2}
         />
       </mesh>
       
-      {/* Phoenix head */}
-      <mesh position={[0, 0.8, 0.3]}>
-        <sphereGeometry args={[0.3, 16, 16]} />
+      {/* Hood */}
+      <mesh position={[0, 1.2, 0]}>
+        <coneGeometry args={[0.8, 1, 16]} />
         <meshStandardMaterial 
-          color="#ff3d00"
-          emissive="#ff7d00"
-          emissiveIntensity={0.5}
-          roughness={0.3}
-          metalness={0.7}
+          color="#0f0f1a"
+          roughness={0.8}
+          metalness={0.1}
         />
       </mesh>
       
-      {/* Phoenix beak */}
-      <mesh position={[0, 0.8, 0.6]}>
-        <coneGeometry args={[0.1, 0.3, 16]} />
-        <meshStandardMaterial 
-          color="#ffdd00"
-          roughness={0.3}
-          metalness={0.7}
-        />
-      </mesh>
-      
-      {/* Phoenix eyes */}
-      <mesh position={[0.15, 0.9, 0.5]}>
-        <sphereGeometry args={[0.05, 8, 8]} />
-        <meshBasicMaterial color="#ffffff" />
-      </mesh>
-      <mesh position={[-0.15, 0.9, 0.5]}>
-        <sphereGeometry args={[0.05, 8, 8]} />
-        <meshBasicMaterial color="#ffffff" />
-      </mesh>
-      
-      {/* Flame effect */}
+      {/* Glowing red eyes */}
       <pointLight 
-        ref={flameRef}
-        position={[0, 0, 0]} 
-        color="#ff7700" 
-        intensity={1.5} 
-        distance={5}
+        ref={eyesRef}
+        position={[0, 0.8, 0.3]} 
+        color="#ff0000" 
+        intensity={2} 
+        distance={3}
         decay={2}
       />
       
-      {/* Flame particles */}
-      <FireParticles quantumState={quantumState} />
+      {/* Eye shapes */}
+      <mesh position={[0.2, 0.8, 0.3]}>
+        <sphereGeometry args={[0.05, 8, 8]} />
+        <meshBasicMaterial color="#ff0000" />
+      </mesh>
+      <mesh position={[-0.2, 0.8, 0.3]}>
+        <sphereGeometry args={[0.05, 8, 8]} />
+        <meshBasicMaterial color="#ff0000" />
+      </mesh>
+      
+      {/* Hands */}
+      <mesh position={[0.8, 0, 0.3]} rotation={[0, 0, Math.PI / 4]}>
+        <boxGeometry args={[0.1, 0.5, 0.1]} />
+        <meshStandardMaterial color="#1a1a2e" />
+      </mesh>
+      <mesh position={[-0.8, 0, 0.3]} rotation={[0, 0, -Math.PI / 4]}>
+        <boxGeometry args={[0.1, 0.5, 0.1]} />
+        <meshStandardMaterial color="#1a1a2e" />
+      </mesh>
     </group>
   );
 };
 
-// Fire particles that orbit the phoenix
+// Fire particles that orbit the figure
 const FireParticles = ({ quantumState }) => {
   const particlesRef = useRef<THREE.Group>();
   const particleCount = 50;
@@ -264,7 +186,7 @@ const FireParticles = ({ quantumState }) => {
       if (particlesRef.current) {
         const mesh = particlesRef.current.children[i] as THREE.Mesh;
         
-        // Orbit around the phoenix
+        // Orbit around the figure
         const time = state.clock.elapsedTime * particle.speed + particle.offset;
         const radius = 1 + Math.sin(time * 0.5) * 0.3;
         
@@ -405,18 +327,20 @@ export const PhoenixVisualization: React.FC<PhoenixVisualizationProps> = ({
         <pointLight position={[10, 10, 10]} intensity={0.5} />
         <pointLight position={[-10, -10, -10]} color="#80ffff" intensity={0.2} />
         
-        {/* Phoenix model */}
+        {/* Hooded Figure model */}
         <Float
           speed={2}
           rotationIntensity={0.5}
           floatIntensity={0.5}
         >
-          <Phoenix 
+          <HoodedFigure 
             emotionalState={emotionalState} 
             quantumState={quantumState} 
-            visualizationMode={visualizationMode}
           />
         </Float>
+        
+        {/* Fire particles */}
+        <FireParticles quantumState={quantumState} />
         
         {/* Explanation visualization when in explanation mode */}
         {visualizationMode === 'explanation' && explanationContent && (

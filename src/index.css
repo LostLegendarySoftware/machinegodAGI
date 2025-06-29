@@ -55,8 +55,8 @@
 /* Ember and smoke effects */
 .ember {
   position: absolute;
-  width: 2px;
-  height: 2px;
+  width: 3px;
+  height: 3px;
   background: #ff4500;
   border-radius: 50%;
   filter: blur(1px);
@@ -73,11 +73,11 @@
     opacity: 1;
   }
   90% {
-    opacity: 0;
+    opacity: 0.3;
   }
   100% {
     opacity: 0;
-    transform: translateY(-20px) scale(0);
+    transform: translateY(-30px) scale(0);
   }
 }
 
@@ -95,10 +95,58 @@
     transform: translateY(0) scale(1);
   }
   10% {
-    opacity: 0.3;
+    opacity: 0.4;
   }
   100% {
     opacity: 0;
-    transform: translateY(-40px) scale(3);
+    transform: translateY(-50px) scale(3);
+  }
+}
+
+/* Signature animation */
+.signature-animation {
+  position: relative;
+  display: inline-block;
+}
+
+.signature-animation::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  animation: typewriter 3s steps(30) forwards;
+}
+
+/* Glowing eyes animation */
+.glowing-eyes {
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.7));
+  }
+  50% {
+    filter: drop-shadow(0 0 10px rgba(255, 0, 0, 1));
+  }
+}
+
+/* Cloak animation */
+.cloak-animation {
+  animation: cloakMove 8s ease-in-out infinite;
+}
+
+@keyframes cloakMove {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-5px) rotate(-1deg);
+  }
+  75% {
+    transform: translateY(5px) rotate(1deg);
   }
 }
