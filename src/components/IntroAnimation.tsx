@@ -37,7 +37,7 @@ const IntroAnimation: React.FC = () => {
       {/* Title */}
       <div className="relative z-10">
         <div className="flex flex-col items-center">
-          <h1 className="text-5xl md:text-7xl font-cinzel font-bold text-gray-900 tracking-wider relative border-2 border-red-600 px-4 py-2">
+          <h1 className="text-5xl md:text-7xl font-cinzel font-bold text-gray-900 tracking-wider relative px-4 py-2">
             Lost Legendary
             <span className="absolute inset-0 bg-gradient-to-b from-orange-600 via-red-700 to-red-900 bg-clip-text text-transparent opacity-90 blur-[0.5px]"></span>
           </h1>
