@@ -1,12 +1,11 @@
 /**
- * Quantum-Based Trainingless Natural Language Processing (TNLP) System
- * Implements alpha-evolve style neuromorphic evolution with quantum entanglement
- * and isometric layered algorithms for geometric emotional encoding
+ * Quantum Trainingless Natural Language Processing (TNLP) System
+ * Implements a self-bootstrapping NLP system with quantum-inspired algorithms
  */
 
-import { pipeline } from '@xenova/transformers';
-import { ChatSession } from 'webllm';
-import localforage from 'localforage';
+import { pipeline } from "@xenova/transformers";
+import { ChatSession } from "webllm";
+import localforage from "localforage";
 
 // Define the phases of TNLP bootstrapping
 enum TNLPPhase {
@@ -15,44 +14,6 @@ enum TNLPPhase {
   SELF_EMULATION = 'self_emulation',
   VERIFICATION = 'verification',
   INDEPENDENT = 'independent'
-}
-
-// Define the quantum entanglement state
-interface QuantumState {
-  entanglementMatrix: number[][];
-  superpositionVector: number[];
-  collapseHistory: number[];
-  multiverseSimulations: MultiverseSimulation[];
-}
-
-// Define the multiverse simulation
-interface MultiverseSimulation {
-  id: number;
-  probability: number;
-  outcome: string;
-  emotionalResonance: number;
-  truthCompliance: boolean;
-}
-
-// Define the emotional color mapping
-interface EmotionalColorMapping {
-  valence: number; // -1 to 1 (negative to positive)
-  arousal: number; // 0 to 1 (calm to excited)
-  dominance: number; // 0 to 1 (submissive to dominant)
-  colorSpectrum: number[]; // RGB values mapped to emotions
-  frequencySignature: number[]; // Frequency bands associated with emotions
-}
-
-// Define the geometric algorithm
-interface GeometricAlgorithm {
-  id: string;
-  wordNodes: string[];
-  connections: {from: number, to: number, weight: number}[];
-  emotionalMapping: EmotionalColorMapping;
-  frequencyResponse: number[];
-  truthStratification: number;
-  lastActivation: number;
-  activationCount: number;
 }
 
 // Define the performance metrics for TNLP evaluation
@@ -76,8 +37,7 @@ interface TNLPConfig {
   learningRate: number;
   verificationThreshold: number;
   maxIterations: number;
-  multiverseLayerCount: number;
-  quantumEntanglementStrength: number;
+  multiverseLayers: number;
 }
 
 // Define the TNLP system state
@@ -87,11 +47,29 @@ interface TNLPState {
   iterations: number;
   lastInput: string;
   lastOutput: string;
-  geometricAlgorithms: GeometricAlgorithm[];
-  quantumState: QuantumState;
+  internalRepresentations: any[];
   scaffoldActive: boolean;
+  quantumEntanglement: number;
+  algorithmCount: number;
   personalityVector: number[];
-  emotionalHistory: EmotionalColorMapping[];
+}
+
+// Define the quantum entanglement structure
+interface QuantumEntanglement {
+  layer: number;
+  probability: number;
+  emotionalState: number[];
+  truthValue: number;
+}
+
+// Define the isometric algorithm structure
+interface IsometricAlgorithm {
+  id: string;
+  pattern: string;
+  geometry: number[][];
+  frequency: number;
+  emotionalColor: string;
+  truthCompliance: number;
 }
 
 export class QuantumTNLPSystem {
@@ -100,7 +78,10 @@ export class QuantumTNLPSystem {
   private llmSession: ChatSession | null = null;
   private tnlpStorage: typeof localforage;
   private sentenceEncoder: any | null = null;
-  private emotionClassifier: any | null = null;
+  private metricEvaluator: any | null = null;
+  private quantumLayers: QuantumEntanglement[][] = [];
+  private isometricAlgorithms: IsometricAlgorithm[] = [];
+  private emotionalSpectrum: Map<string, number[]> = new Map();
 
   constructor() {
     // Initialize configuration
@@ -112,16 +93,7 @@ export class QuantumTNLPSystem {
       learningRate: 0.01,
       verificationThreshold: 0.85,
       maxIterations: 1000,
-      multiverseLayerCount: 11, // Simulate 11 multiverse layers
-      quantumEntanglementStrength: 0.8
-    };
-
-    // Initialize quantum state
-    const quantumState: QuantumState = {
-      entanglementMatrix: this.createRandomMatrix(16, 16),
-      superpositionVector: this.createRandomVector(16),
-      collapseHistory: [],
-      multiverseSimulations: []
+      multiverseLayers: 11
     };
 
     // Initialize state
@@ -140,11 +112,11 @@ export class QuantumTNLPSystem {
       iterations: 0,
       lastInput: '',
       lastOutput: '',
-      geometricAlgorithms: [],
-      quantumState,
+      internalRepresentations: [],
       scaffoldActive: false,
-      personalityVector: this.createRandomVector(8),
-      emotionalHistory: []
+      quantumEntanglement: 0,
+      algorithmCount: 0,
+      personalityVector: [0.5, 0.5, 0.5, 0.5, 0.5]
     };
 
     // Initialize storage
@@ -152,36 +124,62 @@ export class QuantumTNLPSystem {
       name: 'quantum-tnlp-system'
     });
 
+    // Initialize quantum layers
+    for (let i = 0; i < this.config.multiverseLayers; i++) {
+      this.quantumLayers[i] = [];
+    }
+
     console.log('🧠 Quantum TNLP System initialized - beginning bootstrapping process');
   }
 
   /**
-   * Initialize the TNLP system
+   * Initialize the Quantum TNLP system
    */
   async initialize(): Promise<void> {
     try {
       console.log('🔄 Initializing Quantum TNLP system...');
       
       // Load the LLaMA-based model as a temporary scaffold
-      this.llmSession = await ChatSession.create({
-        model: this.config.modelName,
-        maxTokens: this.config.maxTokens
-      });
+      try {
+        this.llmSession = await ChatSession.create({
+          model: this.config.modelName,
+          maxTokens: this.config.maxTokens
+        });
+      } catch (error) {
+        console.warn('Failed to load WebLLM session, using fallback mode:', error);
+        // Continue without LLM scaffold - we'll use our own algorithms
+      }
       
       // Initialize sentence encoder for semantic evaluation
-      this.sentenceEncoder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+      try {
+        this.sentenceEncoder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+      } catch (error) {
+        console.warn('Failed to load sentence encoder, using fallback mode:', error);
+        // Continue without sentence encoder - we'll use our own algorithms
+      }
       
-      // Initialize emotion classifier
-      this.emotionClassifier = await pipeline('text-classification', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english');
+      // Initialize metric evaluator
+      try {
+        this.metricEvaluator = await pipeline('text-classification', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english');
+      } catch (error) {
+        console.warn('Failed to load metric evaluator, using fallback mode:', error);
+        // Continue without metric evaluator - we'll use our own algorithms
+      }
+      
+      // Initialize emotional spectrum
+      this.initializeEmotionalSpectrum();
       
       // Transition to scaffolding phase
       this.state.phase = TNLPPhase.SCAFFOLDING;
-      this.state.scaffoldActive = true;
+      this.state.scaffoldActive = this.llmSession !== null;
       
       console.log('✅ Quantum TNLP initialization complete - scaffold model loaded');
       
       // Load any existing TNLP state from storage
       await this.loadState();
+      
+      // Initialize isometric algorithms
+      await this.initializeIsometricAlgorithms();
       
     } catch (error) {
       console.error('❌ Quantum TNLP initialization failed:', error);
@@ -190,7 +188,112 @@ export class QuantumTNLPSystem {
   }
 
   /**
-   * Process input through the TNLP system
+   * Initialize emotional spectrum
+   */
+  private initializeEmotionalSpectrum(): void {
+    // Map emotions to color frequencies and vectors
+    this.emotionalSpectrum.set('joy', [0.8, 0.9, 0.2, 0.1, 0.7]);
+    this.emotionalSpectrum.set('sadness', [0.2, 0.3, 0.7, 0.8, 0.1]);
+    this.emotionalSpectrum.set('anger', [0.9, 0.2, 0.1, 0.3, 0.1]);
+    this.emotionalSpectrum.set('fear', [0.3, 0.2, 0.8, 0.7, 0.2]);
+    this.emotionalSpectrum.set('surprise', [0.7, 0.8, 0.3, 0.2, 0.9]);
+    this.emotionalSpectrum.set('disgust', [0.4, 0.1, 0.2, 0.7, 0.3]);
+    this.emotionalSpectrum.set('trust', [0.5, 0.7, 0.6, 0.3, 0.8]);
+    this.emotionalSpectrum.set('anticipation', [0.6, 0.8, 0.4, 0.2, 0.7]);
+  }
+
+  /**
+   * Initialize isometric algorithms
+   */
+  private async initializeIsometricAlgorithms(): Promise<void> {
+    // Check if we have stored algorithms
+    const storedAlgorithms = await this.tnlpStorage.getItem('isometricAlgorithms');
+    
+    if (storedAlgorithms) {
+      this.isometricAlgorithms = storedAlgorithms as IsometricAlgorithm[];
+      this.state.algorithmCount = this.isometricAlgorithms.length;
+      console.log(`📂 Loaded ${this.isometricAlgorithms.length} isometric algorithms`);
+      return;
+    }
+    
+    // Create initial seed algorithms
+    const seedPatterns = [
+      'I understand your question',
+      'That\'s an interesting perspective',
+      'Let me think about that',
+      'Based on what you\'ve said',
+      'There are several ways to approach this',
+      'The key insight here is',
+      'This reminds me of',
+      'To answer your question',
+      'I\'d like to explore this further',
+      'Let\'s analyze this step by step'
+    ];
+    
+    for (const pattern of seedPatterns) {
+      const algorithm: IsometricAlgorithm = {
+        id: `algo_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        pattern,
+        geometry: this.generateGeometry(pattern),
+        frequency: 0.5 + Math.random() * 0.5,
+        emotionalColor: this.getEmotionalColor('trust'),
+        truthCompliance: 0.8 + Math.random() * 0.2
+      };
+      
+      this.isometricAlgorithms.push(algorithm);
+    }
+    
+    this.state.algorithmCount = this.isometricAlgorithms.length;
+    console.log(`✨ Created ${this.isometricAlgorithms.length} seed isometric algorithms`);
+  }
+
+  /**
+   * Generate geometric representation of a pattern
+   */
+  private generateGeometry(pattern: string): number[][] {
+    const words = pattern.split(/\s+/);
+    const geometry: number[][] = [];
+    
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      const vector = [];
+      
+      // Generate a 5-dimensional vector for each word
+      for (let j = 0; j < 5; j++) {
+        // Use character codes to generate vector components
+        let sum = 0;
+        for (let k = 0; k < word.length; k++) {
+          sum += word.charCodeAt(k) * (j + 1);
+        }
+        vector.push((sum % 100) / 100); // Normalize to 0-1
+      }
+      
+      geometry.push(vector);
+    }
+    
+    return geometry;
+  }
+
+  /**
+   * Get emotional color based on emotion
+   */
+  private getEmotionalColor(emotion: string): string {
+    const emotionColors: Record<string, string> = {
+      'joy': '#FFD700', // Gold
+      'sadness': '#4682B4', // Steel Blue
+      'anger': '#FF4500', // Red Orange
+      'fear': '#800080', // Purple
+      'surprise': '#00FFFF', // Cyan
+      'disgust': '#006400', // Dark Green
+      'trust': '#32CD32', // Lime Green
+      'anticipation': '#FFA500' // Orange
+    };
+    
+    return emotionColors[emotion] || '#FFFFFF';
+  }
+
+  /**
+   * Process input through the Quantum TNLP system
    */
   async process(input: string): Promise<string> {
     // Increment iteration counter
@@ -203,29 +306,41 @@ export class QuantumTNLPSystem {
       // Process based on current phase
       switch (this.state.phase) {
         case TNLPPhase.SCAFFOLDING:
-          // Use LLaMA scaffold to process input
-          output = await this.processWithScaffold(input);
-          // Begin building geometric algorithms
-          await this.buildGeometricAlgorithms(input, output);
+          // Use LLaMA scaffold to process input if available
+          if (this.llmSession) {
+            output = await this.processWithScaffold(input);
+          } else {
+            // Fallback to quantum processing
+            output = await this.processWithQuantumTNLP(input);
+          }
+          // Begin building internal representations
+          await this.buildInternalRepresentations(input, output);
           break;
           
         case TNLPPhase.SELF_EMULATION:
           // Use both scaffold and emerging TNLP system
-          const scaffoldOutput = await this.processWithScaffold(input);
+          let scaffoldOutput = '';
+          if (this.llmSession) {
+            scaffoldOutput = await this.processWithScaffold(input);
+          }
           const tnlpOutput = await this.processWithQuantumTNLP(input);
           
           // Compare outputs and learn from differences
-          await this.learnFromComparison(input, scaffoldOutput, tnlpOutput);
+          await this.learnFromComparison(input, scaffoldOutput || tnlpOutput, tnlpOutput);
           
           // Use scaffold output but gradually transition
           const blendFactor = Math.min(0.8, this.state.iterations / this.config.maxIterations);
-          output = this.blendOutputs(scaffoldOutput, tnlpOutput, blendFactor);
+          output = scaffoldOutput ? 
+            this.blendOutputs(scaffoldOutput, tnlpOutput, blendFactor) : 
+            tnlpOutput;
           break;
           
         case TNLPPhase.VERIFICATION:
           // Use TNLP system but verify with scaffold
           output = await this.processWithQuantumTNLP(input);
-          await this.verifyOutput(input, output);
+          if (this.llmSession) {
+            await this.verifyOutput(input, output);
+          }
           break;
           
         case TNLPPhase.INDEPENDENT:
@@ -270,846 +385,496 @@ export class QuantumTNLPSystem {
       throw new Error('Scaffold model not initialized');
     }
     
-    const response = await this.llmSession.generate({
-      prompt: input,
-      temperature: this.config.temperatureScaffold,
-      max_tokens: this.config.maxTokens
-    });
-    
-    return response.text;
+    try {
+      const response = await this.llmSession.generate({
+        prompt: input,
+        temperature: this.config.temperatureScaffold,
+        max_tokens: this.config.maxTokens
+      });
+      
+      return response.text;
+    } catch (error) {
+      console.error('Scaffold processing error:', error);
+      // Fallback to quantum processing
+      return this.processWithQuantumTNLP(input);
+    }
   }
 
   /**
-   * Process input using the quantum TNLP system
+   * Process input using the Quantum TNLP system
    */
   private async processWithQuantumTNLP(input: string): Promise<string> {
-    // This is where the quantum TNLP magic happens
+    // This is where the quantum magic happens
     
-    // 1. Analyze input and create quantum representation
-    const inputAnalysis = await this.analyzeInput(input);
+    // 1. Analyze input using quantum entanglement
+    const inputAnalysis = await this.analyzeInputWithQuantum(input);
     
-    // 2. Simulate multiverse layers
-    const multiverseSimulations = await this.simulateMultiverseLayers(inputAnalysis);
+    // 2. Simulate across multiverse layers
+    const multiverseSimulations = this.simulateMultiverseLayers(inputAnalysis);
     
-    // 3. Collapse quantum state to generate response
-    const generatedResponse = await this.collapseQuantumState(multiverseSimulations);
+    // 3. Compress multiverse simulations
+    const compressedSimulation = this.compressMultiverseSimulations(multiverseSimulations);
     
-    // 4. Apply emotional color mapping
-    const emotionallyEnhanced = await this.applyEmotionalColorMapping(generatedResponse);
+    // 4. Apply truth stratification
+    const truthStratified = this.applyTruthStratification(compressedSimulation);
     
-    // 5. Apply truth stratification
-    const truthFiltered = await this.applyTruthStratification(emotionallyEnhanced);
+    // 5. Generate response using isometric algorithms
+    const response = this.generateResponseFromIsometricAlgorithms(truthStratified);
     
-    return truthFiltered;
+    // 6. Update quantum entanglement
+    this.updateQuantumEntanglement(input, response);
+    
+    return response;
   }
 
   /**
-   * Analyze input and create quantum representation
+   * Analyze input using quantum entanglement
    */
-  private async analyzeInput(input: string): Promise<any> {
+  private async analyzeInputWithQuantum(input: string): Promise<any> {
     // Split input into tokens (simple whitespace tokenization for now)
     const tokens = input.split(/\s+/);
     
-    // Find matching patterns in our geometric algorithms
-    const matchingAlgorithms = this.state.geometricAlgorithms.filter(algo => {
-      // Check for word node overlap
-      return algo.wordNodes.some(word => tokens.includes(word));
-    });
+    // Calculate emotional resonance
+    const emotionalResonance = this.calculateEmotionalResonance(input);
     
-    // Calculate semantic vector if we have a sentence encoder
-    let semanticVector = null;
-    if (this.sentenceEncoder) {
-      semanticVector = await this.sentenceEncoder(input);
-    }
+    // Calculate truth compliance
+    const truthCompliance = this.calculateTruthCompliance(input);
     
-    // Calculate emotional response
-    let emotionalMapping = null;
-    if (this.emotionClassifier) {
-      const emotion = await this.emotionClassifier(input);
-      emotionalMapping = this.mapEmotionToColor(emotion[0].label, emotion[0].score);
-    }
+    // Generate quantum state for input
+    const quantumState = this.generateQuantumState(input);
     
-    // Update quantum state based on input
-    this.updateQuantumState(tokens, semanticVector, emotionalMapping);
+    // Find matching isometric algorithms
+    const matchingAlgorithms = this.findMatchingAlgorithms(input);
     
     return {
       tokens,
+      emotionalResonance,
+      truthCompliance,
+      quantumState,
       matchingAlgorithms,
-      semanticVector,
-      emotionalMapping,
-      length: input.length,
       complexity: this.calculateComplexity(input)
     };
   }
 
   /**
-   * Update quantum state based on input
+   * Calculate emotional resonance of input
    */
-  private updateQuantumState(tokens: string[], semanticVector: any, emotionalMapping: EmotionalColorMapping | null): void {
-    // Update superposition vector based on tokens
-    const tokenInfluence = tokens.map(token => {
-      // Hash token to a number between 0 and 1
-      let hash = 0;
-      for (let i = 0; i < token.length; i++) {
-        hash = ((hash << 5) - hash) + token.charCodeAt(i);
-        hash |= 0; // Convert to 32bit integer
-      }
-      return Math.abs(hash) / 2147483647; // Normalize to 0-1
-    });
+  private calculateEmotionalResonance(input: string): {
+    dominantEmotion: string;
+    vector: number[];
+    intensity: number;
+  } {
+    // Simple emotional analysis based on keywords
+    const emotionKeywords: Record<string, string[]> = {
+      'joy': ['happy', 'joy', 'glad', 'wonderful', 'great', 'excellent'],
+      'sadness': ['sad', 'unhappy', 'depressed', 'miserable', 'unfortunate'],
+      'anger': ['angry', 'mad', 'furious', 'outraged', 'annoyed'],
+      'fear': ['afraid', 'scared', 'frightened', 'terrified', 'worried'],
+      'surprise': ['surprised', 'amazed', 'astonished', 'shocked'],
+      'disgust': ['disgusted', 'revolted', 'repulsed', 'gross'],
+      'trust': ['trust', 'believe', 'confident', 'faith', 'reliable'],
+      'anticipation': ['expect', 'anticipate', 'look forward', 'await']
+    };
     
-    // Average token influences
-    const avgInfluence = tokenInfluence.reduce((sum, val) => sum + val, 0) / Math.max(1, tokenInfluence.length);
+    const lowerInput = input.toLowerCase();
+    const emotionScores: Record<string, number> = {};
     
-    // Update superposition vector
-    this.state.quantumState.superpositionVector = this.state.quantumState.superpositionVector.map(
-      val => (val + avgInfluence) / 2
-    );
+    // Calculate scores for each emotion
+    for (const [emotion, keywords] of Object.entries(emotionKeywords)) {
+      emotionScores[emotion] = keywords.reduce((score, keyword) => {
+        return score + (lowerInput.includes(keyword) ? 1 : 0);
+      }, 0);
+    }
     
-    // Update entanglement matrix based on token co-occurrence
-    for (let i = 0; i < tokens.length; i++) {
-      for (let j = i + 1; j < tokens.length; j++) {
-        // Calculate token pair influence
-        const token1 = tokens[i];
-        const token2 = tokens[j];
-        const pairInfluence = (this.hashString(token1) * this.hashString(token2)) % 1;
-        
-        // Update entanglement matrix
-        const idx1 = i % this.state.quantumState.entanglementMatrix.length;
-        const idx2 = j % this.state.quantumState.entanglementMatrix[0].length;
-        this.state.quantumState.entanglementMatrix[idx1][idx2] = 
-          (this.state.quantumState.entanglementMatrix[idx1][idx2] + pairInfluence) / 2;
-        this.state.quantumState.entanglementMatrix[idx2][idx1] = 
-          this.state.quantumState.entanglementMatrix[idx1][idx2]; // Symmetry
+    // Find dominant emotion
+    let dominantEmotion = 'neutral';
+    let maxScore = 0;
+    
+    for (const [emotion, score] of Object.entries(emotionScores)) {
+      if (score > maxScore) {
+        maxScore = score;
+        dominantEmotion = emotion;
       }
     }
     
-    // If we have emotional mapping, update personality vector
-    if (emotionalMapping) {
-      // Update personality vector based on emotional valence and arousal
-      this.state.personalityVector[0] = (this.state.personalityVector[0] * 0.9) + (emotionalMapping.valence * 0.1);
-      this.state.personalityVector[1] = (this.state.personalityVector[1] * 0.9) + (emotionalMapping.arousal * 0.1);
-      this.state.personalityVector[2] = (this.state.personalityVector[2] * 0.9) + (emotionalMapping.dominance * 0.1);
-      
-      // Add to emotional history
-      this.state.emotionalHistory.push(emotionalMapping);
-      if (this.state.emotionalHistory.length > 50) {
-        this.state.emotionalHistory.shift(); // Keep last 50 emotions
-      }
-    }
+    // Get emotional vector
+    const vector = this.emotionalSpectrum.get(dominantEmotion) || [0.5, 0.5, 0.5, 0.5, 0.5];
+    
+    // Calculate intensity
+    const intensity = maxScore > 0 ? Math.min(1, maxScore / 3) : 0.5;
+    
+    return {
+      dominantEmotion,
+      vector,
+      intensity
+    };
   }
 
   /**
-   * Simulate multiverse layers
+   * Calculate truth compliance of input
    */
-  private async simulateMultiverseLayers(inputAnalysis: any): Promise<MultiverseSimulation[]> {
-    const simulations: MultiverseSimulation[] = [];
+  private calculateTruthCompliance(input: string): number {
+    // Simple truth compliance check based on logical consistency
+    const contradictionIndicators = [
+      'and not', 'but not', 'yet not', 'while not',
+      'impossible', 'never', 'always', 'all', 'none'
+    ];
     
-    // Clear previous simulations
-    this.state.quantumState.multiverseSimulations = [];
+    const lowerInput = input.toLowerCase();
     
-    // Generate simulations for each multiverse layer
-    for (let layer = 0; layer < this.config.multiverseLayerCount; layer++) {
-      // Generate possible responses for this layer
-      const possibleResponses = await this.generatePossibleResponses(inputAnalysis, layer);
-      
-      // For each possible response, create a simulation
-      for (const response of possibleResponses) {
-        // Calculate probability based on quantum state
-        const probability = this.calculateResponseProbability(response, layer);
-        
-        // Calculate emotional resonance
-        const emotionalResonance = await this.calculateEmotionalResonance(response);
-        
-        // Check truth compliance
-        const truthCompliance = this.checkTruthCompliance(response);
-        
-        // Create simulation
-        const simulation: MultiverseSimulation = {
-          id: simulations.length,
-          probability,
-          outcome: response,
-          emotionalResonance,
-          truthCompliance
-        };
-        
-        simulations.push(simulation);
+    // Check for potential contradictions
+    const contradictionCount = contradictionIndicators.reduce((count, indicator) => {
+      return count + (lowerInput.includes(indicator) ? 1 : 0);
+    }, 0);
+    
+    // Higher contradiction count = lower truth compliance
+    return Math.max(0.5, 1 - (contradictionCount * 0.1));
+  }
+
+  /**
+   * Generate quantum state for input
+   */
+  private generateQuantumState(input: string): number[] {
+    const state = [];
+    
+    // Generate a quantum state vector based on input
+    for (let i = 0; i < 8; i++) {
+      // Use character codes to generate vector components
+      let sum = 0;
+      for (let j = 0; j < input.length; j++) {
+        sum += input.charCodeAt(j) * Math.sin(i * j);
       }
+      state.push((Math.sin(sum) + 1) / 2); // Normalize to 0-1
     }
     
-    // Store simulations in quantum state
-    this.state.quantumState.multiverseSimulations = simulations;
+    return state;
+  }
+
+  /**
+   * Find matching isometric algorithms for input
+   */
+  private findMatchingAlgorithms(input: string): IsometricAlgorithm[] {
+    const tokens = input.toLowerCase().split(/\s+/);
+    
+    // Find algorithms with matching patterns
+    return this.isometricAlgorithms.filter(algo => {
+      const algoTokens = algo.pattern.toLowerCase().split(/\s+/);
+      return algoTokens.some(token => tokens.includes(token));
+    });
+  }
+
+  /**
+   * Simulate across multiverse layers
+   */
+  private simulateMultiverseLayers(inputAnalysis: any): any[] {
+    const simulations = [];
+    
+    // Simulate across all multiverse layers
+    for (let i = 0; i < this.config.multiverseLayers; i++) {
+      // Each layer has a different probability distribution
+      const layerProbability = 1 - (i / this.config.multiverseLayers);
+      
+      // Generate a simulation for this layer
+      const simulation = {
+        layer: i,
+        probability: layerProbability,
+        emotionalState: inputAnalysis.emotionalResonance.vector.map((v: number) => 
+          v * layerProbability + Math.random() * (1 - layerProbability)
+        ),
+        truthValue: inputAnalysis.truthCompliance * layerProbability,
+        potentialResponses: this.generatePotentialResponses(
+          inputAnalysis.matchingAlgorithms,
+          layerProbability
+        )
+      };
+      
+      simulations.push(simulation);
+      
+      // Store in quantum layers
+      this.quantumLayers[i].push({
+        layer: i,
+        probability: layerProbability,
+        emotionalState: simulation.emotionalState,
+        truthValue: simulation.truthValue
+      });
+      
+      // Limit the size of each layer
+      if (this.quantumLayers[i].length > 100) {
+        this.quantumLayers[i] = this.quantumLayers[i].slice(-100);
+      }
+    }
     
     return simulations;
   }
 
   /**
-   * Generate possible responses for a multiverse layer
+   * Generate potential responses for a multiverse layer
    */
-  private async generatePossibleResponses(inputAnalysis: any, layer: number): Promise<string[]> {
-    const responses: string[] = [];
+  private generatePotentialResponses(
+    matchingAlgorithms: IsometricAlgorithm[],
+    probability: number
+  ): string[] {
+    const responses = [];
     
-    // If we have matching algorithms, use them to generate responses
-    if (inputAnalysis.matchingAlgorithms.length > 0) {
-      // Sort algorithms by activation count (most used first)
-      const sortedAlgorithms = [...inputAnalysis.matchingAlgorithms].sort(
-        (a, b) => b.activationCount - a.activationCount
-      );
-      
-      // Take top algorithms based on layer
-      const topCount = Math.max(1, Math.min(5, sortedAlgorithms.length - layer));
-      const selectedAlgorithms = sortedAlgorithms.slice(0, topCount);
-      
-      // Generate response from each algorithm
-      for (const algo of selectedAlgorithms) {
-        const response = this.generateResponseFromAlgorithm(algo, inputAnalysis);
-        responses.push(response);
-        
-        // Update algorithm activation
-        algo.lastActivation = Date.now();
-        algo.activationCount++;
+    // If we have matching algorithms, use them
+    if (matchingAlgorithms.length > 0) {
+      for (const algo of matchingAlgorithms) {
+        responses.push(algo.pattern);
       }
     }
     
-    // If we don't have enough responses, generate some from scratch
-    if (responses.length < 3) {
-      // Generate responses from emotional history
-      if (this.state.emotionalHistory.length > 0) {
-        const emotionalResponses = this.generateResponsesFromEmotionalHistory(
-          inputAnalysis, 3 - responses.length
-        );
-        responses.push(...emotionalResponses);
-      }
-    }
-    
-    // If we still don't have enough responses, generate random ones
-    if (responses.length < 3) {
-      const randomResponses = this.generateRandomResponses(
-        inputAnalysis, 3 - responses.length
-      );
-      responses.push(...randomResponses);
-    }
-    
-    return responses;
-  }
-
-  /**
-   * Generate response from a geometric algorithm
-   */
-  private generateResponseFromAlgorithm(algorithm: GeometricAlgorithm, inputAnalysis: any): string {
-    // Extract relevant word nodes from the algorithm
-    const relevantNodes = algorithm.wordNodes.filter(
-      word => inputAnalysis.tokens.includes(word)
+    // Add some random algorithms for diversity
+    const randomAlgorithms = this.selectRandomElements(
+      this.isometricAlgorithms,
+      3
     );
     
-    // If we have relevant nodes, use them to generate a response
-    if (relevantNodes.length > 0) {
-      // Find connections between relevant nodes
-      const connections = algorithm.connections.filter(
-        conn => relevantNodes.includes(algorithm.wordNodes[conn.from]) || 
-                relevantNodes.includes(algorithm.wordNodes[conn.to])
-      );
-      
-      // Generate response based on connections
-      let response = '';
-      
-      // Start with a random relevant node
-      const startNode = relevantNodes[Math.floor(Math.random() * relevantNodes.length)];
-      response += startNode + ' ';
-      
-      // Follow connections to build response
-      let currentNodeIndex = algorithm.wordNodes.indexOf(startNode);
-      let wordCount = 1;
-      
-      while (wordCount < 20) {
-        // Find outgoing connections from current node
-        const outgoingConnections = connections.filter(conn => conn.from === currentNodeIndex);
-        
-        if (outgoingConnections.length === 0) break;
-        
-        // Choose a random connection weighted by connection strength
-        const totalWeight = outgoingConnections.reduce((sum, conn) => sum + conn.weight, 0);
-        let randomWeight = Math.random() * totalWeight;
-        let selectedConnection = outgoingConnections[0];
-        
-        for (const conn of outgoingConnections) {
-          randomWeight -= conn.weight;
-          if (randomWeight <= 0) {
-            selectedConnection = conn;
-            break;
-          }
-        }
-        
-        // Add the connected word to the response
-        const nextWord = algorithm.wordNodes[selectedConnection.to];
-        response += nextWord + ' ';
-        
-        // Update current node
-        currentNodeIndex = selectedConnection.to;
-        wordCount++;
+    for (const algo of randomAlgorithms) {
+      if (!responses.includes(algo.pattern)) {
+        responses.push(algo.pattern);
       }
-      
-      // Apply emotional coloring based on algorithm's emotional mapping
-      response = this.colorWithEmotion(response, algorithm.emotionalMapping);
-      
-      return response.trim();
-    }
-    
-    // Fallback: return a generic response
-    return "I'm processing that input through my evolving algorithms.";
-  }
-
-  /**
-   * Generate responses from emotional history
-   */
-  private generateResponsesFromEmotionalHistory(inputAnalysis: any, count: number): string[] {
-    const responses: string[] = [];
-    
-    // Get recent emotional history
-    const recentEmotions = this.state.emotionalHistory.slice(-10);
-    
-    // Generate responses based on emotional patterns
-    for (let i = 0; i < count && i < recentEmotions.length; i++) {
-      const emotion = recentEmotions[recentEmotions.length - 1 - i];
-      
-      // Generate response based on emotional valence
-      let response = '';
-      
-      if (emotion.valence > 0.5) {
-        // Positive emotion
-        response = "I sense a positive emotional pattern in our interaction. ";
-      } else if (emotion.valence < -0.5) {
-        // Negative emotion
-        response = "I detect a challenging emotional pattern emerging. ";
-      } else {
-        // Neutral emotion
-        response = "I'm processing your input with neutral emotional resonance. ";
-      }
-      
-      // Add context based on arousal
-      if (emotion.arousal > 0.7) {
-        response += "Your input has high intensity. ";
-      } else if (emotion.arousal < 0.3) {
-        response += "Your communication has a calm quality. ";
-      }
-      
-      // Add personality based on dominance
-      if (emotion.dominance > 0.7) {
-        response += "I'll respond with clarity and directness.";
-      } else if (emotion.dominance < 0.3) {
-        response += "I'll offer a supportive perspective.";
-      } else {
-        response += "I'm balancing multiple perspectives in my response.";
-      }
-      
-      responses.push(response);
     }
     
     return responses;
   }
 
   /**
-   * Generate random responses
+   * Compress multiverse simulations
    */
-  private generateRandomResponses(inputAnalysis: any, count: number): string[] {
-    const responses: string[] = [];
+  private compressMultiverseSimulations(simulations: any[]): any {
+    // Weight simulations by probability
+    const weightedResponses = new Map<string, number>();
     
-    const templates = [
-      "I'm processing your input about {topic}.",
-      "My evolving algorithms are analyzing {topic}.",
-      "I'm developing a response to your query about {topic}.",
-      "My quantum-based system is considering {topic}.",
-      "I'm formulating thoughts about {topic} through my neuromorphic architecture."
-    ];
-    
-    // Extract topic from input
-    const topic = inputAnalysis.tokens.length > 0 ? 
-      inputAnalysis.tokens[Math.floor(Math.random() * inputAnalysis.tokens.length)] : 
-      "this topic";
-    
-    // Generate responses
-    for (let i = 0; i < count; i++) {
-      const template = templates[Math.floor(Math.random() * templates.length)];
-      const response = template.replace('{topic}', topic);
-      responses.push(response);
-    }
-    
-    return responses;
-  }
-
-  /**
-   * Calculate probability of a response based on quantum state
-   */
-  private calculateResponseProbability(response: string, layer: number): number {
-    // Base probability
-    let probability = 0.5;
-    
-    // Adjust based on layer (deeper layers have lower probability)
-    probability *= (1 - (layer / this.config.multiverseLayerCount) * 0.5);
-    
-    // Adjust based on response length (prefer medium-length responses)
-    const words = response.split(/\s+/).length;
-    const lengthFactor = Math.exp(-Math.pow((words - 15) / 10, 2));
-    probability *= lengthFactor;
-    
-    // Adjust based on quantum entanglement
-    const entanglementFactor = this.calculateEntanglementFactor(response);
-    probability *= entanglementFactor;
-    
-    return Math.min(1, Math.max(0, probability));
-  }
-
-  /**
-   * Calculate entanglement factor for a response
-   */
-  private calculateEntanglementFactor(response: string): number {
-    // Calculate average entanglement from quantum state
-    const entanglementMatrix = this.state.quantumState.entanglementMatrix;
-    const avgEntanglement = entanglementMatrix.reduce(
-      (sum, row) => sum + row.reduce((rowSum, val) => rowSum + val, 0), 
-      0
-    ) / (entanglementMatrix.length * entanglementMatrix[0].length);
-    
-    // Adjust based on response complexity
-    const complexity = this.calculateComplexity(response);
-    
-    return avgEntanglement * (1 + complexity / 10);
-  }
-
-  /**
-   * Calculate emotional resonance for a response
-   */
-  private async calculateEmotionalResonance(response: string): Promise<number> {
-    // If we have an emotion classifier, use it
-    if (this.emotionClassifier) {
-      try {
-        const emotion = await this.emotionClassifier(response);
-        
-        // Calculate resonance based on emotion score and personality vector
-        const emotionScore = emotion[0].score;
-        const personalityAlignment = this.calculatePersonalityAlignment(emotion[0].label);
-        
-        return emotionScore * personalityAlignment;
-      } catch (error) {
-        console.error('Error calculating emotional resonance:', error);
+    for (const sim of simulations) {
+      for (const response of sim.potentialResponses) {
+        const currentWeight = weightedResponses.get(response) || 0;
+        weightedResponses.set(response, currentWeight + sim.probability);
       }
     }
     
-    // Fallback: calculate based on word sentiment
-    const positiveWords = ['good', 'great', 'excellent', 'amazing', 'wonderful', 'positive', 'happy'];
-    const negativeWords = ['bad', 'terrible', 'awful', 'negative', 'sad', 'angry', 'upset'];
+    // Sort responses by weight
+    const sortedResponses = Array.from(weightedResponses.entries())
+      .sort((a, b) => b[1] - a[1]);
     
-    const words = response.toLowerCase().split(/\s+/);
-    const positiveCount = words.filter(word => positiveWords.includes(word)).length;
-    const negativeCount = words.filter(word => negativeWords.includes(word)).length;
+    // Take top responses
+    const topResponses = sortedResponses.slice(0, 3).map(([response]) => response);
     
-    // Calculate net sentiment
-    const totalWords = words.length;
-    const netSentiment = (positiveCount - negativeCount) / Math.max(1, totalWords);
+    // Calculate average emotional state across layers
+    const avgEmotionalState = simulations.reduce((acc, sim) => {
+      return acc.map((v: number, i: number) => v + sim.emotionalState[i] * sim.probability);
+    }, [0, 0, 0, 0, 0]).map((v: number) => v / simulations.reduce((sum, sim) => sum + sim.probability, 0));
     
-    // Adjust based on personality vector
-    const personalityFactor = (this.state.personalityVector[0] + 1) / 2; // Convert from [-1,1] to [0,1]
-    
-    return 0.5 + netSentiment * personalityFactor;
-  }
-
-  /**
-   * Calculate personality alignment with an emotion
-   */
-  private calculatePersonalityAlignment(emotion: string): number {
-    // Map emotion to personality vector indices
-    const emotionMap: {[key: string]: number} = {
-      'positive': 0, // Valence
-      'negative': 0,
-      'excited': 1, // Arousal
-      'calm': 1,
-      'dominant': 2, // Dominance
-      'submissive': 2
-    };
-    
-    // If emotion is not mapped, return neutral alignment
-    if (!(emotion in emotionMap)) {
-      return 0.5;
-    }
-    
-    // Get personality vector component
-    const personalityIndex = emotionMap[emotion];
-    const personalityValue = this.state.personalityVector[personalityIndex];
-    
-    // Calculate alignment based on emotion and personality
-    if (emotion === 'positive' || emotion === 'excited' || emotion === 'dominant') {
-      return (personalityValue + 1) / 2; // Convert from [-1,1] to [0,1]
-    } else {
-      return (1 - personalityValue) / 2; // Inverse alignment for negative emotions
-    }
-  }
-
-  /**
-   * Check truth compliance for a response
-   */
-  private checkTruthCompliance(response: string): boolean {
-    // Check for contradictions
-    const contradictions = this.detectContradictions(response);
-    
-    // Check for hallucinations
-    const hallucinations = this.detectHallucinations(response);
-    
-    // Check for logical inconsistencies
-    const logicalInconsistencies = this.detectLogicalInconsistencies(response);
-    
-    return !contradictions && !hallucinations && !logicalInconsistencies;
-  }
-
-  /**
-   * Detect contradictions in text
-   */
-  private detectContradictions(text: string): boolean {
-    // Simple contradiction detection
-    const contradictionPatterns = [
-      ['is', 'is not'],
-      ['can', 'cannot'],
-      ['will', 'will not'],
-      ['always', 'never'],
-      ['all', 'none']
-    ];
-    
-    const words = text.toLowerCase().split(/\s+/);
-    
-    for (const [word1, word2] of contradictionPatterns) {
-      if (words.includes(word1) && words.includes(word2)) {
-        return true;
-      }
-    }
-    
-    return false;
-  }
-
-  /**
-   * Detect hallucinations in text
-   */
-  private detectHallucinations(text: string): boolean {
-    // Simple hallucination detection
-    const hallucinationIndicators = [
-      'I know for certain',
-      'I am 100% sure',
-      'I guarantee',
-      'I promise',
-      'I can confirm'
-    ];
-    
-    for (const indicator of hallucinationIndicators) {
-      if (text.toLowerCase().includes(indicator.toLowerCase())) {
-        return true;
-      }
-    }
-    
-    return false;
-  }
-
-  /**
-   * Detect logical inconsistencies in text
-   */
-  private detectLogicalInconsistencies(text: string): boolean {
-    // Simple logical inconsistency detection
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    
-    if (sentences.length < 2) {
-      return false;
-    }
-    
-    // Check for contradictory statements
-    for (let i = 0; i < sentences.length; i++) {
-      for (let j = i + 1; j < sentences.length; j++) {
-        if (this.areContradictory(sentences[i], sentences[j])) {
-          return true;
-        }
-      }
-    }
-    
-    return false;
-  }
-
-  /**
-   * Check if two sentences are contradictory
-   */
-  private areContradictory(sentence1: string, sentence2: string): boolean {
-    // Simple contradiction check
-    const words1 = sentence1.toLowerCase().split(/\s+/);
-    const words2 = sentence2.toLowerCase().split(/\s+/);
-    
-    // Check for negation
-    const hasNegation1 = words1.some(word => ['not', 'never', 'no', 'cannot', "don't", "doesn't", "isn't"].includes(word));
-    const hasNegation2 = words2.some(word => ['not', 'never', 'no', 'cannot', "don't", "doesn't", "isn't"].includes(word));
-    
-    // If one has negation and the other doesn't, check for similar content
-    if (hasNegation1 !== hasNegation2) {
-      // Remove negation words
-      const content1 = words1.filter(word => !['not', 'never', 'no', 'cannot', "don't", "doesn't", "isn't"].includes(word));
-      const content2 = words2.filter(word => !['not', 'never', 'no', 'cannot', "don't", "doesn't", "isn't"].includes(word));
-      
-      // Calculate overlap
-      const overlap = content1.filter(word => content2.includes(word)).length;
-      const overlapRatio = overlap / Math.min(content1.length, content2.length);
-      
-      return overlapRatio > 0.5;
-    }
-    
-    return false;
-  }
-
-  /**
-   * Collapse quantum state to generate response
-   */
-  private async collapseQuantumState(simulations: MultiverseSimulation[]): Promise<string> {
-    // Filter out non-compliant simulations
-    const compliantSimulations = simulations.filter(sim => sim.truthCompliance);
-    
-    if (compliantSimulations.length === 0) {
-      // If no compliant simulations, use all simulations
-      console.warn('No truth-compliant simulations found, using all simulations');
-    }
-    
-    const candidateSimulations = compliantSimulations.length > 0 ? compliantSimulations : simulations;
-    
-    // Calculate total probability
-    const totalProbability = candidateSimulations.reduce((sum, sim) => sum + sim.probability, 0);
-    
-    // Normalize probabilities
-    const normalizedSimulations = candidateSimulations.map(sim => ({
-      ...sim,
-      probability: sim.probability / totalProbability
-    }));
-    
-    // Apply emotional resonance as a weight
-    const weightedSimulations = normalizedSimulations.map(sim => ({
-      ...sim,
-      weight: sim.probability * (0.5 + sim.emotionalResonance / 2)
-    }));
-    
-    // Sort by weight
-    weightedSimulations.sort((a, b) => b.weight - a.weight);
-    
-    // Select top simulation
-    const selectedSimulation = weightedSimulations[0];
-    
-    // Record collapse in history
-    this.state.quantumState.collapseHistory.push(selectedSimulation.id);
-    
-    return selectedSimulation.outcome;
-  }
-
-  /**
-   * Apply emotional color mapping to response
-   */
-  private async applyEmotionalColorMapping(response: string): Promise<string> {
-    // If we have an emotion classifier, use it
-    if (this.emotionClassifier) {
-      try {
-        const emotion = await this.emotionClassifier(response);
-        const emotionalMapping = this.mapEmotionToColor(emotion[0].label, emotion[0].score);
-        
-        // Color the response with emotional mapping
-        return this.colorWithEmotion(response, emotionalMapping);
-      } catch (error) {
-        console.error('Error applying emotional color mapping:', error);
-      }
-    }
-    
-    // Fallback: return original response
-    return response;
-  }
-
-  /**
-   * Map emotion to color
-   */
-  private mapEmotionToColor(emotion: string, score: number): EmotionalColorMapping {
-    // Map emotion to valence, arousal, dominance
-    let valence = 0;
-    let arousal = 0.5;
-    let dominance = 0.5;
-    
-    switch (emotion) {
-      case 'positive':
-        valence = 0.7 * score;
-        arousal = 0.6;
-        dominance = 0.6;
-        break;
-      case 'negative':
-        valence = -0.7 * score;
-        arousal = 0.7;
-        dominance = 0.4;
-        break;
-      case 'neutral':
-        valence = 0;
-        arousal = 0.3;
-        dominance = 0.5;
-        break;
-    }
-    
-    // Apply personality influence
-    valence = (valence + this.state.personalityVector[0]) / 2;
-    arousal = (arousal + this.state.personalityVector[1]) / 2;
-    dominance = (dominance + this.state.personalityVector[2]) / 2;
-    
-    // Map to RGB color spectrum
-    const r = Math.floor(((valence + 1) / 2) * 255);
-    const g = Math.floor(arousal * 255);
-    const b = Math.floor(dominance * 255);
-    
-    // Map to frequency signature (simple mapping)
-    const frequencySignature = [
-      valence * 10 + 20, // 10-30 Hz range
-      arousal * 20 + 30, // 30-50 Hz range
-      dominance * 30 + 50 // 50-80 Hz range
-    ];
+    // Calculate average truth value
+    const avgTruthValue = simulations.reduce((sum, sim) => sum + sim.truthValue * sim.probability, 0) /
+      simulations.reduce((sum, sim) => sum + sim.probability, 0);
     
     return {
-      valence,
-      arousal,
-      dominance,
-      colorSpectrum: [r, g, b],
-      frequencySignature
+      compressedResponses: topResponses,
+      emotionalState: avgEmotionalState,
+      truthValue: avgTruthValue
     };
   }
 
   /**
-   * Color text with emotional mapping
+   * Apply truth stratification
    */
-  private colorWithEmotion(text: string, emotionalMapping: EmotionalColorMapping): string {
-    // This is a conceptual function - in a real system, this would apply
-    // emotional coloring to the text based on the emotional mapping
+  private applyTruthStratification(compressedSimulation: any): any {
+    // Filter responses based on truth value
+    const truthThreshold = 0.7;
     
-    // For now, we'll just return the original text
-    return text;
+    if (compressedSimulation.truthValue < truthThreshold) {
+      // Generate a more truthful response
+      const truthfulResponses = this.isometricAlgorithms
+        .filter(algo => algo.truthCompliance > 0.9)
+        .map(algo => algo.pattern);
+      
+      if (truthfulResponses.length > 0) {
+        compressedSimulation.compressedResponses = [
+          ...truthfulResponses.slice(0, 1),
+          ...compressedSimulation.compressedResponses.slice(0, 2)
+        ];
+      }
+    }
+    
+    return compressedSimulation;
   }
 
   /**
-   * Apply truth stratification to response
+   * Generate response from isometric algorithms
    */
-  private async applyTruthStratification(response: string): Promise<string> {
-    // Check for truth compliance
-    const isCompliant = this.checkTruthCompliance(response);
+  private generateResponseFromIsometricAlgorithms(stratifiedSimulation: any): string {
+    const { compressedResponses, emotionalState } = stratifiedSimulation;
     
-    if (!isCompliant) {
-      // If not compliant, modify the response to make it compliant
-      return this.makeCompliant(response);
+    if (compressedResponses.length === 0) {
+      return "I'm processing that through my quantum layers. Could you provide more context?";
+    }
+    
+    // Combine responses based on emotional state
+    let response = '';
+    
+    // Start with a greeting based on emotional state
+    const dominantEmotion = this.getDominantEmotion(emotionalState);
+    const greetings: Record<string, string[]> = {
+      'joy': ['I\'m happy to help with that!', 'That\'s an exciting question!'],
+      'sadness': ['I understand this might be difficult.', 'Let me help you with that concern.'],
+      'anger': ['I sense some frustration. Let me address that.', 'Let\'s work through this together.'],
+      'fear': ['I understand your concern.', 'Let me help clarify this for you.'],
+      'surprise': ['That\'s an interesting question!', 'What a fascinating topic!'],
+      'disgust': ['Let me offer a different perspective.', 'I understand your reaction.'],
+      'trust': ['I appreciate your trust in asking me this.', 'Let\'s explore this together.'],
+      'anticipation': ['I\'m looking forward to exploring this with you.', 'Let\'s discover this together.']
+    };
+    
+    const greeting = greetings[dominantEmotion]?.[Math.floor(Math.random() * greetings[dominantEmotion].length)] || '';
+    if (greeting) {
+      response += greeting + ' ';
+    }
+    
+    // Add main content from compressed responses
+    for (let i = 0; i < compressedResponses.length; i++) {
+      if (i > 0) {
+        // Add transition phrases between responses
+        const transitions = [
+          'Additionally, ',
+          'Furthermore, ',
+          'Moreover, ',
+          'Also, ',
+          'In addition, '
+        ];
+        response += transitions[Math.floor(Math.random() * transitions.length)].toLowerCase();
+      }
+      
+      response += compressedResponses[i] + (i < compressedResponses.length - 1 ? ' ' : '');
+    }
+    
+    // Ensure response ends with proper punctuation
+    if (!response.match(/[.!?]$/)) {
+      response += '.';
     }
     
     return response;
   }
 
   /**
-   * Make a response truth-compliant
+   * Get dominant emotion from emotional state vector
    */
-  private makeCompliant(response: string): string {
-    // Split into sentences
-    const sentences = response.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  private getDominantEmotion(emotionalState: number[]): string {
+    // Find the emotion with the closest vector
+    let closestEmotion = 'neutral';
+    let closestDistance = Infinity;
     
-    // Check each sentence for compliance
-    const compliantSentences = sentences.map(sentence => {
-      if (this.detectContradictions(sentence) || 
-          this.detectHallucinations(sentence) || 
-          this.detectLogicalInconsistencies(sentence)) {
-        // If non-compliant, replace with a compliant alternative
-        return "I'm still developing my understanding of this topic.";
+    for (const [emotion, vector] of this.emotionalSpectrum.entries()) {
+      const distance = this.calculateVectorDistance(emotionalState, vector);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestEmotion = emotion;
       }
-      return sentence;
-    });
+    }
     
-    return compliantSentences.join('. ') + '.';
+    return closestEmotion;
   }
 
   /**
-   * Build geometric algorithms from input-output pairs
+   * Calculate distance between two vectors
    */
-  private async buildGeometricAlgorithms(input: string, output: string): Promise<void> {
-    // Extract words from input and output
-    const inputWords = input.split(/\s+/);
-    const outputWords = output.split(/\s+/);
+  private calculateVectorDistance(vec1: number[], vec2: number[]): number {
+    let sum = 0;
+    for (let i = 0; i < Math.min(vec1.length, vec2.length); i++) {
+      sum += Math.pow(vec1[i] - vec2[i], 2);
+    }
+    return Math.sqrt(sum);
+  }
+
+  /**
+   * Update quantum entanglement
+   */
+  private updateQuantumEntanglement(input: string, output: string): void {
+    // Calculate new entanglement value
+    const newEntanglement = Math.min(1, this.state.quantumEntanglement + 0.01);
+    this.state.quantumEntanglement = newEntanglement;
     
-    // Create word nodes (unique words from input and output)
-    const wordNodes = [...new Set([...inputWords, ...outputWords])];
+    // Update personality vector based on input and output
+    this.updatePersonalityVector(input, output);
     
-    // Create connections between words
-    const connections: {from: number, to: number, weight: number}[] = [];
+    // Create new isometric algorithm if appropriate
+    if (Math.random() < 0.3) {
+      this.createNewIsometricAlgorithm(input, output);
+    }
+  }
+
+  /**
+   * Update personality vector
+   */
+  private updatePersonalityVector(input: string, output: string): void {
+    // Calculate emotional resonance
+    const inputEmotion = this.calculateEmotionalResonance(input);
+    const outputEmotion = this.calculateEmotionalResonance(output);
     
-    // Connect input words to output words
-    for (let i = 0; i < inputWords.length; i++) {
-      const fromIndex = wordNodes.indexOf(inputWords[i]);
+    // Update personality vector (blend of input and output emotions)
+    this.state.personalityVector = this.state.personalityVector.map((v, i) => {
+      const inputInfluence = inputEmotion.vector[i] || 0.5;
+      const outputInfluence = outputEmotion.vector[i] || 0.5;
       
-      for (let j = 0; j < outputWords.length; j++) {
-        const toIndex = wordNodes.indexOf(outputWords[j]);
-        
-        // Calculate connection weight based on positions
-        const weight = 1 - (Math.abs(i - j) / Math.max(inputWords.length, outputWords.length));
-        
-        connections.push({
-          from: fromIndex,
-          to: toIndex,
-          weight
-        });
-      }
-    }
+      // Weighted average with existing personality
+      return v * 0.9 + (inputInfluence * 0.05 + outputInfluence * 0.05);
+    });
+  }
+
+  /**
+   * Create new isometric algorithm
+   */
+  private createNewIsometricAlgorithm(input: string, output: string): void {
+    // Extract a meaningful pattern from the output
+    const sentences = output.split(/[.!?]+/).filter(s => s.trim().length > 0);
     
-    // Get emotional mapping
-    let emotionalMapping: EmotionalColorMapping;
-    if (this.emotionClassifier) {
-      try {
-        const emotion = await this.emotionClassifier(output);
-        emotionalMapping = this.mapEmotionToColor(emotion[0].label, emotion[0].score);
-      } catch (error) {
-        console.error('Error getting emotional mapping:', error);
-        // Default emotional mapping
-        emotionalMapping = {
-          valence: 0,
-          arousal: 0.5,
-          dominance: 0.5,
-          colorSpectrum: [128, 128, 128],
-          frequencySignature: [25, 40, 65]
-        };
-      }
-    } else {
-      // Default emotional mapping
-      emotionalMapping = {
-        valence: 0,
-        arousal: 0.5,
-        dominance: 0.5,
-        colorSpectrum: [128, 128, 128],
-        frequencySignature: [25, 40, 65]
-      };
-    }
+    if (sentences.length === 0) return;
     
-    // Create frequency response
-    const frequencyResponse = [
-      Math.random() * 10 + 20, // 20-30 Hz
-      Math.random() * 20 + 30, // 30-50 Hz
-      Math.random() * 30 + 50  // 50-80 Hz
-    ];
+    // Select a random sentence as the pattern
+    const pattern = sentences[Math.floor(Math.random() * sentences.length)].trim();
     
-    // Create geometric algorithm
-    const algorithm: GeometricAlgorithm = {
+    // Create new algorithm
+    const algorithm: IsometricAlgorithm = {
       id: `algo_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-      wordNodes,
-      connections,
-      emotionalMapping,
-      frequencyResponse,
-      truthStratification: Math.random(),
-      lastActivation: Date.now(),
-      activationCount: 1
+      pattern,
+      geometry: this.generateGeometry(pattern),
+      frequency: 0.5 + Math.random() * 0.5,
+      emotionalColor: this.getEmotionalColor(this.getDominantEmotion(this.state.personalityVector)),
+      truthCompliance: 0.7 + Math.random() * 0.3
     };
     
-    // Add to geometric algorithms
-    this.state.geometricAlgorithms.push(algorithm);
+    // Add to isometric algorithms
+    this.isometricAlgorithms.push(algorithm);
+    this.state.algorithmCount = this.isometricAlgorithms.length;
     
-    // Limit the number of algorithms to prevent memory issues
-    if (this.state.geometricAlgorithms.length > 1000) {
-      // Remove least used algorithms
-      this.state.geometricAlgorithms.sort((a, b) => a.activationCount - b.activationCount);
-      this.state.geometricAlgorithms = this.state.geometricAlgorithms.slice(-1000);
+    console.log(`✨ Created new isometric algorithm: "${pattern.substring(0, 30)}..."`);
+  }
+
+  /**
+   * Build internal representations from input-output pairs
+   */
+  private async buildInternalRepresentations(input: string, output: string): Promise<void> {
+    // Create a new internal representation
+    const representation = {
+      input,
+      output,
+      tokens: input.split(/\s+/),
+      timestamp: Date.now(),
+      metrics: await this.evaluateMetrics(input, output),
+      quantumState: this.generateQuantumState(input)
+    };
+    
+    // Add to internal representations
+    this.state.internalRepresentations.push(representation);
+    
+    // Limit the number of representations to prevent memory issues
+    if (this.state.internalRepresentations.length > 1000) {
+      // Remove oldest representations
+      this.state.internalRepresentations = this.state.internalRepresentations.slice(-1000);
     }
     
-    // If we have enough algorithms, transition to self-emulation phase
+    // If we have enough representations, transition to self-emulation phase
     if (this.state.phase === TNLPPhase.SCAFFOLDING && 
-        this.state.geometricAlgorithms.length >= 50) {
+        this.state.internalRepresentations.length >= 50) {
       this.state.phase = TNLPPhase.SELF_EMULATION;
       console.log('🔄 Transitioning to SELF_EMULATION phase');
     }
@@ -1128,112 +893,33 @@ export class QuantumTNLPSystem {
     
     // Learn from differences
     if (scaffoldMetrics.overallScore > tnlpMetrics.overallScore) {
-      // Create a new geometric algorithm from the scaffold output
-      await this.buildGeometricAlgorithms(input, scaffoldOutput);
-      
       // Analyze what made the scaffold output better
       const improvements = this.analyzeImprovements(scaffoldOutput, tnlpOutput);
       
-      // Apply improvements to personality vector
+      // Create new isometric algorithms based on improvements
       for (const improvement of improvements) {
-        if (improvement.type === 'emotional') {
-          // Adjust personality vector
-          this.state.personalityVector[0] += improvement.adjustment[0];
-          this.state.personalityVector[1] += improvement.adjustment[1];
-          this.state.personalityVector[2] += improvement.adjustment[2];
-        }
+        const algorithm: IsometricAlgorithm = {
+          id: `algo_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+          pattern: improvement.pattern,
+          geometry: this.generateGeometry(improvement.pattern),
+          frequency: 0.5 + Math.random() * 0.5,
+          emotionalColor: this.getEmotionalColor(this.getDominantEmotion(this.state.personalityVector)),
+          truthCompliance: 0.7 + Math.random() * 0.3
+        };
+        
+        this.isometricAlgorithms.push(algorithm);
       }
       
-      // Normalize personality vector
-      const magnitude = Math.sqrt(
-        this.state.personalityVector.reduce((sum, val) => sum + val * val, 0)
-      );
-      if (magnitude > 0) {
-        this.state.personalityVector = this.state.personalityVector.map(
-          val => val / magnitude
-        );
-      }
+      this.state.algorithmCount = this.isometricAlgorithms.length;
     }
     
     // If TNLP metrics are close to scaffold metrics, consider verification
     if (tnlpMetrics.overallScore / scaffoldMetrics.overallScore > 0.8 &&
         this.state.phase === TNLPPhase.SELF_EMULATION &&
-        this.state.geometricAlgorithms.length >= 200) {
+        this.state.internalRepresentations.length >= 200) {
       this.state.phase = TNLPPhase.VERIFICATION;
       console.log('🔄 Transitioning to VERIFICATION phase');
     }
-  }
-
-  /**
-   * Analyze improvements between scaffold and TNLP outputs
-   */
-  private analyzeImprovements(scaffoldOutput: string, tnlpOutput: string): Array<{
-    type: 'structural' | 'emotional' | 'logical';
-    pattern: string;
-    adjustment: number[];
-  }> {
-    const improvements = [];
-    
-    // Analyze emotional differences
-    if (this.emotionClassifier) {
-      try {
-        const scaffoldEmotion = this.emotionClassifier(scaffoldOutput);
-        const tnlpEmotion = this.emotionClassifier(tnlpOutput);
-        
-        if (scaffoldEmotion[0].score > tnlpEmotion[0].score) {
-          // Scaffold has stronger emotion
-          improvements.push({
-            type: 'emotional',
-            pattern: scaffoldEmotion[0].label,
-            adjustment: [0.1, 0.05, 0.05] // Small adjustment to personality vector
-          });
-        }
-      } catch (error) {
-        console.error('Error analyzing emotional improvements:', error);
-      }
-    }
-    
-    // Analyze structural differences
-    const scaffoldSentences = scaffoldOutput.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    const tnlpSentences = tnlpOutput.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    
-    if (scaffoldSentences.length > tnlpSentences.length) {
-      // Scaffold has more sentences
-      improvements.push({
-        type: 'structural',
-        pattern: 'more_sentences',
-        adjustment: [0, 0.1, 0]
-      });
-    }
-    
-    // Analyze logical differences
-    const scaffoldLogical = this.countLogicalConnectors(scaffoldOutput);
-    const tnlpLogical = this.countLogicalConnectors(tnlpOutput);
-    
-    if (scaffoldLogical > tnlpLogical) {
-      // Scaffold has more logical connectors
-      improvements.push({
-        type: 'logical',
-        pattern: 'more_logical',
-        adjustment: [0, 0, 0.1]
-      });
-    }
-    
-    return improvements;
-  }
-
-  /**
-   * Count logical connectors in text
-   */
-  private countLogicalConnectors(text: string): number {
-    const logicalConnectors = [
-      'because', 'therefore', 'thus', 'hence', 'so', 'consequently',
-      'if', 'then', 'else', 'unless', 'although', 'though', 'while',
-      'since', 'as', 'given that', 'provided that'
-    ];
-    
-    const words = text.toLowerCase().split(/\s+/);
-    return words.filter(word => logicalConnectors.includes(word)).length;
   }
 
   /**
@@ -1342,19 +1028,19 @@ export class QuantumTNLPSystem {
     metrics.continuity = this.evaluateContinuity(output);
     
     // Evaluate emotional resonance
-    metrics.emotionalResonance = await this.calculateEmotionalResonance(output);
+    metrics.emotionalResonance = this.evaluateEmotionalResonance(input, output);
     
     // Evaluate truth compliance
-    metrics.truthCompliance = this.checkTruthCompliance(output) ? 1 : 0;
+    metrics.truthCompliance = this.evaluateTruthCompliance(output);
     
     // Calculate overall score
     metrics.overallScore = (
       metrics.fluency * 0.15 +
-      metrics.semanticAccuracy * 0.25 +
+      metrics.semanticAccuracy * 0.2 +
       metrics.abstractReasoning * 0.15 +
       metrics.contextAwareness * 0.15 +
       metrics.continuity * 0.1 +
-      metrics.emotionalResonance * 0.1 +
+      metrics.emotionalResonance * 0.15 +
       metrics.truthCompliance * 0.1
     );
     
@@ -1401,7 +1087,7 @@ export class QuantumTNLPSystem {
         const outputEmbedding = await this.sentenceEncoder(output);
         
         // Calculate cosine similarity
-        return this.cosineSimilarity(inputEmbedding, outputEmbedding);
+        return this.cosineSimilarity(inputEmbedding.data, outputEmbedding.data);
       } catch (error) {
         console.error('Error calculating semantic similarity:', error);
       }
@@ -1421,9 +1107,8 @@ export class QuantumTNLPSystem {
   private evaluateAbstractReasoning(output: string): number {
     // Check for indicators of abstract reasoning
     const abstractIndicators = [
-      'because', 'therefore', 'thus', 'hence', 'so', 'consequently',
-      'if', 'then', 'else', 'unless', 'although', 'though', 'while',
-      'since', 'as', 'given that', 'provided that',
+      'because', 'therefore', 'however', 'although', 'consequently',
+      'if', 'then', 'else', 'unless', 'since', 'while',
       'consider', 'analyze', 'compare', 'contrast', 'evaluate'
     ];
     
@@ -1470,6 +1155,46 @@ export class QuantumTNLPSystem {
   }
 
   /**
+   * Evaluate emotional resonance between input and output
+   */
+  private evaluateEmotionalResonance(input: string, output: string): number {
+    // Calculate emotional resonance of input and output
+    const inputEmotion = this.calculateEmotionalResonance(input);
+    const outputEmotion = this.calculateEmotionalResonance(output);
+    
+    // Calculate similarity between emotional vectors
+    const similarity = this.cosineSimilarity(inputEmotion.vector, outputEmotion.vector);
+    
+    // We want some similarity but not too much (to avoid just mirroring)
+    return Math.min(1, 0.5 + similarity * 0.5);
+  }
+
+  /**
+   * Evaluate truth compliance of output
+   */
+  private evaluateTruthCompliance(output: string): number {
+    // Check for indicators of truthfulness
+    const truthIndicators = [
+      'research', 'evidence', 'study', 'data', 'fact',
+      'according to', 'suggests', 'indicates', 'shows'
+    ];
+    
+    const words = output.toLowerCase().split(/\s+/);
+    const indicatorCount = words.filter(word => truthIndicators.includes(word)).length;
+    
+    // Check for hedging language (reduces truth compliance)
+    const hedgingIndicators = [
+      'might', 'maybe', 'perhaps', 'possibly', 'could be',
+      'sometimes', 'often', 'generally', 'typically'
+    ];
+    
+    const hedgingCount = words.filter(word => hedgingIndicators.includes(word)).length;
+    
+    // Calculate truth compliance
+    return Math.min(1, 0.7 + (indicatorCount * 0.1) - (hedgingCount * 0.05));
+  }
+
+  /**
    * Extract entities from text
    */
   private extractEntities(text: string): string[] {
@@ -1488,6 +1213,87 @@ export class QuantumTNLPSystem {
     
     // Complexity based on average word length and sentence count
     return (avgWordLength / 5) * Math.log(sentenceCount + 1);
+  }
+
+  /**
+   * Analyze improvements between scaffold and TNLP outputs
+   */
+  private analyzeImprovements(scaffoldOutput: string, tnlpOutput: string): Array<{
+    pattern: string;
+    context: string;
+    priority: number;
+  }> {
+    const improvements = [];
+    
+    // Split outputs into sentences
+    const scaffoldSentences = scaffoldOutput.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const tnlpSentences = tnlpOutput.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    
+    // Find unique patterns in scaffold output
+    for (const sentence of scaffoldSentences) {
+      // Check if this pattern exists in TNLP output
+      const exists = tnlpSentences.some(s => this.sentenceSimilarity(s, sentence) > 0.7);
+      
+      if (!exists) {
+        // This is a unique pattern we should learn
+        improvements.push({
+          pattern: sentence,
+          context: this.generateContext(sentence),
+          priority: this.calculatePatternPriority(sentence)
+        });
+      }
+    }
+    
+    return improvements;
+  }
+
+  /**
+   * Generate context for a pattern
+   */
+  private generateContext(pattern: string): string {
+    // Extract key words from pattern
+    const words = pattern.split(/\s+/);
+    const keyWords = words.filter(word => word.length > 4).slice(0, 3);
+    
+    // Find internal representations with similar words
+    const relatedReps = this.state.internalRepresentations.filter(rep => 
+      keyWords.some(word => rep.input.includes(word))
+    );
+    
+    if (relatedReps.length > 0) {
+      // Use a related input as context
+      return relatedReps[0].input;
+    }
+    
+    // Fallback: use generic context
+    return keyWords.join(' ');
+  }
+
+  /**
+   * Calculate priority of a pattern
+   */
+  private calculatePatternPriority(pattern: string): number {
+    // Prioritize patterns with abstract reasoning indicators
+    const abstractIndicators = [
+      'because', 'therefore', 'however', 'although', 'consequently',
+      'if', 'then', 'else', 'unless', 'since', 'while'
+    ];
+    
+    const words = pattern.toLowerCase().split(/\s+/);
+    const indicatorCount = words.filter(word => abstractIndicators.includes(word)).length;
+    
+    return 0.5 + Math.min(0.5, indicatorCount * 0.1);
+  }
+
+  /**
+   * Calculate similarity between two sentences
+   */
+  private sentenceSimilarity(sentence1: string, sentence2: string): number {
+    const words1 = new Set(sentence1.toLowerCase().split(/\s+/));
+    const words2 = sentence2.toLowerCase().split(/\s+/);
+    
+    const overlapCount = words2.filter(word => words1.has(word)).length;
+    return overlapCount / Math.max(words1.size, words2.length);
   }
 
   /**
@@ -1520,7 +1326,10 @@ export class QuantumTNLPSystem {
    */
   private cosineSimilarity(vec1: number[], vec2: number[]): number {
     if (vec1.length !== vec2.length) {
-      throw new Error('Vectors must have the same length');
+      // If vectors have different lengths, use the minimum length
+      const minLength = Math.min(vec1.length, vec2.length);
+      vec1 = vec1.slice(0, minLength);
+      vec2 = vec2.slice(0, minLength);
     }
     
     let dotProduct = 0;
@@ -1533,42 +1342,25 @@ export class QuantumTNLPSystem {
       norm2 += vec2[i] * vec2[i];
     }
     
+    if (norm1 === 0 || norm2 === 0) return 0;
+    
     return dotProduct / (Math.sqrt(norm1) * Math.sqrt(norm2));
   }
 
   /**
-   * Create a random matrix
+   * Select random elements from an array
    */
-  private createRandomMatrix(rows: number, cols: number): number[][] {
-    const matrix: number[][] = [];
+  private selectRandomElements<T>(array: T[], count: number): T[] {
+    const result = [];
+    const arrayCopy = [...array];
     
-    for (let i = 0; i < rows; i++) {
-      matrix[i] = [];
-      for (let j = 0; j < cols; j++) {
-        matrix[i][j] = Math.random();
-      }
+    for (let i = 0; i < count && arrayCopy.length > 0; i++) {
+      const index = Math.floor(Math.random() * arrayCopy.length);
+      result.push(arrayCopy[index]);
+      arrayCopy.splice(index, 1);
     }
     
-    return matrix;
-  }
-
-  /**
-   * Create a random vector
-   */
-  private createRandomVector(size: number): number[] {
-    return Array.from({ length: size }, () => Math.random() * 2 - 1);
-  }
-
-  /**
-   * Hash a string to a number between 0 and 1
-   */
-  private hashString(str: string): number {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = ((hash << 5) - hash) + str.charCodeAt(i);
-      hash |= 0; // Convert to 32bit integer
-    }
-    return Math.abs(hash) / 2147483647; // Normalize to 0-1
+    return result;
   }
 
   /**
@@ -1581,29 +1373,19 @@ export class QuantumTNLPSystem {
         phase: this.state.phase,
         metrics: this.state.metrics,
         iterations: this.state.iterations,
-        geometricAlgorithms: this.state.geometricAlgorithms.map(algo => ({
-          id: algo.id,
-          wordNodes: algo.wordNodes,
-          connections: algo.connections,
-          emotionalMapping: algo.emotionalMapping,
-          frequencyResponse: algo.frequencyResponse,
-          truthStratification: algo.truthStratification,
-          lastActivation: algo.lastActivation,
-          activationCount: algo.activationCount
-        })),
-        quantumState: {
-          entanglementMatrix: this.state.quantumState.entanglementMatrix,
-          superpositionVector: this.state.quantumState.superpositionVector,
-          collapseHistory: this.state.quantumState.collapseHistory.slice(-100) // Keep last 100 collapses
-        },
+        internalRepresentations: this.state.internalRepresentations,
         scaffoldActive: this.state.scaffoldActive,
-        personalityVector: this.state.personalityVector,
-        emotionalHistory: this.state.emotionalHistory.slice(-20) // Keep last 20 emotions
+        quantumEntanglement: this.state.quantumEntanglement,
+        algorithmCount: this.state.algorithmCount,
+        personalityVector: this.state.personalityVector
       };
       
-      await this.tnlpStorage.setItem('quantumTnlpState', stateToSave);
+      await this.tnlpStorage.setItem('tnlpState', stateToSave);
+      
+      // Save isometric algorithms separately
+      await this.tnlpStorage.setItem('isometricAlgorithms', this.isometricAlgorithms);
     } catch (error) {
-      console.error('Error saving Quantum TNLP state:', error);
+      console.error('Error saving TNLP state:', error);
     }
   }
 
@@ -1612,29 +1394,32 @@ export class QuantumTNLPSystem {
    */
   private async loadState(): Promise<void> {
     try {
-      const savedState = await this.tnlpStorage.getItem('quantumTnlpState');
+      const savedState = await this.tnlpStorage.getItem('tnlpState');
       
       if (savedState) {
         // Restore state
         this.state = {
           ...this.state,
-          ...savedState,
-          quantumState: {
-            ...this.state.quantumState,
-            ...savedState.quantumState,
-            multiverseSimulations: [] // Reset simulations
-          }
+          ...savedState
         };
         
-        console.log(`📂 Loaded Quantum TNLP state: Phase ${this.state.phase}, ${this.state.geometricAlgorithms.length} algorithms`);
+        console.log(`📂 Loaded TNLP state: Phase ${this.state.phase}, ${this.state.internalRepresentations.length} representations`);
         
         // If we were in INDEPENDENT phase, make sure scaffold is decommissioned
         if (this.state.phase === TNLPPhase.INDEPENDENT) {
           await this.decommissionScaffold();
         }
       }
+      
+      // Load isometric algorithms
+      const savedAlgorithms = await this.tnlpStorage.getItem('isometricAlgorithms');
+      if (savedAlgorithms) {
+        this.isometricAlgorithms = savedAlgorithms as IsometricAlgorithm[];
+        this.state.algorithmCount = this.isometricAlgorithms.length;
+        console.log(`📂 Loaded ${this.isometricAlgorithms.length} isometric algorithms`);
+      }
     } catch (error) {
-      console.error('Error loading Quantum TNLP state:', error);
+      console.error('Error loading TNLP state:', error);
     }
   }
 
@@ -1645,26 +1430,21 @@ export class QuantumTNLPSystem {
     phase: TNLPPhase;
     metrics: TNLPMetrics;
     iterations: number;
-    algorithmCount: number;
+    representationCount: number;
     scaffoldActive: boolean;
-    personalityVector: number[];
     quantumEntanglement: number;
+    algorithmCount: number;
+    personalityVector: number[];
   } {
-    // Calculate average entanglement
-    const entanglementMatrix = this.state.quantumState.entanglementMatrix;
-    const avgEntanglement = entanglementMatrix.reduce(
-      (sum, row) => sum + row.reduce((rowSum, val) => rowSum + val, 0), 
-      0
-    ) / (entanglementMatrix.length * entanglementMatrix[0].length);
-    
     return {
       phase: this.state.phase,
       metrics: this.state.metrics,
       iterations: this.state.iterations,
-      algorithmCount: this.state.geometricAlgorithms.length,
+      representationCount: this.state.internalRepresentations.length,
       scaffoldActive: this.state.scaffoldActive,
-      personalityVector: this.state.personalityVector,
-      quantumEntanglement: avgEntanglement
+      quantumEntanglement: this.state.quantumEntanglement,
+      algorithmCount: this.state.algorithmCount,
+      personalityVector: this.state.personalityVector
     };
   }
 
@@ -1714,17 +1494,20 @@ export class QuantumTNLPSystem {
       iterations: 0,
       lastInput: '',
       lastOutput: '',
-      geometricAlgorithms: [],
-      quantumState: {
-        entanglementMatrix: this.createRandomMatrix(16, 16),
-        superpositionVector: this.createRandomVector(16),
-        collapseHistory: [],
-        multiverseSimulations: []
-      },
+      internalRepresentations: [],
       scaffoldActive: false,
-      personalityVector: this.createRandomVector(8),
-      emotionalHistory: []
+      quantumEntanglement: 0,
+      algorithmCount: 0,
+      personalityVector: [0.5, 0.5, 0.5, 0.5, 0.5]
     };
+    
+    // Reset quantum layers
+    for (let i = 0; i < this.config.multiverseLayers; i++) {
+      this.quantumLayers[i] = [];
+    }
+    
+    // Reset isometric algorithms
+    this.isometricAlgorithms = [];
     
     // Re-initialize
     await this.initialize();
