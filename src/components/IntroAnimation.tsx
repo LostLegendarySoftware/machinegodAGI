@@ -54,9 +54,14 @@ const IntroAnimation: React.FC = () => {
           showTitle ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
         }`}
       >
-        <h1 className="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 via-orange-500 to-red-700 tracking-wider">
-          Lost Legendary Laby
-        </h1>
+        <div className="flex flex-col items-center">
+          <h1 className="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 via-orange-500 to-red-700 tracking-wider">
+            Lost Legendary
+          </h1>
+          <h2 className="text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 via-orange-500 to-red-700 tracking-wider">
+            Labs
+          </h2>
+        </div>
         <div className="absolute inset-0 blur-sm bg-orange-500 opacity-20 animate-pulse"></div>
       </div>
 
@@ -66,7 +71,7 @@ const IntroAnimation: React.FC = () => {
           showSubtitle ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'
         }`}
       >
-        <p className="text-lg text-amber-300 italic font-cursive relative">
+        <p className="text-lg text-amber-300 italic font-cursive relative transform rotate-12">
           <span className="inline-block w-full whitespace-nowrap relative after:content-[''] after:absolute after:top-0 after:right-0 after:w-full after:h-full after:bg-black after:animate-typewriter">
             By: Mesiah Bishop
           </span>
