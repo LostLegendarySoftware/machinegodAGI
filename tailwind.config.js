@@ -4,8 +4,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        scorched: ['Cinzel Decorative', 'serif'],
-        cursive: ['Tangerine', 'cursive'],
+        cinzel: ['Cinzel Decorative', 'serif'],
+        tangerine: ['Tangerine', 'cursive'],
       },
       animation: {
         float: 'float 6s ease-in-out infinite',
