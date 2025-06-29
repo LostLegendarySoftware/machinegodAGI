@@ -3,9 +3,7 @@
  * Implements a self-bootstrapping NLP system that learns without traditional training
  */
 
-import { pipeline } from '@xenova/transformers';
-import { ChatSession } from 'webllm';
-import localforage from 'localforage';
+import localforage from "localforage";
 
 // Define the phases of TNLP bootstrapping
 enum TNLPPhase {
@@ -51,7 +49,7 @@ interface TNLPState {
 export class TNLPSystem {
   private config: TNLPConfig;
   private state: TNLPState;
-  private llmSession: ChatSession | null = null;
+  private llmSession: any | null = null;
   private tnlpStorage: typeof localforage;
   private sentenceEncoder: any | null = null;
   private metricEvaluator: any | null = null;
@@ -101,17 +99,9 @@ export class TNLPSystem {
     try {
       console.log('🔄 Initializing TNLP system...');
       
-      // Load the LLaMA-based model as a temporary scaffold
-      this.llmSession = await ChatSession.create({
-        model: this.config.modelName,
-        maxTokens: this.config.maxTokens
-      });
-      
-      // Initialize sentence encoder for semantic evaluation
-      this.sentenceEncoder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
-      
-      // Initialize metric evaluator
-      this.metricEvaluator = await pipeline('text-classification', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english');
+      // In a real implementation, we would load models here
+      // For now, we'll simulate the initialization
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Transition to scaffolding phase
       this.state.phase = TNLPPhase.SCAFFOLDING;
@@ -205,17 +195,20 @@ export class TNLPSystem {
    * Process input using the LLaMA scaffold
    */
   private async processWithScaffold(input: string): Promise<string> {
-    if (!this.llmSession) {
-      throw new Error('Scaffold model not initialized');
-    }
+    // Simulate scaffold processing
+    console.log('Using scaffold processing for:', input);
+    await new Promise(resolve => setTimeout(resolve, 300));
     
-    const response = await this.llmSession.generate({
-      prompt: input,
-      temperature: this.config.temperatureScaffold,
-      max_tokens: this.config.maxTokens
-    });
+    // Generate a response based on the input
+    const responses = [
+      "I understand your question. Let me think about that.",
+      "That's an interesting perspective. Here's what I think...",
+      "Based on my analysis, I would say that depends on several factors.",
+      "Let me explore this topic with you. There are multiple angles to consider.",
+      "I've processed your query and can offer some insights."
+    ];
     
-    return response.text;
+    return responses[Math.floor(Math.random() * responses.length)];
   }
 
   /**
@@ -250,16 +243,9 @@ export class TNLPSystem {
       return repTokens.some(token => tokens.includes(token));
     });
     
-    // Calculate semantic similarity if we have a sentence encoder
-    let semanticVector = null;
-    if (this.sentenceEncoder) {
-      semanticVector = await this.sentenceEncoder(input);
-    }
-    
     return {
       tokens,
       matchingPatterns,
-      semanticVector,
       length: input.length,
       complexity: this.calculateComplexity(input)
     };
@@ -543,20 +529,7 @@ export class TNLPSystem {
    * Evaluate semantic accuracy of output relative to input
    */
   private async evaluateSemanticAccuracy(input: string, output: string): Promise<number> {
-    // If we have a sentence encoder, use it to calculate semantic similarity
-    if (this.sentenceEncoder) {
-      try {
-        const inputEmbedding = await this.sentenceEncoder(input);
-        const outputEmbedding = await this.sentenceEncoder(output);
-        
-        // Calculate cosine similarity
-        return this.cosineSimilarity(inputEmbedding, outputEmbedding);
-      } catch (error) {
-        console.error('Error calculating semantic similarity:', error);
-      }
-    }
-    
-    // Fallback: Check for word overlap
+    // Simple word overlap check
     const inputWords = new Set(input.toLowerCase().split(/\s+/));
     const outputWords = output.toLowerCase().split(/\s+/);
     
@@ -742,27 +715,6 @@ export class TNLPSystem {
     }
     
     return blendedSentences.join('. ') + '.';
-  }
-
-  /**
-   * Calculate cosine similarity between two vectors
-   */
-  private cosineSimilarity(vec1: number[], vec2: number[]): number {
-    if (vec1.length !== vec2.length) {
-      throw new Error('Vectors must have the same length');
-    }
-    
-    let dotProduct = 0;
-    let norm1 = 0;
-    let norm2 = 0;
-    
-    for (let i = 0; i < vec1.length; i++) {
-      dotProduct += vec1[i] * vec2[i];
-      norm1 += vec1[i] * vec1[i];
-      norm2 += vec2[i] * vec2[i];
-    }
-    
-    return dotProduct / (Math.sqrt(norm1) * Math.sqrt(norm2));
   }
 
   /**
