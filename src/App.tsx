@@ -16,8 +16,9 @@ import { OnboardingFlow } from './components/OnboardingFlow';
 import { CustomerSupportWidget } from './components/CustomerSupportWidget';
 import { AuthService } from './services/AuthService';
 import { ErrorReportingService } from './services/ErrorReportingService';
+import { TNLPInterface } from './components/TNLPInterface';
 
-type TabType = 'terminal' | 'dashboard' | 'meta-logic' | 'ariel' | 'warp' | 'helix' | 'settings' | 'storage' | 'benchmarks' | 'natural-learning';
+type TabType = 'terminal' | 'dashboard' | 'meta-logic' | 'ariel' | 'warp' | 'helix' | 'settings' | 'storage' | 'benchmarks' | 'natural-learning' | 'tnlp';
 
 // Global MachineGod instance to persist across tab switches
 let globalMachineGod: MachineGodCore | null = null;
@@ -114,10 +115,29 @@ function App() {
     setIsLegalModalOpen(true);
   };
 
+  const handleTNLPStatusChange = (status: any) => {
+    // Update system status with TNLP information
+    setSystemStatus(prevStatus => ({
+      ...prevStatus,
+      metaLogic: {
+        ...prevStatus.metaLogic,
+        evaluationsCount: prevStatus.metaLogic.evaluationsCount + 1,
+        active: true
+      },
+      training: {
+        ...prevStatus.training,
+        progressPercentage: status.metrics?.overallScore ? status.metrics.overallScore * 100 : prevStatus.training.progressPercentage,
+        reasoningAbility: status.metrics?.abstractReasoning || prevStatus.training.reasoningAbility,
+        active: true
+      }
+    }));
+  };
+
   const tabs = [
     { id: 'terminal', label: 'Terminal', icon: Terminal },
     { id: 'dashboard', label: 'Dashboard', icon: Monitor },
     { id: 'natural-learning', label: 'Natural Learning', icon: Sparkles },
+    { id: 'tnlp', label: 'TNLP System', icon: Brain },
     { id: 'meta-logic', label: 'META-LOGIC', icon: Brain },
     { id: 'ariel', label: 'ARIEL', icon: Users },
     { id: 'warp', label: 'WARP', icon: Zap },
@@ -137,6 +157,8 @@ function App() {
         return <LogicStorageDisplay machineGod={machineGod} />;
       case 'benchmarks':
         return <BenchmarkLeaderboard machineGod={machineGod} />;
+      case 'tnlp':
+        return <TNLPInterface onStatusChange={handleTNLPStatusChange} />;
       case 'natural-learning':
         return (
           <div className="p-6 bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg h-full">
@@ -536,6 +558,14 @@ function App() {
                   <span className="flex h-3 w-3 relative">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                  </span>
+                )}
+                
+                {/* TNLP system indicator */}
+                {id === 'tnlp' && (
+                  <span className="flex h-3 w-3 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
                   </span>
                 )}
                 
