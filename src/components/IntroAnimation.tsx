@@ -6,7 +6,6 @@ const IntroAnimation: React.FC = () => {
   const [showSubtitle, setShowSubtitle] = useState(false);
   const [showEnterButton, setShowEnterButton] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
-  const [showSignature, setShowSignature] = useState(false);
   const titleRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -14,8 +13,7 @@ const IntroAnimation: React.FC = () => {
     // Sequence the animations
     const titleTimer = setTimeout(() => setShowTitle(true), 1500);
     const subtitleTimer = setTimeout(() => setShowSubtitle(true), 2500);
-    const signatureTimer = setTimeout(() => setShowSignature(true), 3500);
-    const buttonTimer = setTimeout(() => setShowEnterButton(true), 4500);
+    const buttonTimer = setTimeout(() => setShowEnterButton(true), 3500);
 
     // Create ember and smoke effects
     if (titleRef.current) {
@@ -26,7 +24,6 @@ const IntroAnimation: React.FC = () => {
     return () => {
       clearTimeout(titleTimer);
       clearTimeout(subtitleTimer);
-      clearTimeout(signatureTimer);
       clearTimeout(buttonTimer);
     };
   }, []);
@@ -84,7 +81,7 @@ const IntroAnimation: React.FC = () => {
       {/* Background fire effect */}
       <div className="absolute inset-0 overflow-hidden">
         <img 
-          src="/M0sW.gif" 
+          src="/200.gif" 
           alt="Fire background" 
           className="absolute inset-0 w-full h-full object-cover opacity-70"
         />
@@ -110,7 +107,7 @@ const IntroAnimation: React.FC = () => {
         }`}
       >
         <div className="flex flex-col items-center">
-          <h1 className="text-5xl md:text-7xl font-cinzel font-bold text-gray-900 tracking-wider relative">
+          <h1 className="text-5xl md:text-7xl font-cinzel font-bold text-gray-900 tracking-wider relative border-2 border-red-600 px-4 py-2">
             Lost Legendary
             <span className="absolute inset-0 bg-gradient-to-b from-orange-600 via-red-700 to-red-900 bg-clip-text text-transparent opacity-90 blur-[0.5px]"></span>
           </h1>
@@ -125,28 +122,15 @@ const IntroAnimation: React.FC = () => {
         </div>
       </div>
 
-      {/* Signature with handwriting animation */}
-      <div 
-        className={`relative z-10 mt-16 transition-all duration-1000 ${
-          showSignature ? 'opacity-100' : 'opacity-0'
-        }`}
-      >
-        <p className="text-2xl text-red-900 italic font-tangerine transform rotate-12 relative">
-          <span className="inline-block w-full whitespace-nowrap relative after:content-[''] after:absolute after:top-0 after:right-0 after:w-full after:h-full after:bg-black after:animate-typewriter">
-            By: Mesiah Bishop
-          </span>
-        </p>
-      </div>
-
       {/* Enter button */}
       {showEnterButton && (
         <button 
           onClick={handleEnter}
-          className="mt-16 px-8 py-3 bg-gradient-to-r from-gray-900 to-gray-800 text-orange-500 rounded-lg shadow-lg hover:shadow-orange-500/30 transition-all duration-300 hover:scale-105 border border-orange-700/50 relative overflow-hidden group z-20"
+          className="mt-16 px-8 py-3 bg-gradient-to-r from-red-900 to-red-800 text-red-500 rounded-lg shadow-lg hover:shadow-red-500/30 transition-all duration-300 hover:scale-105 border border-red-700/50 relative overflow-hidden group z-20"
         >
           <span className="relative z-10">Enter the Labyrinth</span>
-          <span className="absolute inset-0 bg-gradient-to-r from-orange-700 to-red-800 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></span>
-          <span className="absolute bottom-0 left-0 right-0 h-[1px] bg-orange-500 opacity-50"></span>
+          <span className="absolute inset-0 bg-gradient-to-r from-red-700 to-red-800 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></span>
+          <span className="absolute bottom-0 left-0 right-0 h-[1px] bg-red-500 opacity-50"></span>
         </button>
       )}
     </div>
