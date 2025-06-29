@@ -1,3 +1,70 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+  font-family: 'Scorched';
+  src: url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&display=swap');
+}
+
+@font-face {
+  font-family: 'Cursive';
+  src: url('https://fonts.googleapis.com/css2?family=Tangerine:wght@700&display=swap');
+}
+
+@layer base {
+  body {
+    @apply bg-black text-white;
+  }
+}
+
+@layer components {
+  .font-scorched {
+    font-family: 'Cinzel Decorative', serif;
+  }
+  
+  .font-cursive {
+    font-family: 'Tangerine', cursive;
+  }
+}
+
+@layer utilities {
+  .animate-float {
+    animation: float 10s ease-in-out infinite;
+  }
+  
+  .animate-pulse-slow {
+    animation: pulse 3s ease-in-out infinite;
+  }
+  
+  .animate-typewriter {
+    animation: typewriter 3s steps(30) forwards;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes typewriter {
+  0% {
+    left: 0;
+  }
+  100% {
+    left: 100%;
+  }
+}

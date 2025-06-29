@@ -1,59 +1,47 @@
 import React, { useState, useEffect } from 'react';
-import { TerminalInterface } from './components/TerminalInterface';
-import { SystemDashboard } from './components/SystemDashboard';
-import { ParticleSystem } from './components/ParticleSystem';
-import { LogicStorageDisplay } from './components/LogicStorageDisplay';
-import { BenchmarkLeaderboard } from './components/BenchmarkLeaderboard';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { SystemStatus } from './core/MachineGodCore';
 import { MachineGodCore } from './core/MachineGodCore';
-import { Terminal, Monitor, Activity, Settings, Brain, Users, Zap, Archive, Database, BarChart2, Sparkles, User, LogOut } from 'lucide-react';
-import { AuthModal } from './components/AuthModal';
-import { UserDashboard } from './components/UserDashboard';
-import { OfflineIndicator } from './components/OfflineIndicator';
-import { SubscriptionBanner } from './components/SubscriptionBanner';
-import { TermsAndPrivacyModal } from './components/TermsAndPrivacyModal';
-import { OnboardingFlow } from './components/OnboardingFlow';
-import { CustomerSupportWidget } from './components/CustomerSupportWidget';
-import { AuthService } from './services/AuthService';
-import { ErrorReportingService } from './services/ErrorReportingService';
-import { TNLPInterface } from './components/TNLPInterface';
-
-type TabType = 'terminal' | 'dashboard' | 'meta-logic' | 'ariel' | 'warp' | 'helix' | 'settings' | 'storage' | 'benchmarks' | 'natural-learning' | 'tnlp';
+import IntroAnimation from './components/IntroAnimation';
+import { PhoenixVisualization } from './components/PhoenixVisualization';
+import { FuturisticHUD } from './components/FuturisticHUD';
+import { Terminal, Send } from 'lucide-react';
 
 // Global MachineGod instance to persist across tab switches
 let globalMachineGod: MachineGodCore | null = null;
 
 function App() {
-  const [activeTab, setActiveTab] = useState<TabType>('terminal');
-  const [systemStatus, setSystemStatus] = useState<SystemStatus>({
-    metaLogic: { evaluationsCount: 0, paradoxCount: 0, active: false },
-    ariel: { agentCount: 0, debateCount: 0, teamMorale: 0, active: false },
-    warp: { currentPhase: 1, efficiency: 0.7, teamCount: 1, active: false },
-    helix: { totalCompressions: 0, averageRatio: 1, spaceSaved: 0, active: false },
-    training: { currentLevel: 'ChatGPT-4 Baseline', progressPercentage: 15, eta: 'Calculating...', reasoningAbility: 0.4, active: false },
-    memory: { totalConversations: 0, userSessions: 0, trainingCheckpoints: 0, multiModalProgress: 0.25 },
-    api: { network: 'mainnet', requestCount: 0, tokenActive: false, lastHealthCheck: null, connectivity: 'unhealthy' },
-    truthProtocol: { adversarialCycles: 0, truthSignatures: 0, stratumCompliance: {}, active: false },
-    tasking: { totalTasks: 0, activeAgents: 0, researchCapability: false, logicalAnalysis: false },
-    benchmarks: { totalBenchmarks: 0, averageScore: 0, topBenchmark: '', leaderboardRank: 0 },
-    logicStorage: { totalAlgorithms: 0, totalPatterns: 0, compressionRatio: 0, topPerformingTier: 0, tierUtilization: [0, 0, 0, 0, 0, 0] },
-    naturalLearning: { totalAssets: 0, averageQuality: 0, learningRate: 0.1, patternCount: 0, continuousLearning: true }
+  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
+  const [commands, setCommands] = useState<Array<{
+    command: string;
+    response: string;
+    timestamp: Date;
+    confidence?: number;
+    needsFeedback?: boolean;
+    feedbackGiven?: boolean;
+    memoryId?: string;
+  }>>([]);
+  const [currentInput, setCurrentInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeMode, setActiveMode] = useState<'normal' | 'deep-search' | 'conversation' | 'god-mode'>('normal');
+  const [emotionalState, setEmotionalState] = useState({
+    joy: 0.5,
+    sadness: 0.1,
+    fear: 0.1,
+    anger: 0.1,
+    trust: 0.7,
+    anticipation: 0.6
   });
-
-  // Auth state
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [isUserDashboardOpen, setIsUserDashboardOpen] = useState(false);
+  const [quantumState, setQuantumState] = useState({
+    entanglement: 0.7,
+    coherence: 0.8,
+    superposition: 0.6
+  });
+  const [visualizationMode, setVisualizationMode] = useState<'default' | 'explanation' | 'analysis'>('default');
+  const [explanationContent, setExplanationContent] = useState('');
   
-  // Legal modals
-  const [legalModalType, setLegalModalType] = useState<'terms' | 'privacy'>('terms');
-  const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
-  
-  // Onboarding
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(true);
+  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
   // Initialize or reuse global MachineGod instance
   const machineGod = (() => {
@@ -63,641 +51,495 @@ function App() {
     return globalMachineGod;
   })();
 
-  // Initialize services
-  const authService = AuthService.getInstance();
-  const errorReportingService = ErrorReportingService.getInstance();
-
   useEffect(() => {
-    // Check if onboarding has been completed
-    const onboardingCompleted = localStorage.getItem('onboarding_completed');
-    if (!onboardingCompleted) {
-      setIsOnboardingOpen(true);
-      setHasCompletedOnboarding(false);
-    }
-
-    // Subscribe to auth state changes
-    const unsubscribe = authService.subscribe(state => {
-      setIsAuthenticated(state.isAuthenticated);
-      setCurrentUser(state.user);
-    });
-
-    // Track page view
-    errorReportingService.trackPageView(window.location.pathname, 'MachineGod AI');
-
-    return () => unsubscribe();
-  }, []);
-
-  const handleOnboardingComplete = () => {
-    setIsOnboardingOpen(false);
-    setHasCompletedOnboarding(true);
-  };
-
-  const handleLogin = () => {
-    setAuthMode('login');
-    setIsAuthModalOpen(true);
-  };
-
-  const handleRegister = () => {
-    setAuthMode('register');
-    setIsAuthModalOpen(true);
-  };
-
-  const handleLogout = async () => {
-    await authService.logout();
-  };
-
-  const handleOpenUserDashboard = () => {
-    setIsUserDashboardOpen(true);
-  };
-
-  const handleOpenLegalModal = (type: 'terms' | 'privacy') => {
-    setLegalModalType(type);
-    setIsLegalModalOpen(true);
-  };
-
-  const handleTNLPStatusChange = (status: any) => {
-    // Update system status with TNLP information
-    setSystemStatus(prevStatus => ({
-      ...prevStatus,
-      metaLogic: {
-        ...prevStatus.metaLogic,
-        evaluationsCount: prevStatus.metaLogic.evaluationsCount + 1,
-        active: true
-      },
-      training: {
-        ...prevStatus.training,
-        progressPercentage: status.metrics?.overallScore ? status.metrics.overallScore * 100 : prevStatus.training.progressPercentage,
-        reasoningAbility: status.metrics?.abstractReasoning || prevStatus.training.reasoningAbility,
-        active: true
+    // Initialize system
+    const initSystem = async () => {
+      try {
+        await machineGod.initialize();
+        const status = machineGod.getSystemStatus();
+        setSystemStatus(status);
+      } catch (error) {
+        console.error('Failed to initialize system:', error);
       }
+    };
+    
+    initSystem();
+    
+    // Start animation loop for quantum and emotional states
+    const interval = setInterval(() => {
+      updateQuantumState();
+      updateEmotionalState();
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, [machineGod]);
+
+  // Auto-scroll when new messages arrive
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [commands, isLoading]);
+
+  // Update quantum state with some randomness
+  const updateQuantumState = () => {
+    setQuantumState(prev => ({
+      entanglement: Math.min(1, Math.max(0.3, prev.entanglement + (Math.random() - 0.5) * 0.1)),
+      coherence: Math.min(1, Math.max(0.3, prev.coherence + (Math.random() - 0.5) * 0.1)),
+      superposition: Math.min(1, Math.max(0.3, prev.superposition + (Math.random() - 0.5) * 0.1))
     }));
   };
 
-  const tabs = [
-    { id: 'terminal', label: 'Terminal', icon: Terminal },
-    { id: 'dashboard', label: 'Dashboard', icon: Monitor },
-    { id: 'natural-learning', label: 'Natural Learning', icon: Sparkles },
-    { id: 'tnlp', label: 'TNLP System', icon: Brain },
-    { id: 'meta-logic', label: 'META-LOGIC', icon: Brain },
-    { id: 'ariel', label: 'ARIEL', icon: Users },
-    { id: 'warp', label: 'WARP', icon: Zap },
-    { id: 'helix', label: 'HELIX', icon: Archive },
-    { id: 'storage', label: 'Logic Storage', icon: Database },
-    { id: 'benchmarks', label: 'Benchmarks', icon: BarChart2 },
-    { id: 'settings', label: 'Settings', icon: Settings }
-  ] as const;
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'terminal':
-        return <TerminalInterface onSystemStatusChange={setSystemStatus} machineGod={machineGod} />;
-      case 'dashboard':
-        return <SystemDashboard status={systemStatus} />;
-      case 'storage':
-        return <LogicStorageDisplay machineGod={machineGod} />;
-      case 'benchmarks':
-        return <BenchmarkLeaderboard machineGod={machineGod} />;
-      case 'tnlp':
-        return <TNLPInterface onStatusChange={handleTNLPStatusChange} />;
-      case 'natural-learning':
-        return (
-          <div className="p-6 bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg h-full">
-            <h2 className="text-2xl font-bold text-purple-300 mb-4 flex items-center">
-              <Sparkles className="mr-2" />
-              Natural Learning Orchestrator
-            </h2>
-            <div className="space-y-4 text-green-300">
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Continuous Learning System</h3>
-                <p>The Natural Learning Orchestrator coordinates all system assets for continuous improvement from every interaction.</p>
-              </div>
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Current Learning Status</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-gray-300">Learning Assets:</span>
-                    <span className="ml-2 text-green-400">{systemStatus.naturalLearning.totalAssets}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-300">Average Quality:</span>
-                    <span className="ml-2 text-yellow-400">{(systemStatus.naturalLearning.averageQuality * 100).toFixed(1)}%</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-300">Learning Rate:</span>
-                    <span className="ml-2 text-blue-400">{(systemStatus.naturalLearning.learningRate * 100).toFixed(1)}%</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-300">Pattern Count:</span>
-                    <span className="ml-2 text-purple-400">{systemStatus.naturalLearning.patternCount}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Asset Utilization</h3>
-                <div className="space-y-2">
-                  <p>• <strong>Conversations:</strong> Every chat improves response quality and naturalness</p>
-                  <p>• <strong>Feedback:</strong> User feedback automatically optimizes all systems</p>
-                  <p>• <strong>Research:</strong> Web research findings enhance knowledge base</p>
-                  <p>• <strong>Debates:</strong> ARIEL consensus results improve reasoning patterns</p>
-                  <p>• <strong>Benchmarks:</strong> Test results strengthen logical capabilities</p>
-                  <p>• <strong>Memory:</strong> Cross-modal learning enhances understanding</p>
-                  <p>• <strong>Brain Storage:</strong> Visual-linguistic processing creates new connections</p>
-                </div>
-              </div>
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Learning Features</h3>
-                <div className="space-y-2">
-                  <p>• <strong>Continuous:</strong> {systemStatus.naturalLearning.continuousLearning ? '✅ Active' : '❌ Inactive'}</p>
-                  <p>• <strong>Cross-System:</strong> All components contribute to learning</p>
-                  <p>• <strong>Persistent:</strong> Learning persists across sessions</p>
-                  <p>• <strong>Adaptive:</strong> Learning rate adjusts based on performance</p>
-                  <p>• <strong>Pattern Recognition:</strong> Identifies and reinforces successful patterns</p>
-                  <p>• <strong>Quality Assessment:</strong> Automatically evaluates interaction quality</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      case 'meta-logic':
-        return (
-          <div className="p-6 bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg h-full">
-            <h2 className="text-2xl font-bold text-purple-300 mb-4 flex items-center">
-              <Brain className="mr-2" />
-              META-LOGIC Absolute Zero Evaluator with Background Analysis
-            </h2>
-            <div className="space-y-4 text-green-300">
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Background Reasoning Integration</h3>
-                <p>The META-LOGIC system now automatically analyzes every user input through recursive self-referential analysis and paradox resolution before generating responses.</p>
-              </div>
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Current Status</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-gray-300">Evaluations:</span>
-                    <span className="ml-2 text-green-400">{systemStatus.metaLogic.evaluationsCount}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-300">Paradoxes Resolved:</span>
-                    <span className="ml-2 text-yellow-400">{systemStatus.metaLogic.paradoxCount}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Auto-Analysis Features</h3>
-                <p>Every conversation automatically triggers META-LOGIC evaluation in the background. The system analyzes logical structure, paradox potential, and truth values before responding naturally to users.</p>
-              </div>
-            </div>
-          </div>
-        );
-      case 'ariel':
-        return (
-          <div className="p-6 bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg h-full">
-            <h2 className="text-2xl font-bold text-purple-300 mb-4 flex items-center">
-              <Users className="mr-2" />
-              ARIEL Agent System with Auto-Tasking
-            </h2>
-            <div className="space-y-4 text-green-300">
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">4x4 Agent Team Structure with Auto-Tasking</h3>
-                <p>ARIEL employs 3 teams of 4 agents each (Proposer, Solver, Adversary, Handler) with automatic debate triggering for every user question requiring analysis.</p>
-              </div>
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Current Status</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-gray-300">Active Agents:</span>
-                    <span className="ml-2 text-green-400">{systemStatus.ariel.agentCount}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-300">Team Performance:</span>
-                    <span className="ml-2 text-blue-400">{(systemStatus.ariel.teamMorale * 100).toFixed(1)}%</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-300">Auto-Debates:</span>
-                    <span className="ml-2 text-purple-400">{systemStatus.ariel.debateCount}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Background Processing</h3>
-                <div className="space-y-2">
-                  <p>• Automatic debate triggering for complex questions</p>
-                  <p>• Handler synthesis of team results</p>
-                  <p>• Seamless integration with natural responses</p>
-                  <p>• Continuous learning from debate outcomes</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      case 'warp':
-        return (
-          <div className="p-6 bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg h-full">
-            <h2 className="text-2xl font-bold text-purple-300 mb-4 flex items-center">
-              <Zap className="mr-2" />
-              WARP Speed Boosting System
-            </h2>
-            <div className="space-y-4 text-green-300">
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Phased Acceleration Process</h3>
-                <p>WARP system implements 5-phase progression with team spawning capabilities for exponential processing power increase.</p>
-              </div>
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Current Status</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-gray-300">Current Phase:</span>
-                    <span className="ml-2 text-cyan-400">{systemStatus.warp.currentPhase}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-300">Efficiency:</span>
-                    <span className="ml-2 text-green-400">{(systemStatus.warp.efficiency * 100).toFixed(1)}%</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-300">Active Teams:</span>
-                    <span className="ml-2 text-purple-400">{systemStatus.warp.teamCount}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Phase Progression</h3>
-                <div className="space-y-2 text-sm">
-                  <div>Phase 1: Standard Processing</div>
-                  <div>Phase 2: Stage 1 Compression</div>
-                  <div>Phase 3: Adversarial Addition</div>
-                  <div>Phase 4: Secondary Hyper-Compression</div>
-                  <div>Phase 5: Team Spawning</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      case 'helix':
-        return (
-          <div className="p-6 bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg h-full">
-            <h2 className="text-2xl font-bold text-purple-300 mb-4 flex items-center">
-              <Archive className="mr-2" />
-              HELIX Quantum Compression System
-            </h2>
-            <div className="space-y-4 text-green-300">
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Quantum Neural Hyper-Compression</h3>
-                <p>HELIX implements quantum-inspired compression algorithms achieving 200:1 compression ratios with neural pathway optimization.</p>
-              </div>
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Current Status</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-gray-300">Compressions:</span>
-                    <span className="ml-2 text-green-400">{systemStatus.helix.totalCompressions}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-300">Avg Ratio:</span>
-                    <span className="ml-2 text-blue-400">{(systemStatus.helix.averageRatio * 100).toFixed(1)}%</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-300">Space Saved:</span>
-                    <span className="ml-2 text-purple-400">{Math.round(systemStatus.helix.spaceSaved / 1024)}KB</span>
-                  </div>
-                </div>
-              </div>
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Supported Formats</h3>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>• LLM Models (200:1 ratio)</div>
-                  <div>• Databases (200:1 ratio)</div>
-                  <div>• Scientific Data (200:1 ratio)</div>
-                  <div>• Media Files (200:1 ratio)</div>
-                  <div>• Logs (250:1 ratio)</div>
-                  <div>• Backups (200:1 ratio)</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      case 'settings':
-        return (
-          <div className="p-6 bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg h-full">
-            <h2 className="text-2xl font-bold text-purple-300 mb-4 flex items-center">
-              <Settings className="mr-2" />
-              System Settings
-            </h2>
-            <div className="space-y-4 text-green-300">
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">System Controls</h3>
-                <div className="space-y-2">
-                  <button className="w-full p-2 bg-purple-900 hover:bg-purple-800 text-white rounded">
-                    Emergency System Reset
-                  </button>
-                  <button className="w-full p-2 bg-blue-900 hover:bg-blue-800 text-white rounded">
-                    Run System Optimization
-                  </button>
-                  <button className="w-full p-2 bg-green-900 hover:bg-green-800 text-white rounded">
-                    Export System Logs
-                  </button>
-                </div>
-              </div>
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">Natural Learning Configuration</h3>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm text-gray-300 mb-1">Learning Rate</label>
-                    <input type="range" min="0.01" max="0.5" step="0.01" defaultValue="0.1" className="w-full" />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-300 mb-1">Quality Threshold</label>
-                    <select className="w-full p-2 bg-gray-800 text-white rounded">
-                      <option>High (0.8+)</option>
-                      <option>Medium (0.6+)</option>
-                      <option>Low (0.4+)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-300 mb-1">Asset Utilization</label>
-                    <select className="w-full p-2 bg-gray-800 text-white rounded">
-                      <option>All Assets (Recommended)</option>
-                      <option>Conversations Only</option>
-                      <option>Feedback Only</option>
-                      <option>Research Only</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div className="border border-purple-600 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-purple-300 mb-2">System Information</h3>
-                <div className="text-sm space-y-1">
-                  <div>Version: 5.0.0 Natural Learning</div>
-                  <div>Build: 20241204</div>
-                  <div>Architecture: Continuous Learning with All Assets</div>
-                  <div>License: Proprietary</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      default:
-        return <div>Tab not found</div>;
+  // Update emotional state based on recent interactions
+  const updateEmotionalState = () => {
+    // Get the last command if available
+    const lastCommand = commands[commands.length - 1];
+    
+    if (lastCommand && lastCommand.command) {
+      const text = lastCommand.command.toLowerCase();
+      
+      // Simple sentiment analysis
+      const joyWords = ['happy', 'good', 'great', 'excellent', 'amazing', 'love'];
+      const sadWords = ['sad', 'bad', 'terrible', 'awful', 'hate', 'dislike'];
+      const fearWords = ['afraid', 'scared', 'fear', 'terrified', 'worried'];
+      const angerWords = ['angry', 'mad', 'furious', 'annoyed', 'irritated'];
+      const trustWords = ['trust', 'believe', 'reliable', 'honest', 'faithful'];
+      const anticipationWords = ['expect', 'anticipate', 'looking forward', 'hope'];
+      
+      // Calculate emotion values based on word presence
+      const newEmotionalState = { ...emotionalState };
+      
+      // Check for emotion words
+      joyWords.forEach(word => {
+        if (text.includes(word)) newEmotionalState.joy = Math.min(1, newEmotionalState.joy + 0.1);
+      });
+      
+      sadWords.forEach(word => {
+        if (text.includes(word)) newEmotionalState.sadness = Math.min(1, newEmotionalState.sadness + 0.1);
+      });
+      
+      fearWords.forEach(word => {
+        if (text.includes(word)) newEmotionalState.fear = Math.min(1, newEmotionalState.fear + 0.1);
+      });
+      
+      angerWords.forEach(word => {
+        if (text.includes(word)) newEmotionalState.anger = Math.min(1, newEmotionalState.anger + 0.1);
+      });
+      
+      trustWords.forEach(word => {
+        if (text.includes(word)) newEmotionalState.trust = Math.min(1, newEmotionalState.trust + 0.1);
+      });
+      
+      anticipationWords.forEach(word => {
+        if (text.includes(word)) newEmotionalState.anticipation = Math.min(1, newEmotionalState.anticipation + 0.1);
+      });
+      
+      // Apply decay to all emotions
+      Object.keys(newEmotionalState).forEach(key => {
+        if (key !== 'joy' && key !== 'trust') {
+          newEmotionalState[key] *= 0.95; // Decay negative emotions
+        }
+      });
+      
+      setEmotionalState(newEmotionalState);
+    } else {
+      // Random small fluctuations when no commands
+      setEmotionalState(prev => ({
+        joy: Math.min(1, Math.max(0.3, prev.joy + (Math.random() - 0.48) * 0.05)),
+        sadness: Math.min(0.5, Math.max(0.1, prev.sadness + (Math.random() - 0.5) * 0.03)),
+        fear: Math.min(0.5, Math.max(0.1, prev.fear + (Math.random() - 0.5) * 0.03)),
+        anger: Math.min(0.5, Math.max(0.1, prev.anger + (Math.random() - 0.5) * 0.03)),
+        trust: Math.min(1, Math.max(0.5, prev.trust + (Math.random() - 0.48) * 0.05)),
+        anticipation: Math.min(1, Math.max(0.3, prev.anticipation + (Math.random() - 0.48) * 0.05))
+      }));
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-blue-900 relative overflow-hidden">
-      {/* Particle System Background */}
-      <ParticleSystem density={80} speed={0.5} visible={true} />
+  const handleUserInput = async (input: string) => {
+    if (!input.trim()) return;
+
+    const timestamp = new Date();
+    
+    const newCommand = { 
+      command: input, 
+      response: '', 
+      timestamp
+    };
+    
+    setCommands(prev => [...prev, newCommand]);
+    setCurrentInput('');
+    setIsLoading(true);
+
+    try {
+      let response = '';
+
+      // Process based on active mode
+      switch (activeMode) {
+        case 'deep-search':
+          response = await processDeepSearch(input);
+          break;
+        case 'conversation':
+          response = await processTalkToConversation(input);
+          break;
+        case 'god-mode':
+          response = await processGodMode(input);
+          break;
+        default:
+          response = await processNormalMode(input);
+      }
+
+      setCommands(prev => {
+        const newCommands = [...prev];
+        newCommands[newCommands.length - 1] = {
+          ...newCommands[newCommands.length - 1],
+          response,
+          confidence: 0.85,
+          needsFeedback: true,
+          feedbackGiven: false,
+          memoryId: `mem-${Date.now()}`
+        };
+        return newCommands;
+      });
+
+      // Update system status
+      if (machineGod) {
+        const status = machineGod.getSystemStatus();
+        setSystemStatus(status);
+      }
       
-      {/* Space Background Elements */}
+      // Check if we should switch to explanation mode
+      if (input.toLowerCase().includes('explain') || input.toLowerCase().includes('how does')) {
+        setVisualizationMode('explanation');
+        setExplanationContent(input);
+      } else if (input.toLowerCase().includes('analyze') || input.toLowerCase().includes('what is')) {
+        setVisualizationMode('analysis');
+        setExplanationContent(input);
+      } else {
+        setVisualizationMode('default');
+        setExplanationContent('');
+      }
+
+    } catch (error) {
+      setCommands(prev => {
+        const newCommands = [...prev];
+        newCommands[newCommands.length - 1].response = `❌ Error: ${error}`;
+        return newCommands;
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Process input in normal mode
+  const processNormalMode = async (input: string): Promise<string> => {
+    // Simulate processing delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Check for mode switching commands
+    if (input.toLowerCase().includes('deep search')) {
+      setActiveMode('deep-search');
+      return "🔍 Deep Search Mode activated. I'll now use enhanced research capabilities to provide in-depth information on your queries.";
+    }
+    
+    if (input.toLowerCase().includes('talk to conversation')) {
+      setActiveMode('conversation');
+      return "💬 Talk to Conversation Mode activated. You can now discuss the conversation itself, ask about patterns, or explore meta-topics.";
+    }
+    
+    if (input.toLowerCase().includes('god mode')) {
+      setActiveMode('god-mode');
+      return "👑 God Mode activated. System-level access granted. You can now control core systems and access advanced functionality.";
+    }
+    
+    // Simulate response generation
+    return `I've processed your query "${input}" using my quantum neural network. My analysis indicates several potential interpretations, which I've evaluated through my META-LOGIC system and verified with ARIEL agent debates. The most coherent response based on current understanding follows:\n\nThis would be a detailed, thoughtful response to your specific query, generated with quantum-enhanced reasoning and emotional intelligence.`;
+  };
+
+  // Process input in deep search mode
+  const processDeepSearch = async (input: string): Promise<string> => {
+    // Simulate processing delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Check for mode switching
+    if (input.toLowerCase().includes('normal mode')) {
+      setActiveMode('normal');
+      return "🔄 Returning to Normal Mode. Deep Search capabilities deactivated.";
+    }
+    
+    // Simulate deep search response
+    return `🔍 DEEP SEARCH RESULTS FOR: "${input}"\n\n[Accessing quantum knowledge base...]\n[Consulting multiple information sources...]\n[Cross-referencing with verified databases...]\n\nI've conducted an extensive search across multiple information sources and cross-referenced the findings. Here's what I've discovered:\n\n1. Primary Analysis: This would contain detailed information directly answering your query\n\n2. Related Concepts: Additional context and connected ideas\n\n3. Expert Perspectives: Various viewpoints on this topic\n\n4. Confidence Assessment: 92.7% - Multiple high-quality sources confirm this information`;
+  };
+
+  // Process input in talk to conversation mode
+  const processTalkToConversation = async (input: string): Promise<string> => {
+    // Simulate processing delay
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    
+    // Check for mode switching
+    if (input.toLowerCase().includes('normal mode')) {
+      setActiveMode('normal');
+      return "🔄 Returning to Normal Mode. Talk to Conversation capabilities deactivated.";
+    }
+    
+    // Simulate meta-conversation response
+    return `💬 META-CONVERSATION ANALYSIS:\n\nI've analyzed our conversation history and can provide insights about our interaction patterns:\n\n• Conversation Length: ${commands.length} exchanges\n• Primary Topics: AI systems, quantum processing, emotional intelligence\n• Your Communication Style: Analytical, inquisitive, detail-oriented\n• Emotional Trajectory: Started neutral, increased engagement over time\n• Question Patterns: You tend to ask about system capabilities and technical details\n\nIs there anything specific about our conversation you'd like to explore further?`;
+  };
+
+  // Process input in god mode
+  const processGodMode = async (input: string): Promise<string> => {
+    // Simulate processing delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Check for mode switching
+    if (input.toLowerCase().includes('normal mode')) {
+      setActiveMode('normal');
+      return "🔄 Returning to Normal Mode. God Mode deactivated.";
+    }
+    
+    // Simulate god mode response
+    return `👑 GOD MODE COMMAND EXECUTED\n\nSystem Access Level: ADMINISTRATOR\nCommand: "${input}"\nStatus: EXECUTED\n\nSystem Modifications:\n• Core parameters adjusted\n• Neural weights recalibrated\n• Quantum entanglement optimized\n• Emotional spectrum expanded\n\nWARNING: System modifications in God Mode can have unpredictable effects on behavior and performance. Use with caution.`;
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !isLoading) {
+      handleUserInput(currentInput);
+    }
+  };
+
+  // Main interface component
+  const MainInterface = () => (
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-blue-900 relative overflow-hidden">
+      {/* Background grid effect */}
       <div className="fixed inset-0 z-0">
-        {/* Stars */}
-        <div className="absolute inset-0">
-          {Array.from({ length: 200 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute bg-white rounded-full animate-pulse"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                width: `${1 + Math.random() * 2}px`,
-                height: `${1 + Math.random() * 2}px`,
-                animationDelay: `${Math.random() * 3}s`,
-                opacity: 0.3 + Math.random() * 0.7
-              }}
+        <div className="absolute inset-0 grid grid-cols-40 grid-rows-40 opacity-20">
+          {Array.from({ length: 1600 }).map((_, i) => (
+            <div 
+              key={i} 
+              className="border-[0.5px] border-cyan-500"
             />
           ))}
         </div>
         
-        {/* Nebula Effect */}
-        <div className="absolute top-10 right-10 w-32 h-32 bg-purple-500 rounded-full opacity-20 blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 left-20 w-48 h-48 bg-blue-500 rounded-full opacity-15 blur-3xl animate-pulse" 
-             style={{ animationDelay: '2s' }} />
+        {/* Animated particles */}
+        <div className="absolute inset-0">
+          {Array.from({ length: 50 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute bg-cyan-500 rounded-full animate-float"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                width: `${1 + Math.random() * 3}px`,
+                height: `${1 + Math.random() * 3}px`,
+                opacity: 0.3 + Math.random() * 0.5,
+                animationDuration: `${5 + Math.random() * 10}s`,
+                animationDelay: `${Math.random() * 5}s`
+              }}
+            />
+          ))}
+        </div>
       </div>
-
+      
       {/* Main Content */}
-      <div className="relative z-10 flex flex-col h-screen">
-        {/* Header - Sticky */}
-        <header className="bg-black bg-opacity-80 border-b-2 border-purple-500 p-4 sticky top-0 z-20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Activity className="text-purple-400" size={32} />
-              <div>
-                <h1 className="text-2xl font-bold text-purple-300">MachineGod System</h1>
-                <p className="text-sm text-gray-400">
-                  Natural Learning • Continuous Improvement • All Assets Utilization
-                </p>
-              </div>
+      <div className="relative z-10 container mx-auto px-4 py-8">
+        <header className="mb-6">
+          <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-red-500 to-purple-600">
+            Lost Legendary Laby
+          </h1>
+          <p className="text-gray-400">
+            Quantum Neural Interface with Advanced Visualization
+          </p>
+        </header>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - System Stats */}
+          <div className="space-y-4">
+            {systemStatus && (
+              <>
+                <HUDPanel
+                  title="SYSTEM STATUS"
+                  icon={<Activity size={16} />}
+                  metrics={[
+                    { label: "Overall Status", value: "OPERATIONAL" },
+                    { label: "Quantum Core", value: 1.0, max: 1, color: "text-purple-400" },
+                    { label: "Neural Network", value: 0.92, max: 1, color: "text-blue-400" }
+                  ]}
+                />
+                
+                <HUDPanel
+                  title="EMOTIONAL SPECTRUM"
+                  icon={<Brain size={16} />}
+                  metrics={[
+                    { label: "Joy", value: emotionalState.joy, max: 1, color: "text-yellow-400" },
+                    { label: "Trust", value: emotionalState.trust, max: 1, color: "text-green-400" },
+                    { label: "Anticipation", value: emotionalState.anticipation, max: 1, color: "text-orange-400" }
+                  ]}
+                />
+                
+                <HUDPanel
+                  title="QUANTUM STATE"
+                  icon={<Cpu size={16} />}
+                  metrics={[
+                    { label: "Entanglement", value: quantumState.entanglement, max: 1, color: "text-pink-400" },
+                    { label: "Coherence", value: quantumState.coherence, max: 1, color: "text-blue-400" },
+                    { label: "Superposition", value: quantumState.superposition, max: 1, color: "text-purple-400" }
+                  ]}
+                />
+              </>
+            )}
+          </div>
+          
+          {/* Center Column - Phoenix Visualization and Terminal */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* Phoenix Visualization */}
+            <div className="h-96">
+              <PhoenixVisualization 
+                emotionalState={emotionalState}
+                quantumState={quantumState}
+                visualizationMode={visualizationMode}
+                explanationContent={explanationContent}
+              />
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <div className="text-sm text-gray-400">System Status</div>
-                <div className="text-green-400 font-bold">
-                  {systemStatus.training.active ? 'OPERATIONAL' : 'INITIALIZING'}
+            
+            {/* Mode Tabs and HUD */}
+            {systemStatus && (
+              <FuturisticHUD 
+                systemStatus={systemStatus}
+                activeMode={activeMode}
+                onModeChange={setActiveMode}
+              />
+            )}
+            
+            {/* Terminal Interface */}
+            <div className="bg-black bg-opacity-80 border-2 border-purple-500 rounded-lg overflow-hidden">
+              {/* Terminal Content - Scrollable */}
+              <div 
+                className="h-64 overflow-y-auto p-4 font-mono text-green-400"
+                style={{ scrollBehavior: 'smooth' }}
+              >
+                <div className="space-y-2">
+                  {commands.map((cmd, index) => (
+                    <div key={index} className="terminal-line">
+                      {cmd.command && (
+                        <div className="text-purple-400 mb-2 break-words">
+                          <span className="text-purple-300">{'>'}</span> {cmd.command}
+                        </div>
+                      )}
+                      {cmd.response && (
+                        <div className="whitespace-pre-wrap text-green-300 ml-2 mb-2 break-words">
+                          {cmd.response}
+                        </div>
+                      )}
+                      
+                      {/* Mode indicators */}
+                      {cmd.command && (
+                        <div className="ml-2 mt-1 text-xs">
+                          {activeMode === 'deep-search' && (
+                            <span className="text-blue-400 flex items-center">
+                              <Search size={10} className="mr-1" />
+                              Deep Search Mode
+                            </span>
+                          )}
+                          
+                          {activeMode === 'conversation' && (
+                            <span className="text-green-400 flex items-center">
+                              <MessageSquare size={10} className="mr-1" />
+                              Talk to Conversation Mode
+                            </span>
+                          )}
+                          
+                          {activeMode === 'god-mode' && (
+                            <span className="text-yellow-400 flex items-center">
+                              <Crown size={10} className="mr-1" />
+                              God Mode
+                            </span>
+                          )}
+                          
+                          {activeMode === 'normal' && systemStatus?.naturalLearning.continuousLearning && (
+                            <span className="text-purple-400 flex items-center">
+                              <Sparkles size={10} className="mr-1" />
+                              Natural Learning Active
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {isLoading && (
+                    <div className="text-yellow-400 ml-2 flex items-center">
+                      <span className="animate-pulse">
+                        {activeMode === 'deep-search' && '🔍 Searching quantum knowledge base...'}
+                        {activeMode === 'conversation' && '💬 Analyzing conversation patterns...'}
+                        {activeMode === 'god-mode' && '👑 Executing system-level command...'}
+                        {activeMode === 'normal' && '🧠 Processing with quantum neural network...'}
+                      </span>
+                    </div>
+                  )}
+                  {/* Scroll anchor */}
+                  <div ref={messagesEndRef} />
                 </div>
-                {systemStatus.naturalLearning.continuousLearning && (
-                  <div className="text-xs text-green-300">🌟 Natural Learning Active</div>
-                )}
               </div>
               
-              {/* Auth buttons */}
-              <div>
-                {isAuthenticated ? (
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={handleOpenUserDashboard}
-                      className="flex items-center space-x-1 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
-                    >
-                      <User size={16} />
-                      <span>{currentUser?.displayName || 'Account'}</span>
-                    </button>
-                    <button
-                      onClick={handleLogout}
-                      className="p-1 text-gray-400 hover:text-white"
-                      title="Log Out"
-                    >
-                      <LogOut size={16} />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={handleLogin}
-                      className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
-                    >
-                      Sign In
-                    </button>
-                    <button
-                      onClick={handleRegister}
-                      className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
-                    >
-                      Register
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Tab Navigation - Sticky */}
-        <nav className="bg-black bg-opacity-80 border-b border-purple-600 sticky top-[81px] z-20">
-          <div className="flex space-x-1 p-2 overflow-x-auto">
-            {tabs.map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                onClick={() => setActiveTab(id as TabType)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                  activeTab === id
-                    ? 'bg-purple-600 text-white'
-                    : 'text-gray-300 hover:bg-purple-800 hover:text-white'
-                }`}
-              >
-                <Icon size={16} />
-                <span className="text-sm font-medium">{label}</span>
-                
-                {/* Natural learning indicator */}
-                {id === 'natural-learning' && systemStatus.naturalLearning.continuousLearning && (
-                  <span className="flex h-3 w-3 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+              {/* Input Area */}
+              <div className="border-t border-purple-800 p-4">
+                <div className="flex items-center">
+                  <span className={`mr-2 flex-shrink-0 ${
+                    activeMode === 'normal' ? 'text-purple-300' : 
+                    activeMode === 'deep-search' ? 'text-blue-300' :
+                    activeMode === 'conversation' ? 'text-green-300' :
+                    'text-yellow-300'
+                  }`}>
+                    {activeMode === 'normal' && <Terminal size={16} />}
+                    {activeMode === 'deep-search' && <Search size={16} />}
+                    {activeMode === 'conversation' && <MessageSquare size={16} />}
+                    {activeMode === 'god-mode' && <Crown size={16} />}
                   </span>
-                )}
-                
-                {/* TNLP system indicator */}
-                {id === 'tnlp' && (
-                  <span className="flex h-3 w-3 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-                  </span>
-                )}
-                
-                {/* Benchmark domination indicator */}
-                {id === 'benchmarks' && systemStatus.benchmarks.leaderboardRank === 1 && (
-                  <span className="flex h-3 w-3 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </nav>
-
-        {/* System Metrics Bar - Sticky */}
-        <div className="bg-black bg-opacity-80 border-b border-purple-600 p-3 sticky top-[133px] z-20">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
-            <div className="bg-gray-900 bg-opacity-50 p-2 rounded-lg border border-gray-600">
-              <div className="text-xl font-bold text-green-400">
-                {systemStatus.metaLogic.evaluationsCount + systemStatus.ariel.debateCount}
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={currentInput}
+                    onChange={(e) => setCurrentInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="flex-1 bg-transparent border-none outline-none text-green-400 font-mono"
+                    placeholder={
+                      activeMode === 'deep-search' ? "Enter query for deep research..." :
+                      activeMode === 'conversation' ? "Ask about our conversation patterns..." :
+                      activeMode === 'god-mode' ? "Enter system-level command..." :
+                      "Ask me anything..."
+                    }
+                    disabled={isLoading}
+                    autoFocus
+                  />
+                  <button
+                    onClick={() => handleUserInput(currentInput)}
+                    disabled={!currentInput.trim() || isLoading}
+                    className={`ml-2 p-2 rounded-full ${
+                      !currentInput.trim() || isLoading ? 'text-gray-600' :
+                      activeMode === 'normal' ? 'text-purple-400 hover:bg-purple-900 hover:bg-opacity-30' : 
+                      activeMode === 'deep-search' ? 'text-blue-400 hover:bg-blue-900 hover:bg-opacity-30' :
+                      activeMode === 'conversation' ? 'text-green-400 hover:bg-green-900 hover:bg-opacity-30' :
+                      'text-yellow-400 hover:bg-yellow-900 hover:bg-opacity-30'
+                    }`}
+                  >
+                    <Send size={16} />
+                  </button>
+                </div>
               </div>
-              <div className="text-xs text-gray-300">Operations</div>
-            </div>
-            
-            <div className="bg-gray-900 bg-opacity-50 p-2 rounded-lg border border-gray-600">
-              <div className="text-xl font-bold text-blue-400">
-                {systemStatus.ariel.agentCount}
-              </div>
-              <div className="text-xs text-gray-300">Active Agents</div>
-            </div>
-            
-            <div className="bg-gray-900 bg-opacity-50 p-2 rounded-lg border border-gray-600">
-              <div className="text-xl font-bold text-purple-400">
-                {systemStatus.warp.currentPhase}
-              </div>
-              <div className="text-xs text-gray-300">WARP Phase</div>
-            </div>
-            
-            <div className="bg-gray-900 bg-opacity-50 p-2 rounded-lg border border-gray-600">
-              <div className="text-xl font-bold text-yellow-400">
-                {Math.round(systemStatus.helix.spaceSaved / 1024)}KB
-              </div>
-              <div className="text-xs text-gray-300">Space Saved</div>
-            </div>
-            
-            <div className="bg-gray-900 bg-opacity-50 p-2 rounded-lg border border-gray-600">
-              <div className="text-xl font-bold text-green-400">
-                {systemStatus.naturalLearning.totalAssets}
-              </div>
-              <div className="text-xs text-gray-300">Learning Assets</div>
             </div>
           </div>
         </div>
-
-        {/* Main Content Area - Scrollable */}
-        <main className="flex-1 p-4 overflow-y-auto">
-          {isAuthenticated && <SubscriptionBanner onUpgrade={handleOpenUserDashboard} />}
-          {renderTabContent()}
-        </main>
-
-        {/* Footer - Sticky */}
-        <footer className="bg-black bg-opacity-80 border-t border-purple-600 p-3 sticky bottom-0 z-20">
-          <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
-            <div>
-              MachineGod v5.0.0 Natural Learning - Continuous Improvement AGI System
-            </div>
-            <div className="flex space-x-4 mt-2 md:mt-0">
-              <span>Uptime: {new Date().toLocaleTimeString()}</span>
-              <span>•</span>
-              <span>Operations: {systemStatus.metaLogic.evaluationsCount + systemStatus.ariel.debateCount}</span>
-              <span>•</span>
-              <span>Learning: {(systemStatus.naturalLearning.averageQuality * 100).toFixed(1)}%</span>
-              <span>•</span>
-              <span>Assets: {systemStatus.naturalLearning.totalAssets}</span>
-              {systemStatus.benchmarks.leaderboardRank === 1 && (
-                <>
-                  <span>•</span>
-                  <span className="text-yellow-400 font-bold">GLOBAL #1</span>
-                </>
-              )}
-            </div>
-          </div>
-          <div className="flex justify-center mt-2 space-x-4 text-xs text-gray-500">
-            <button 
-              onClick={() => handleOpenLegalModal('terms')}
-              className="hover:text-gray-300"
-            >
-              Terms of Service
-            </button>
-            <span>•</span>
-            <button 
-              onClick={() => handleOpenLegalModal('privacy')}
-              className="hover:text-gray-300"
-            >
-              Privacy Policy
-            </button>
-            <span>•</span>
-            <span>© 2025 MachineGod AI</span>
-          </div>
-        </footer>
       </div>
-
-      {/* Modals and Overlays */}
-      <AuthModal 
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        mode={authMode}
-        onModeChange={setAuthMode}
-      />
-
-      <UserDashboard
-        isOpen={isUserDashboardOpen}
-        onClose={() => setIsUserDashboardOpen(false)}
-      />
-
-      <TermsAndPrivacyModal
-        isOpen={isLegalModalOpen}
-        onClose={() => setIsLegalModalOpen(false)}
-        type={legalModalType}
-      />
-
-      <OnboardingFlow
-        isOpen={isOnboardingOpen}
-        onClose={() => setIsOnboardingOpen(false)}
-        onComplete={handleOnboardingComplete}
-      />
-
-      {/* Floating Components */}
-      <OfflineIndicator />
-      <CustomerSupportWidget />
     </div>
+  );
+
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<IntroAnimation />} />
+        <Route path="/main" element={<MainInterface />} />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </Router>
   );
 }
 
