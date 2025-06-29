@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const IntroAnimation: React.FC = () => {
@@ -7,6 +7,7 @@ const IntroAnimation: React.FC = () => {
   const [showEnterButton, setShowEnterButton] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
   const [showSignature, setShowSignature] = useState(false);
+  const titleRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,6 +17,12 @@ const IntroAnimation: React.FC = () => {
     const signatureTimer = setTimeout(() => setShowSignature(true), 3500);
     const buttonTimer = setTimeout(() => setShowEnterButton(true), 4500);
 
+    // Create ember and smoke effects
+    if (titleRef.current) {
+      createEmberEffect(titleRef.current);
+      createSmokeEffect(titleRef.current);
+    }
+
     return () => {
       clearTimeout(titleTimer);
       clearTimeout(subtitleTimer);
@@ -23,6 +30,47 @@ const IntroAnimation: React.FC = () => {
       clearTimeout(buttonTimer);
     };
   }, []);
+
+  const createEmberEffect = (element: HTMLElement) => {
+    const width = element.offsetWidth;
+    const height = element.offsetHeight;
+    
+    for (let i = 0; i < 20; i++) {
+      setTimeout(() => {
+        const ember = document.createElement('div');
+        ember.className = 'ember';
+        ember.style.left = `${Math.random() * width}px`;
+        ember.style.bottom = '0px';
+        ember.style.animationDelay = `${Math.random() * 2}s`;
+        element.appendChild(ember);
+        
+        setTimeout(() => {
+          ember.remove();
+        }, 3000);
+      }, i * 200);
+    }
+  };
+
+  const createSmokeEffect = (element: HTMLElement) => {
+    const width = element.offsetWidth;
+    
+    for (let i = 0; i < 10; i++) {
+      setTimeout(() => {
+        const smoke = document.createElement('div');
+        smoke.className = 'smoke-particle';
+        smoke.style.width = `${10 + Math.random() * 20}px`;
+        smoke.style.height = `${10 + Math.random() * 20}px`;
+        smoke.style.left = `${Math.random() * width}px`;
+        smoke.style.bottom = '0px';
+        smoke.style.animationDelay = `${Math.random() * 2}s`;
+        element.appendChild(smoke);
+        
+        setTimeout(() => {
+          smoke.remove();
+        }, 4000);
+      }, i * 400);
+    }
+  };
 
   const handleEnter = () => {
     setFadeOut(true);
@@ -42,12 +90,12 @@ const IntroAnimation: React.FC = () => {
         />
       </div>
 
-      {/* Phoenix emblem - scaled down to seal size */}
+      {/* Hooded Figure - completely replacing the phoenix */}
       <div className="relative z-10 mb-8">
         <div className="w-40 h-40 relative overflow-hidden rounded-full">
           <img 
-            src="/phix.gif" 
-            alt="Phoenix" 
+            src="/hooded-figure.png" 
+            alt="Hooded Figure" 
             className="w-full h-full object-contain"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black opacity-30 rounded-full"></div>
@@ -56,6 +104,7 @@ const IntroAnimation: React.FC = () => {
 
       {/* Title with ember effect */}
       <div 
+        ref={titleRef}
         className={`relative z-10 transition-all duration-1000 transform ${
           showTitle ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
         }`}
@@ -67,32 +116,12 @@ const IntroAnimation: React.FC = () => {
           </h1>
           
           {/* Labs subtitle */}
-          <h2 className="text-3xl md:text-5xl font-cinzel font-bold text-gray-900 mt-2 tracking-wider relative">
+          <h2 className={`text-3xl md:text-4xl font-cinzel font-bold text-gray-900 mt-2 tracking-wider relative transition-all duration-1000 ${
+            showSubtitle ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+          }`}>
             Labs
             <span className="absolute inset-0 bg-gradient-to-b from-orange-600 via-red-700 to-red-900 bg-clip-text text-transparent opacity-90 blur-[0.5px]"></span>
           </h2>
-        </div>
-        
-        {/* Smoke effect */}
-        <div className="absolute -top-4 left-0 right-0 h-20 pointer-events-none">
-          <div className="w-full h-full bg-gradient-to-t from-transparent to-gray-500 opacity-10 animate-pulse-slow"></div>
-        </div>
-        
-        {/* Ember particles */}
-        <div className="absolute inset-0 pointer-events-none">
-          {Array.from({ length: 15 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 bg-orange-500 rounded-full animate-float"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                opacity: 0.3 + Math.random() * 0.7,
-                animationDuration: `${3 + Math.random() * 4}s`,
-                animationDelay: `${Math.random() * 2}s`
-              }}
-            />
-          ))}
         </div>
       </div>
 
