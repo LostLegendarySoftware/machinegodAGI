@@ -84,22 +84,10 @@ const IntroAnimation: React.FC = () => {
       {/* Background fire effect */}
       <div className="absolute inset-0 overflow-hidden">
         <img 
-          src="/M0sW.gif" 
+          src="/phix.gif" 
           alt="Fire background" 
           className="absolute inset-0 w-full h-full object-cover opacity-70"
         />
-      </div>
-
-      {/* Hooded Figure - completely replacing the phoenix */}
-      <div className="relative z-10 mb-8">
-        <div className="w-40 h-40 relative overflow-hidden rounded-full">
-          <img 
-            src="/hooded-figure.png" 
-            alt="Hooded Figure" 
-            className="w-full h-full object-contain"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black opacity-30 rounded-full"></div>
-        </div>
       </div>
 
       {/* Title with ember effect */}
