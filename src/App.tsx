@@ -4,6 +4,86 @@ import { Activity, Brain, Cpu, Terminal, Send, Search, MessageSquare, Crown, Spa
 import IntroAnimation from './components/IntroAnimation';
 import SubscriptionPaywall from './components/SubscriptionPaywall';
 
+// HUDPanel Props interface
+interface HUDPanelProps {
+  title: string;
+  icon: React.ReactNode;
+  metrics: {
+    label: string;
+    value: number | string;
+    max?: number;
+    color?: string;
+  }[];
+  active?: boolean;
+}
+
+// HUD Panel Component
+const HUDPanel: React.FC<HUDPanelProps> = ({ 
+  title, 
+  icon, 
+  metrics, 
+  active = true 
+}) => {
+  return (
+    <div className={`bg-black bg-opacity-80 border ${active ? 'border-cyan-500' : 'border-gray-700'} rounded-lg p-3 relative overflow-hidden`}>
+      {/* Background grid effect */}
+      <div className="absolute inset-0 grid grid-cols-10 grid-rows-10 opacity-10 pointer-events-none">
+        {Array.from({ length: 100 }).map((_, i) => (
+          <div 
+            key={i} 
+            className="border-[0.5px] border-cyan-500"
+          />
+        ))}
+      </div>
+      
+      {/* Header */}
+      <div className="flex items-center justify-between mb-2 relative z-10">
+        <div className="flex items-center space-x-2">
+          <div className={`${active ? 'text-cyan-400' : 'text-gray-500'}`}>
+            {icon}
+          </div>
+          <h3 className={`text-sm font-bold ${active ? 'text-cyan-300' : 'text-gray-500'}`}>
+            {title}
+          </h3>
+        </div>
+        <div className={`h-2 w-2 rounded-full ${active ? 'bg-cyan-400' : 'bg-gray-600'}`}></div>
+      </div>
+      
+      {/* Metrics */}
+      <div className="space-y-2 relative z-10">
+        {metrics.map((metric, index) => (
+          <div key={index} className="text-xs">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-400">{metric.label}</span>
+              <span className={metric.color || (active ? 'text-cyan-300' : 'text-gray-500')}>
+                {typeof metric.value === 'number' && metric.max 
+                  ? `${(metric.value * 100).toFixed(0)}%` 
+                  : metric.value}
+              </span>
+            </div>
+            
+            {/* Progress bar for numeric values with max */}
+            {typeof metric.value === 'number' && metric.max && (
+              <div className="w-full bg-gray-800 rounded-full h-1 mt-1">
+                <div 
+                  className={`h-1 rounded-full ${metric.color ? metric.color : 'bg-cyan-500'}`}
+                  style={{ width: `${(metric.value / metric.max) * 100}%` }}
+                ></div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      
+      {/* Decorative corner elements */}
+      <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-cyan-500 opacity-70"></div>
+      <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-cyan-500 opacity-70"></div>
+      <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-cyan-500 opacity-70"></div>
+      <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-cyan-500 opacity-70"></div>
+    </div>
+  );
+};
+
 function App() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   
@@ -201,85 +281,5 @@ const MainInterface = () => (
     </div>
   </div>
 );
-
-// HUD Panel Component
-const HUDPanel: React.FC<HUDPanelProps> = ({ 
-  title, 
-  icon, 
-  metrics, 
-  active = true 
-}) => {
-  return (
-    <div className={`bg-black bg-opacity-80 border ${active ? 'border-cyan-500' : 'border-gray-700'} rounded-lg p-3 relative overflow-hidden`}>
-      {/* Background grid effect */}
-      <div className="absolute inset-0 grid grid-cols-10 grid-rows-10 opacity-10 pointer-events-none">
-        {Array.from({ length: 100 }).map((_, i) => (
-          <div 
-            key={i} 
-            className="border-[0.5px] border-cyan-500"
-          />
-        ))}
-      </div>
-      
-      {/* Header */}
-      <div className="flex items-center justify-between mb-2 relative z-10">
-        <div className="flex items-center space-x-2">
-          <div className={`${active ? 'text-cyan-400' : 'text-gray-500'}`}>
-            {icon}
-          </div>
-          <h3 className={`text-sm font-bold ${active ? 'text-cyan-300' : 'text-gray-500'}`}>
-            {title}
-          </h3>
-        </div>
-        <div className={`h-2 w-2 rounded-full ${active ? 'bg-cyan-400' : 'bg-gray-600'}`}></div>
-      </div>
-      
-      {/* Metrics */}
-      <div className="space-y-2 relative z-10">
-        {metrics.map((metric, index) => (
-          <div key={index} className="text-xs">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-400">{metric.label}</span>
-              <span className={metric.color || (active ? 'text-cyan-300' : 'text-gray-500')}>
-                {typeof metric.value === 'number' && metric.max 
-                  ? `${(metric.value * 100).toFixed(0)}%` 
-                  : metric.value}
-              </span>
-            </div>
-            
-            {/* Progress bar for numeric values with max */}
-            {typeof metric.value === 'number' && metric.max && (
-              <div className="w-full bg-gray-800 rounded-full h-1 mt-1">
-                <div 
-                  className={`h-1 rounded-full ${metric.color ? metric.color : 'bg-cyan-500'}`}
-                  style={{ width: `${(metric.value / metric.max) * 100}%` }}
-                ></div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-      
-      {/* Decorative corner elements */}
-      <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-cyan-500 opacity-70"></div>
-      <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-cyan-500 opacity-70"></div>
-      <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-cyan-500 opacity-70"></div>
-      <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-cyan-500 opacity-70"></div>
-    </div>
-  );
-};
-
-// HUDPanel Props interface
-interface HUDPanelProps {
-  title: string;
-  icon: React.ReactNode;
-  metrics: {
-    label: string;
-    value: number | string;
-    max?: number;
-    color?: string;
-  }[];
-  active?: boolean;
-}
 
 export default App;
